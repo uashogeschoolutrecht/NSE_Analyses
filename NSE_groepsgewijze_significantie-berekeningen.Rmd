@@ -1,0 +1,205 @@
+---
+title: "NSE groepsgewijze significantie-berekeningen"
+output:
+  html_document:
+    df_print: paged
+---
+
+Dit is een [R Markdown](http://rmarkdown.rstudio.com) Notebook waarin voor de Nationale Student Enquete (NSE) groepsgewijze T-testen worden uitgerekend. Dit bestaat proces bestaat uit de volgende stappen:
+
+1.  Laden benodigde R-bibliotheken
+
+2.  Inladen NSE benchmark bestand
+
+3.  Groepen definiëren - HU totaal - Benchmark R6 - Benchmark A (alles)
+
+4.  Kijken naar verdeling van data binnen groepen
+
+5.  T-testen uitvoeren
+
+6.  Resultaten wegschrijven
+
+# 0. Laden R-bibliotheken
+
+```{r libraries, message=FALSE, warning=FALSE, include=FALSE}
+library(tidyverse) #Nodig voor add_column() functie
+library(psych) #Nodig voor describeBy() functie
+library(plyr) #Nodig voor rbind() functie
+library(dplyr) #Nodig voor na_if() functie
+```
+
+# 1. Inladen NSE benchmark bestand (clean data)
+
+```{r Inlezen .csv}
+load("~/research-drive/M21033303_DenA (Projectfolder)/DA_Onderzoek/2021nse/data_in/NSE2021 nse_benchmark_clean.RData")
+head(nse_benchmark_clean,10)
+```
+
+# 2. Groepen definiëren
+
+Voor de analyse zijn nodig de vergelijkingsgroepen: HU, R6 (behalve HU) en alles (behalve HU). Hiervoor wordt de volgende groepering aangebracht in de data: HU, R5, O (waarbij O staat voor 'overig'). Groep 'alles behalve HU' kan nu gemaakt worden door de groeperingen 'R5' en 'O' te combineren.
+
+Vervolgens is er een gelaagdheid aan granulariteit waarop de groepen met elkaar vergeleken worden:
+
+-   Totaal
+
+-   Totaal variant (d.w.z.: voltijd, deeltijd, duaal)
+
+-   Opleiding totaal
+
+-   Opleiding variant
+
+```{r Definiëren analyse-groepen}
+groepHU <- "Hogeschool Utrecht"
+groepR5 <- c("Hogeschool van Amsterdam", "De Haagse Hogeschool", "Hogeschool INHOLLAND", "Hogeschool Leiden", "Hogeschool Rotterdam")
+varianttypes <- unique(nse_benchmark_clean$Opleidingsvorm3)
+```
+
+Aanmaken van een extra kolom ('Groep') in de dataset waarin de groep met een lettercode wordt wordt aangegeven.
+
+```{r Toevoegen groeperingen aan dataset}
+nse_benchmark_clean <- nse_benchmark_clean %>% add_column(Groep = NA) #lege kolom toevoegen
+nse_benchmark_clean$Groep[nse_benchmark_clean$BrinNaamActueel == groepHU] <- "HU"
+for (i in 1:length(groepR5))
+{
+  nse_benchmark_clean$Groep[nse_benchmark_clean$BrinNaamActueel == groepR5[i]] <- "R5"
+}
+nse_benchmark_clean$Groep[is.na(nse_benchmark_clean$Groep)] <- "O"
+
+cat("Samenvatting student-aantallen per groep:")
+table(nse_benchmark_clean$Groep)
+```
+
+# 3. NSE Vragen definities
+
+De kolommen waarin de vraagresponses zich bevinden moeten aangegeven worden.
+
+```{r Lijst met vragen maken}
+Nvragen = length(vec_NSEvragen)
+Neerste = min(vec_NSEvragen)
+cat("De volgende ",toString(Nvragen)," vragen zijn opgenomen in deze significantie berekening:")
+NSEvragen
+```
+
+# 4. Samenvattende statistieken (exploratieve data analyse)
+
+-   Kijken naar outliers
+-   Kijken naar verdeling van data binnen groepen
+
+```{r Descriptieve statistieken per vraag weergeven}
+vraag <- 5
+cat("Dit is de vraag: ", NSEvragen[vraag])
+HUscores <- nse_benchmark_clean[nse_benchmark_clean$Groep == "HU",vec_NSEvragen[vraag]]
+R5scores <- nse_benchmark_clean[nse_benchmark_clean$Groep == "R5",vec_NSEvragen[vraag]]
+Allescores <- nse_benchmark_clean[nse_benchmark_clean$Groep == "O" | nse_benchmark_clean$Groep == "R5", vec_NSEvragen[vraag]]
+
+describeBy(nse_benchmark_clean[,vec_NSEvragen[vraag]], nse_benchmark_clean$Groep)
+boxplot(nse_benchmark_clean[,vec_NSEvragen[vraag]]~nse_benchmark_clean$Groep, xlab = "Groep", ylab = NSEvragen[vraag])
+
+table(Allescores)
+hist(Allescores)
+hist(HUscores)
+hist(R5scores)
+```
+
+# 5. Samenvattende statistieken
+
+```{r Statistieken voor alle vragen}
+
+HUscores <- nse_benchmark_clean[nse_benchmark_clean$Groep == "HU",vec_NSEvragen]
+R5scores <- nse_benchmark_clean[nse_benchmark_clean$Groep == "R5",vec_NSEvragen]
+Allescores <- nse_benchmark_clean[nse_benchmark_clean$Groep == "O" | nse_benchmark_clean$Groep == "R5", vec_NSEvragen]
+
+describeBy(nse_benchmark_clean[,vec_NSEvragen], nse_benchmark_clean$Groep)
+
+```
+
+# 6. Significanties uitrekenen
+
+Voor de vergelijkingen tussen groepen wordt de Welch T-test gebruikt: deze doet geen aannames over gelijke varianties tussen de testgroepen. Doordat je groepen met verschillende groepsgroottes vergelijkt is het namelijk mogelijk dat de varianties tussen groepen verschilt.
+
+```{r T-test statistiek}
+#Bijeen zoeken van responsdata per groep
+HUscores <- nse_benchmark_clean[nse_benchmark_clean$Groep == "HU",]
+R5scores <- nse_benchmark_clean[nse_benchmark_clean$Groep == "R5",]
+Allescores <- nse_benchmark_clean[nse_benchmark_clean$Groep == "O" | nse_benchmark_clean$Groep == "R5",]
+p_HUR5 <- rep(NA, Nvragen)
+p_HUAlle <- rep(NA, Nvragen)
+diff_HUR5 <- rep(NA, Nvragen)
+diff_HUAlle <- rep(NA, Nvragen)
+
+Ncor <- Neerste + 1 #correctiefactor zodat index voor het vullen van p waardes op 1 begint en niet op 28
+
+p_HUR5_variant[1] <- t.test(HUscores[HUscores$Opleidingsvorm3 == varianttypes[1]],i_vraag], R5scores[,i_vraag])$p.value
+
+#Voor elke NSEvraag de respons tussen groepen vergelijken en p waarde opslaan
+for (i_vraag in vec_NSEvragen)
+  {
+  p_HUR5[i_vraag-Ncor] <- t.test(HUscores[,i_vraag], R5scores[,i_vraag])$p.value
+  p_HUAlle[i_vraag-Ncor] <- t.test(HUscores[,i_vraag], Allescores[,i_vraag]
+                                   )$p.value
+  diff_HUR5[i_vraag-Ncor] <- mean(HUscores[,i_vraag], na.rm = TRUE) - 
+                             mean(R5scores[,i_vraag], na.rm = TRUE)
+  diff_HUAlle[i_vraag-Ncor] <- mean(HUscores[,i_vraag], na.rm = TRUE) - 
+                               mean(Allescores[,i_vraag], na.rm = TRUE)
+}
+```
+
+# 6B. Multiple testing correctie p-waarden
+
+Op het niveau van HU totaal worden in totaal 57 testen uitgevoerd onderverdeeld in 16 verschillende thema's, zie ook het bestand docs/NSE2021 MultipleTesting. Op het niveau van HU totaal zijn er dus 16 hypotheses die getest worden (sommige middels deel-vragen), namelijk voor elk van deze thema's is de nul-hypothese: "Het gemiddelde antwoord van HU studenten voor deze vraag is gelijk aan die van de R5 studenten". Correctie voor deze multiple-testing vindt plaats via de [Benjamini-Hochberg FDR correctie](https://en.wikipedia.org/wiki/False_discovery_rate#Benjamini%E2%80%93Hochberg_procedure), en dan de Benjamini-Yekutieli (BY) variant. Deze variant controleert ook voor testen die mogelijk positief met elkaar gecorrigeerd zijn (bijvoorbeeld de verschillende docent-deelvragen). Zie ook [hier](https://projecteuclid.org/journals/annals-of-statistics/volume-29/issue-4/The-control-of-the-false-discovery-rate-in-multiple-testing/10.1214/aos/1013699998.full#:~:text=Abstract,many%20applied%20multiple%20testing%20problems.&text=For%20all%20other%20forms%20of,controls%20the%20false%20discovery%20rate.)
+
+```{r FDR correctie}
+p_HUR5_adj <- p.adjust(p_HUR5, method = "BY")
+p_HUAlle_adj <- p.adjust(p_HUAlle, method = 'BY')
+# Bekijken van verschuiving oorspronkelijke p en p_adj
+plot(p_HUR5, p_HUR5_adj); abline(h = 0.05, v=0.05)
+rm(p_HUR5, p_HUAlle)
+```
+
+```{r Visualiseren test-statistiek HU <> R5}
+plot(p_HUR5_adj)
+abline(h = 0.05)
+groepering <- ifelse(diff_HUR5 > 0 & p_HUR5_adj < 0.05, 3, ifelse(diff_HUR5 < 0 & p_HUR5_adj < 0.05, 2, 1))
+plot(diff_HUR5, col = groepering, pch = 19, xlab = "NSE vraag", ylab = "Gemiddelde verschil tussen HU en R5")
+```
+
+```{r Visualiseren test-statistiek HU <> Alle}
+plot(p_HUAlle_adj)
+abline(h = 0.05)
+groepering <- ifelse(diff_HUAlle > 0 & p_HUAlle_adj < 0.05, 3, ifelse(diff_HUAlle < 0 & p_HUAlle_adj < 0.05, 2, 1))
+plot(diff_HUAlle, col = groepering, pch = 19, xlab = "NSE vraag", ylab = "Gemiddelde verschil tussen HU en alle andere hogescholen")
+```
+
+# 7. Exporteren p waardes
+
+```{r Preallocatie van data frame}
+nse_significanties <- data.frame(Opleidingsvorm3=character(),
+                 CrohoActueel=character(),
+                 Vraag=character(),
+                 Benchmark=character(),
+                 p=double(),
+                 Niveau=character())
+```
+
+```{r Vullen met HU totalen}
+temp1 <- data.frame(Opleidingsvorm3  = rep("",Nvragen), 
+                   CrohoActueel      = rep("",Nvragen), 
+                   Vraag             = NSEvragen, 
+                   Benchmark         = rep("R5",Nvragen),  
+                   p                 = p_HUR5_adj, 
+                   Niveau            = rep("HU",Nvragen))
+
+temp2 <- data.frame(Opleidingsvorm3  = rep("",Nvragen),
+                   CrohoActueel      = rep("",Nvragen),
+                   Vraag             = NSEvragen,
+                   Benchmark         = rep("Alle",Nvragen),
+                   p                 = p_HUAlle_adj,
+                   Niveau            = rep("HU",Nvragen))
+nse_significanties <- rbind(nse_significanties, temp1, temp2); rm(temp1, temp2)
+
+```
+
+```{r Wegschrijven naar .csv}
+write.csv2(nse_significanties, file = "~/research-drive/M21033303_DenA (Projectfolder)/DA_Onderzoek/2021nse/data_uit/NSEsignificantietabel.csv")
+```
