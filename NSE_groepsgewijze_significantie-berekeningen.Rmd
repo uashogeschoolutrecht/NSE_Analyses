@@ -184,27 +184,33 @@ plot(diff_HUAlle, col = groepering, pch = 19, xlab = "NSE vraag", ylab = "Gemidd
 
 ```{r Preallocatie van data frame}
 nse_significanties <- data.frame(Opleidingsvorm3=character(),
-                 CrohoActueel=character(),
-                 Vraag=character(),
-                 Benchmark=character(),
-                 p=double(),
-                 Niveau=character())
+                                 CrohoActueel   =character(),
+                                 Vraag          =character(),
+                                 Benchmark      =character(),
+                                 p              =double(),
+                                 Niveau         =character(),
+                                 HUgem          =double(),
+                                 Benchmarkgem   =double())
 ```
 
 ```{r Vullen met HU totalen}
-temp1 <- data.frame(Opleidingsvorm3  = rep("",Nvragen), 
-                   CrohoActueel      = rep("",Nvragen), 
+temp1 <- data.frame(Opleidingsvorm3  = rep("Totaal",Nvragen), 
+                   CrohoActueel      = rep("Totaal",Nvragen), 
                    Vraag             = NSEvragen, 
                    Benchmark         = rep("R5",Nvragen),  
                    p                 = p_HUR5_adj, 
-                   Niveau            = rep("HU",Nvragen))
+                   Niveau            = rep("HU",Nvragen),
+                   HUgem             = gem_HU,
+                   Benchmarkgem      = gem_R5)
 
-temp2 <- data.frame(Opleidingsvorm3  = rep("",Nvragen),
-                   CrohoActueel      = rep("",Nvragen),
+temp2 <- data.frame(Opleidingsvorm3  = rep("Totaal",Nvragen),
+                   CrohoActueel      = rep("Totaal",Nvragen),
                    Vraag             = NSEvragen,
                    Benchmark         = rep("Alle",Nvragen),
                    p                 = p_HUAlle_adj,
-                   Niveau            = rep("HU",Nvragen))
+                   Niveau            = rep("HU",Nvragen),
+                   HUgem             = gem_HU,
+                   Benchmarkgem      = gem_Alle)
 nse_significanties <- rbind(nse_significanties, temp1, temp2); rm(temp1, temp2)
 
 ```
