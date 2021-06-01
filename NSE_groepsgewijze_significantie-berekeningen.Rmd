@@ -142,7 +142,7 @@ for (i_vraag in vec_NSEvragen)
   p_HUR5[i_vraag-Ncor]   <- t.test(HUscores[,i_vraag], R5scores[,i_vraag])$p.value
   p_HUAlle[i_vraag-Ncor] <- t.test(HUscores[,i_vraag], Allescores[,i_vraag]
                                    )$p.value
-  gem_HU1[i_vraag-Ncor]  <- t.test(HUscores[,i_vraag], R5scores[,i_vraag])$estimate[1]
+  gem_HU[i_vraag-Ncor]  <- t.test(HUscores[,i_vraag], R5scores[,i_vraag])$estimate[1]
   gem_R5[i_vraag-Ncor]   <- t.test(HUscores[,i_vraag], R5scores[,i_vraag])$estimate[2]
   gem_Alle[i_vraag-Ncor] <- t.test(HUscores[,i_vraag], Allescores[,i_vraag]
                                    )$estimate[2]
