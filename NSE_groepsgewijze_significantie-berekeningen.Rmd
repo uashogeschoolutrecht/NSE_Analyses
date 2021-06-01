@@ -125,12 +125,13 @@ R5scores <- nse_benchmark_clean[nse_benchmark_clean$Groep == "R5",]
 Allescores <- nse_benchmark_clean[nse_benchmark_clean$Groep == "O" | nse_benchmark_clean$Groep == "R5",]
 p_HUR5 <- rep(NA, Nvragen)
 p_HUAlle <- rep(NA, Nvragen)
+p_HUR5_variant <- rep(NA, Nvragen)
 diff_HUR5 <- rep(NA, Nvragen)
 diff_HUAlle <- rep(NA, Nvragen)
 
 Ncor <- Neerste + 1 #correctiefactor zodat index voor het vullen van p waardes op 1 begint en niet op 28
 
-p_HUR5_variant[1] <- t.test(HUscores[HUscores$Opleidingsvorm3 == varianttypes[1]],i_vraag], R5scores[,i_vraag])$p.value
+p_HUR5_variant[1] <- t.test(HUscores[HUscores$Opleidingsvorm3 == varianttypes[1],28],        R5scores[R5scores$Opleidingsvorm3 == varianttypes[1],28])$p.value
 
 #Voor elke NSEvraag de respons tussen groepen vergelijken en p waarde opslaan
 for (i_vraag in vec_NSEvragen)
