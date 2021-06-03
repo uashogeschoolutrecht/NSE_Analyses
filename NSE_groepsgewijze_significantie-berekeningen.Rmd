@@ -37,7 +37,7 @@ head(nse_benchmark_clean,10)
 
 # 2. Groepen definiëren
 
-Voor de analyse zijn nodig de vergelijkingsgroepen: HU, R6 (behalve HU) en alles (behalve HU). Hiervoor wordt de volgende groepering aangebracht in de data: HU, R5, O (waarbij O staat voor 'overig'). Groep 'alles behalve HU' kan nu gemaakt worden door de groeperingen 'R5' en 'O' te combineren.
+Voor de analyse zijn nodig de vergelijkingsgroepen: HU, R6 (behalve HU) en alles (behalve HU). Hiervoor wordt de volgende groepering aangebracht in de data: HU, R6, O (waarbij O staat voor 'overig'). Groep 'alles behalve HU' kan nu gemaakt worden door de groeperingen 'R6' en 'O' te combineren.
 
 Vervolgens is er een gelaagdheid aan granulariteit waarop de groepen met elkaar vergeleken worden:
 
@@ -51,7 +51,7 @@ Vervolgens is er een gelaagdheid aan granulariteit waarop de groepen met elkaar 
 
 ```{r Definiëren analyse-groepen}
 groepHU <- "Hogeschool Utrecht"
-groepR5 <- c("Hogeschool van Amsterdam", "De Haagse Hogeschool", "Hogeschool INHOLLAND", "Hogeschool Leiden", "Hogeschool Rotterdam")
+groepR6 <- c("Hogeschool van Amsterdam", "De Haagse Hogeschool", "Hogeschool INHOLLAND", "Hogeschool Leiden", "Hogeschool Rotterdam")
 varianttypes <- unique(nse_benchmark_clean$Opleidingsvorm3)
 ```
 
@@ -60,9 +60,9 @@ Aanmaken van een extra kolom ('Groep') in de dataset waarin de groep met een let
 ```{r Toevoegen groeperingen aan dataset}
 nse_benchmark_clean <- nse_benchmark_clean %>% add_column(Groep = NA) #lege kolom toevoegen
 nse_benchmark_clean$Groep[nse_benchmark_clean$BrinNaamActueel == groepHU] <- "HU"
-for (i in 1:length(groepR5))
+for (i in 1:length(groepR6))
 {
-  nse_benchmark_clean$Groep[nse_benchmark_clean$BrinNaamActueel == groepR5[i]] <- "R5"
+  nse_benchmark_clean$Groep[nse_benchmark_clean$BrinNaamActueel == groepR6[i]] <- "R6"
 }
 nse_benchmark_clean$Groep[is.na(nse_benchmark_clean$Groep)] <- "O"
 
@@ -90,8 +90,8 @@ NSEvragen
 vraag <- 5
 cat("Dit is de vraag: ", NSEvragen[vraag])
 HUscores <- nse_benchmark_clean[nse_benchmark_clean$Groep == "HU",vec_NSEvragen[vraag]]
-R5scores <- nse_benchmark_clean[nse_benchmark_clean$Groep == "R5",vec_NSEvragen[vraag]]
-Allescores <- nse_benchmark_clean[nse_benchmark_clean$Groep == "O" | nse_benchmark_clean$Groep == "R5", vec_NSEvragen[vraag]]
+R6scores <- nse_benchmark_clean[nse_benchmark_clean$Groep == "R6",vec_NSEvragen[vraag]]
+Allescores <- nse_benchmark_clean[nse_benchmark_clean$Groep == "O" | nse_benchmark_clean$Groep == "R6", vec_NSEvragen[vraag]]
 
 describeBy(nse_benchmark_clean[,vec_NSEvragen[vraag]], nse_benchmark_clean$Groep)
 boxplot(nse_benchmark_clean[,vec_NSEvragen[vraag]]~nse_benchmark_clean$Groep, xlab = "Groep", ylab = NSEvragen[vraag])
@@ -99,7 +99,7 @@ boxplot(nse_benchmark_clean[,vec_NSEvragen[vraag]]~nse_benchmark_clean$Groep, xl
 table(Allescores)
 hist(Allescores)
 hist(HUscores)
-hist(R5scores)
+hist(R6scores)
 ```
 
 # 5. Samenvattende statistieken
@@ -107,8 +107,8 @@ hist(R5scores)
 ```{r Statistieken voor alle vragen}
 
 HUscores <- nse_benchmark_clean[nse_benchmark_clean$Groep == "HU",vec_NSEvragen]
-R5scores <- nse_benchmark_clean[nse_benchmark_clean$Groep == "R5",vec_NSEvragen]
-Allescores <- nse_benchmark_clean[nse_benchmark_clean$Groep == "O" | nse_benchmark_clean$Groep == "R5", vec_NSEvragen]
+R6scores <- nse_benchmark_clean[nse_benchmark_clean$Groep == "R6",vec_NSEvragen]
+Allescores <- nse_benchmark_clean[nse_benchmark_clean$Groep == "O" | nse_benchmark_clean$Groep == "R6", vec_NSEvragen]
 
 describeBy(nse_benchmark_clean[,vec_NSEvragen], nse_benchmark_clean$Groep)
 
@@ -121,35 +121,35 @@ Voor de vergelijkingen tussen groepen wordt de Welch T-test gebruikt: deze doet 
 ```{r T-test statistiek}
 #Bijeen zoeken van responsdata per groep
 HUscores <- nse_benchmark_clean[nse_benchmark_clean$Groep == "HU",]
-R5scores <- nse_benchmark_clean[nse_benchmark_clean$Groep == "R5",]
-Allescores <- nse_benchmark_clean[nse_benchmark_clean$Groep == "O" | nse_benchmark_clean$Groep == "R5",]
+R6scores <- nse_benchmark_clean[nse_benchmark_clean$Groep == "R6",]
+Allescores <- nse_benchmark_clean[nse_benchmark_clean$Groep == "O" | nse_benchmark_clean$Groep == "R6",]
 #Pre-allocatie van objecten die in de volgende stap gevuld gaan worden
-p_HUR5 <- rep(NA, Nvragen)
+p_HUR6 <- rep(NA, Nvragen)
 p_HUAlle <- rep(NA, Nvragen)
-p_HUR5_variant <- rep(NA, Nvragen)
+p_HUR6_variant <- rep(NA, Nvragen)
 gem_HU <- rep(NA, Nvragen)
-gem_R5 <- rep(NA, Nvragen)
+gem_R6 <- rep(NA, Nvragen)
 gem_Alle <- rep(NA, Nvragen)
-diff_HUR5 <- rep(NA, Nvragen)
+diff_HUR6 <- rep(NA, Nvragen)
 diff_HUAlle <- rep(NA, Nvragen)
 
 Ncor <- Neerste + 1 #correctiefactor zodat index voor het vullen van p waardes op 1 begint en niet op 28
 
-p_HUR5_variant[1] <- t.test(HUscores[HUscores$Opleidingsvorm3 == varianttypes[1],28],        R5scores[R5scores$Opleidingsvorm3 == varianttypes[1],28])$p.value
+p_HUR6_variant[1] <- t.test(HUscores[HUscores$Opleidingsvorm3 == varianttypes[1],28],        R6scores[R6scores$Opleidingsvorm3 == varianttypes[1],28])$p.value
 
 #Voor elke NSEvraag de respons tussen groepen vergelijken en p waarde opslaan
 for (i_vraag in vec_NSEvragen)
   {
-  p_HUR5[i_vraag-Ncor]   <- t.test(HUscores[,i_vraag], R5scores[,i_vraag])$p.value
+  p_HUR6[i_vraag-Ncor]   <- t.test(HUscores[,i_vraag], R6scores[,i_vraag])$p.value
   p_HUAlle[i_vraag-Ncor] <- t.test(HUscores[,i_vraag], Allescores[,i_vraag]
                                    )$p.value
-  gem_HU[i_vraag-Ncor]  <- t.test(HUscores[,i_vraag], R5scores[,i_vraag])$estimate[1]
-  gem_R5[i_vraag-Ncor]   <- t.test(HUscores[,i_vraag], R5scores[,i_vraag])$estimate[2]
+  gem_HU[i_vraag-Ncor]  <- t.test(HUscores[,i_vraag], R6scores[,i_vraag])$estimate[1]
+  gem_R6[i_vraag-Ncor]   <- t.test(HUscores[,i_vraag], R6scores[,i_vraag])$estimate[2]
   gem_Alle[i_vraag-Ncor] <- t.test(HUscores[,i_vraag], Allescores[,i_vraag]
                                    )$estimate[2]
   
-  diff_HUR5[i_vraag-Ncor]   <- mean(HUscores[,i_vraag], na.rm = TRUE) - 
-                             mean(R5scores[,i_vraag], na.rm = TRUE)
+  diff_HUR6[i_vraag-Ncor]   <- mean(HUscores[,i_vraag], na.rm = TRUE) - 
+                             mean(R6scores[,i_vraag], na.rm = TRUE)
   diff_HUAlle[i_vraag-Ncor] <- mean(HUscores[,i_vraag], na.rm = TRUE) - 
                                mean(Allescores[,i_vraag], na.rm = TRUE)
 }
@@ -157,21 +157,21 @@ for (i_vraag in vec_NSEvragen)
 
 # 6B. Multiple testing correctie p-waarden
 
-Op het niveau van HU totaal worden in totaal 57 testen uitgevoerd onderverdeeld in 16 verschillende thema's, zie ook het bestand docs/NSE2021 MultipleTesting. Op het niveau van HU totaal zijn er dus 16 hypotheses die getest worden (sommige middels deel-vragen), namelijk voor elk van deze thema's is de nul-hypothese: "Het gemiddelde antwoord van HU studenten voor deze vraag is gelijk aan die van de R5 studenten". Correctie voor deze multiple-testing vindt plaats via de [Benjamini-Hochberg FDR correctie](https://en.wikipedia.org/wiki/False_discovery_rate#Benjamini%E2%80%93Hochberg_procedure), en dan de Benjamini-Yekutieli (BY) variant. Deze variant controleert ook voor testen die mogelijk positief met elkaar gecorrigeerd zijn (bijvoorbeeld de verschillende docent-deelvragen). Zie ook [hier](https://projecteuclid.org/journals/annals-of-statistics/volume-29/issue-4/The-control-of-the-false-discovery-rate-in-multiple-testing/10.1214/aos/1013699998.full#:~:text=Abstract,many%20applied%20multiple%20testing%20problems.&text=For%20all%20other%20forms%20of,controls%20the%20false%20discovery%20rate.)
+Op het niveau van HU totaal worden in totaal 57 testen uitgevoerd onderverdeeld in 16 verschillende thema's, zie ook het bestand docs/NSE2021 MultipleTesting. Op het niveau van HU totaal zijn er dus 16 hypotheses die getest worden (sommige middels deel-vragen), namelijk voor elk van deze thema's is de nul-hypothese: "Het gemiddelde antwoord van HU studenten voor deze vraag is gelijk aan die van de R6 studenten". Correctie voor deze multiple-testing vindt plaats via de [Benjamini-Hochberg FDR correctie](https://en.wikipedia.org/wiki/False_discovery_rate#Benjamini%E2%80%93Hochberg_procedure), en dan de Benjamini-Yekutieli (BY) variant. Deze variant controleert ook voor testen die mogelijk positief met elkaar gecorrigeerd zijn (bijvoorbeeld de verschillende docent-deelvragen). Zie ook [hier](https://projecteuclid.org/journals/annals-of-statistics/volume-29/issue-4/The-control-of-the-false-discovery-rate-in-multiple-testing/10.1214/aos/1013699998.full#:~:text=Abstract,many%20applied%20multiple%20testing%20problems.&text=For%20all%20other%20forms%20of,controls%20the%20false%20discovery%20rate.)
 
 ```{r FDR correctie}
-p_HUR5_adj <- p.adjust(p_HUR5, method = "BY")
+p_HUR6_adj <- p.adjust(p_HUR6, method = "BY")
 p_HUAlle_adj <- p.adjust(p_HUAlle, method = 'BY')
 # Bekijken van verschuiving oorspronkelijke p en p_adj
-plot(p_HUR5, p_HUR5_adj); abline(h = 0.05, v=0.05)
-rm(p_HUR5, p_HUAlle)
+plot(p_HUR6, p_HUR6_adj); abline(h = 0.05, v=0.05)
+rm(p_HUR6, p_HUAlle)
 ```
 
-```{r Visualiseren test-statistiek HU <> R5}
-plot(p_HUR5_adj)
+```{r Visualiseren test-statistiek HU <> R6}
+plot(p_HUR6_adj)
 abline(h = 0.05)
-groepering <- ifelse(diff_HUR5 > 0 & p_HUR5_adj < 0.05, 3, ifelse(diff_HUR5 < 0 & p_HUR5_adj < 0.05, 2, 1))
-plot(diff_HUR5, col = groepering, pch = 19, xlab = "NSE vraag", ylab = "Gemiddelde verschil tussen HU en R5")
+groepering <- ifelse(diff_HUR6 > 0 & p_HUR6_adj < 0.05, 3, ifelse(diff_HUR6 < 0 & p_HUR6_adj < 0.05, 2, 1))
+plot(diff_HUR6, col = groepering, pch = 19, xlab = "NSE vraag", ylab = "Gemiddelde verschil tussen HU en R6")
 ```
 
 ```{r Visualiseren test-statistiek HU <> Alle}
@@ -202,11 +202,11 @@ Vervolgens de verschillende analyses stuk voor stuk in een dataframe zetten, en 
 temp1 <- data.frame(Opleidingsvorm3  = rep("Totaal",Nvragen), 
                    CrohoActueel      = rep("Totaal",Nvragen), 
                    Vraag             = NSEvragen, 
-                   Benchmark         = rep("R5",Nvragen),  
-                   p                 = p_HUR5_adj, 
+                   Benchmark         = rep("R6",Nvragen),  
+                   p                 = p_HUR6_adj, 
                    Niveau            = rep("HU",Nvragen),
                    HUgem             = gem_HU,
-                   Benchmarkgem      = gem_R5)
+                   Benchmarkgem      = gem_R6)
 
 temp2 <- data.frame(Opleidingsvorm3  = rep("Totaal",Nvragen),
                    CrohoActueel      = rep("Totaal",Nvragen),
