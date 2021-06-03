@@ -53,6 +53,7 @@ Vervolgens is er een gelaagdheid aan granulariteit waarop de groepen met elkaar 
 groepHU <- "Hogeschool Utrecht"
 groepR5 <- c("Hogeschool van Amsterdam", "De Haagse Hogeschool", "Hogeschool INHOLLAND", "Hogeschool Leiden", "Hogeschool Rotterdam")
 varianttypes <- unique(nse_benchmark_clean$Opleidingsvorm3)
+Nvarianten <- length(varianttypes)
 ```
 
 Aanmaken van een extra kolom ('Groep') in de dataset waarin de groep met een lettercode wordt wordt aangegeven.
@@ -125,7 +126,7 @@ R5scores <- nse_benchmark_clean[nse_benchmark_clean$Groep == "R5",]
 Allescores <- nse_benchmark_clean[nse_benchmark_clean$Groep == "O" | nse_benchmark_clean$Groep == "R5",]
 p_HUR5 <- rep(NA, Nvragen)
 p_HUAlle <- rep(NA, Nvragen)
-p_HUR5_variant <- rep(NA, Nvragen)
+p_HUR5_variant <- matrix(,Nvragen, Nvarianten)
 gem_HU <- rep(NA, Nvragen)
 gem_R5 <- rep(NA, Nvragen)
 gem_Alle <- rep(NA, Nvragen)
@@ -134,15 +135,22 @@ diff_HUAlle <- rep(NA, Nvragen)
 
 Ncor <- Neerste + 1 #correctiefactor zodat index voor het vullen van p waardes op 1 begint en niet op 28
 
-p_HUR5_variant[1] <- t.test(HUscores[HUscores$Opleidingsvorm3 == varianttypes[1],28],        R5scores[R5scores$Opleidingsvorm3 == varianttypes[1],28])$p.value
+p_HUR5_variant <- matrix(,Nvragen, Nvarianten)
+for (i_vraag in vec_NSEvragen)
+{
+  i_vraag <- 32
+    p_HUR5_variant[i_vraag-Ncor,1] <- t.test(HUscores[HUscores$Opleidingsvorm3 ==  varianttypes[1],i_vraag], R5scores[R5scores$Opleidingsvorm3 == varianttypes[1],i_vraag])$p.value
+}
 
 #Voor elke NSEvraag de respons tussen groepen vergelijken en p waarde opslaan
 for (i_vraag in vec_NSEvragen)
   {
-  p_HUR5[i_vraag-Ncor]   <- t.test(HUscores[,i_vraag], R5scores[,i_vraag])$p.value
-  p_HUAlle[i_vraag-Ncor] <- t.test(HUscores[,i_vraag], Allescores[,i_vraag]
-                                   )$p.value
-  gem_HU[i_vraag-Ncor]  <- t.test(HUscores[,i_vraag], R5scores[,i_vraag])$estimate[1]
+  p_HUR5[i_vraag-Ncor]   <- t.test(HUscores[,i_vraag], 
+                                   R5scores[,i_vraag])$p.value
+  p_HUAlle[i_vraag-Ncor] <- t.test(HUscores[,i_vraag], 
+                                   Allescores[,i_vraag])$p.value
+  gem_HU[i_vraag-Ncor]   <- t.test(HUscores[,i_vraag], 
+                                   R5scores[,i_vraag])$estimate[1]
   gem_R5[i_vraag-Ncor]   <- t.test(HUscores[,i_vraag], R5scores[,i_vraag])$estimate[2]
   gem_Alle[i_vraag-Ncor] <- t.test(HUscores[,i_vraag], Allescores[,i_vraag]
                                    )$estimate[2]
