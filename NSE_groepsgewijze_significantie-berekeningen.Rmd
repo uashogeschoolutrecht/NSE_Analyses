@@ -55,19 +55,17 @@ groepR6 <- c("Hogeschool van Amsterdam", "De Haagse Hogeschool", "Hogeschool INH
 varianttypes <- unique(nse_benchmark_clean$Opleidingsvorm3)
 ```
 
-Aanmaken van een extra kolom ('Groep') in de dataset waarin de groep met een lettercode wordt wordt aangegeven.
+Aanmaken van logische vectoren op basis van bovenstaande groepdefinities, waarmee in het vervolg eenvoudig datagroepen gekozen kunnen worden. Elke vector bevat TRUE voor elk regel in de NSE benchmark data binnen de groep valt, en FALSE als de rij buiten de groep valt.
 
-```{r Toevoegen groeperingen aan dataset}
-nse_benchmark_clean <- nse_benchmark_clean %>% add_column(Groep = NA) #lege kolom toevoegen
-nse_benchmark_clean$Groep[nse_benchmark_clean$BrinNaamActueel == groepHU] <- "HU"
-for (i in 1:length(groepR6))
-{
-  nse_benchmark_clean$Groep[nse_benchmark_clean$BrinNaamActueel == groepR6[i]] <- "R6"
-}
-nse_benchmark_clean$Groep[is.na(nse_benchmark_clean$Groep)] <- "O"
+```{r Logische vectoren opzetten}
+vec_groepHU   <- nse_benchmark_clean$BrinNaamActueel == groepHU
+vec_groepR6   <- nse_benchmark_clean$BrinNaamActueel %in% groepR6
+vec_groepAlle <- nse_benchmark_clean$BrinNaamActueel != groepHU #alle instituten behalve de HU
 
 cat("Samenvatting student-aantallen per groep:")
-table(nse_benchmark_clean$Groep)
+summary(vec_groepHU)
+summary(vec_groepR6)
+summary(vec_groepAlle)
 ```
 
 # 3. NSE Vragen definities
@@ -89,28 +87,28 @@ NSEvragen
 ```{r Descriptieve statistieken per vraag weergeven}
 vraag <- 5
 cat("Dit is de vraag: ", NSEvragen[vraag])
-HUscores <- nse_benchmark_clean[nse_benchmark_clean$Groep == "HU",vec_NSEvragen[vraag]]
-R6scores <- nse_benchmark_clean[nse_benchmark_clean$Groep == "R6",vec_NSEvragen[vraag]]
-Allescores <- nse_benchmark_clean[nse_benchmark_clean$Groep == "O" | nse_benchmark_clean$Groep == "R6", vec_NSEvragen[vraag]]
-
-describeBy(nse_benchmark_clean[,vec_NSEvragen[vraag]], nse_benchmark_clean$Groep)
-boxplot(nse_benchmark_clean[,vec_NSEvragen[vraag]]~nse_benchmark_clean$Groep, xlab = "Groep", ylab = NSEvragen[vraag])
+HUscores <- nse_benchmark_clean[vec_groepHU,vec_NSEvragen[vraag]]
+R6scores <- nse_benchmark_clean[vec_groepR6,vec_NSEvragen[vraag]]
+Allescores <- nse_benchmark_clean[vec_groepAlle, vec_NSEvragen[vraag]]
 
 table(Allescores)
 hist(Allescores)
 hist(HUscores)
 hist(R6scores)
+
+#Weggooien tijdelijke objecten
+rm(HUscores, R6scores, Allescores)
 ```
 
 # 5. Samenvattende statistieken
 
+Algemene statistieken bekijken voor alle vragen, per groep.
+
 ```{r Statistieken voor alle vragen}
 
-HUscores <- nse_benchmark_clean[nse_benchmark_clean$Groep == "HU",vec_NSEvragen]
-R6scores <- nse_benchmark_clean[nse_benchmark_clean$Groep == "R6",vec_NSEvragen]
-Allescores <- nse_benchmark_clean[nse_benchmark_clean$Groep == "O" | nse_benchmark_clean$Groep == "R6", vec_NSEvragen]
-
-describeBy(nse_benchmark_clean[,vec_NSEvragen], nse_benchmark_clean$Groep)
+describeBy(nse_benchmark_clean[,vec_NSEvragen], vec_groepHU)
+describeBy(nse_benchmark_clean[,vec_NSEvragen], vec_groepR6)
+describeBy(nse_benchmark_clean[,vec_NSEvragen], vec_groepAlle)
 
 ```
 
@@ -120,9 +118,9 @@ Voor de vergelijkingen tussen groepen wordt de Welch T-test gebruikt: deze doet 
 
 ```{r T-test statistiek}
 #Bijeen zoeken van responsdata per groep
-HUscores <- nse_benchmark_clean[nse_benchmark_clean$Groep == "HU",]
-R6scores <- nse_benchmark_clean[nse_benchmark_clean$Groep == "R6",]
-Allescores <- nse_benchmark_clean[nse_benchmark_clean$Groep == "O" | nse_benchmark_clean$Groep == "R6",]
+HUscores   <- nse_benchmark_clean[vec_groepHU,]
+R6scores   <- nse_benchmark_clean[vec_groepR6,]
+Allescores <- nse_benchmark_clean[vec_groepAlle,]
 #Pre-allocatie van objecten die in de volgende stap gevuld gaan worden
 p_HUR6 <- rep(NA, Nvragen)
 p_HUAlle <- rep(NA, Nvragen)
