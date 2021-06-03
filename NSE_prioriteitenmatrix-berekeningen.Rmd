@@ -90,9 +90,9 @@ Bijdrage_score <- rwa_resultaten$result$Sign.Rescaled.RelWeight
 Prioriteitenmatrix <- data.frame(Organisatieonderdeel,rwa_scores,Bijdrage_score)
 ```
 ```{r Vullen met HU totalen}
-temp1 <- data.frame(...)
+#temp1 <- data.frame(...)
 
-nse_significanties <- rbind(...); rm(...)
+#nse_significanties <- rbind(...); rm(...)
 
 ```
 ```{r Wegschrijven naar .csv}
