@@ -1,0 +1,58 @@
+---
+title: "NSE_data_cleaning"
+output:
+  html_document:
+    df_print: paged
+---
+
+Dit is een [R Markdown](http://rmarkdown.rstudio.com) Notebook waarin voor de Nationale Student Enquete (NSE) de data gecleand wordt. 
+
+De specifieke stappen zijn:
+1. Laden benodigde R bibliotheken
+2. Inladen ruwe data
+3. Definities instellen
+4. Data cleanen
+5. Opslaan van gecleande databestanden
+
+# 1. Laden R-bibliotheken
+```{r libraries, message=FALSE, warning=FALSE, include=FALSE}
+library(dplyr) #Nodig voor na_if() functie
+library(psych) #Nodig voor describeBy() functie
+```
+
+# 2. Inladen NSE benchmark bestand
+```{r Inlezen .csv}
+nse_benchmark <- read.csv2("~/research-drive/M21033303_DenA (Projectfolder)/DA_Onderzoek/2021nse/data_in/NSE2021 Definitief Benchmarkbestand permutatie.csv")
+head(nse_benchmark,10)
+```
+
+# 3. Definities
+```{r Definiëren van NSE vragen}
+vec_NSEvragen = c(28:84)
+NSEvragen = colnames(nse_benchmark[vec_NSEvragen])
+NSEvragen
+```
+
+# 4. Data cleaning
+- Universiteiten verwijderen
+- Missende data op NA zetten
+```{r Alleen hogescholen subset selecteren}
+nse_benchmark_subset <- nse_benchmark[nse_benchmark$SoortHo == 1,] #SoortHo = 1 filtert alle uni's weg
+unique(nse_benchmark_subset$BrinNaamActueel)
+```
+```{r Missende responses (-1 t/m -9) naar NA}
+missingdata = c(-1:-9) #Missende data wordt aangeven met codes -1 t/m -9
+nse_benchmark_clean <- nse_benchmark_subset #Gecleande data is gebaseerd op originele data
+for (missingnumber in missingdata){
+  nse_benchmark_clean <- nse_benchmark_clean %>% dplyr::na_if(missingnumber)
+}
+```
+```{r Responsewaarde samenvatting bekijken, echo=TRUE, paged.print=TRUE}
+describeBy(nse_benchmark_clean[,vec_NSEvragen], group = NULL)
+rm(nse_benchmark, nse_benchmark_subset)
+```
+
+# 5. Opslaan
+```{r Save dataframe en 2 vectoren}
+save(nse_benchmark_clean, NSEvragen, vec_NSEvragen, file = "~/research-drive/M21033303_DenA (Projectfolder)/DA_Onderzoek/2021nse/data_in/NSE2021 nse_benchmark_clean.RData")
+```

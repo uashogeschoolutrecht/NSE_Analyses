@@ -1,0 +1,100 @@
+---
+title: "NSE prioriteitenmatrix berekeningen"
+output:
+  html_document:
+    df_print: paged
+number_sections: true
+---
+
+Dit is een [R Markdown](http://rmarkdown.rstudio.com) Notebook waarin voor de Nationale Student Enquete (NSE) prioriteitenmatrices worden berekend. Dit proces bestaat uit de volgende stappen:
+1. Laden benodigde R-bibliotheken
+2. Inladen NSE benchmark data
+3.
+
+# 1. Laden R-bibliotheken
+```{r libraries, message=FALSE, warning=FALSE, include=FALSE}
+library(rwa) #Nodig voor de functie rwa()
+library(tidyverse) #Nodig voor de functie rwa() (onder water)
+```
+
+# 2. Inladen NSE benchmark bestand (clean data)
+```{r Inlezen .csv}
+load("~/research-drive/M21033303_DenA (Projectfolder)/DA_Onderzoek/2021nse/data_in/NSE2021 nse_benchmark_clean.RData")
+head(nse_benchmark_clean,10)
+```
+
+# 3. Data selectie
+```{r Selecteer alleen HU reponse}
+HUscores <- nse_benchmark_clean[nse_benchmark_clean$BrinNaamActueel == "Hogeschool Utrecht",]
+rm(nse_benchmark_clean)
+
+```
+
+# 4. Exploratieve data analyse
+Vraag 1 is qua inhoud de beste kandidaat om als 'predictor' op te treden. Bekijken in hoeverre de andere vragen met deze vraag 1 correleren. 
+```{r Bekijken Spearman correlatie, warning=FALSE, fig.cap = "Test"}
+correlaties = NA
+for (i in vec_NSEvragen)
+{
+  correlaties[i] <- cor.test(HUscores[,vec_NSEvragen[1]], HUscores[,i], method = "spearman")$estimate
+}
+plot(correlaties, xlab = 'Vraag'); abline(h=0.6); abline(h=0.4)
+```
+
+Conclusie: Het merendeel van de NSE vragen zijn ten minste matig (0.6 > R > 0.4) gecorreleerd  met de algemene vraag 'Hoe tevreden ben jij met je opleiding in het algemeen?' (= vraag 1 uit NSE). Er is dus sprake van  [multicollineariteit](https://en.wikipedia.org/wiki/Multicollinearity). Dit maakt het toepassen en interpreteren van een model en haar resultaten meer ingewikkeld. 
+
+# 5. Relative weight analysis
+
+Bevindingen/vragen:
+* Openstaande vraag: in hoeverre is Likertschaal-data mogelijk als input voor RWA?
+* Wat zijn de voorwaarden voor data bij RWA?
+* Relative weight analysis in R: https://github.com/martinctc/rwa
+* Vraag 4/5 zijn of/of vragen. Vraag 11 is een subpopulatie-vraag. 
+* Welke vraag is de 'uitkomst' variabele?
+* Interpretatie van 'gewichten' voor de voorspellende variabelen? Bijv: wat betekent een gewicht van 0.22?
+* Welke vragen zijn de 'predictor' variabelen?
+* RWA accepteert alleen 'volledige regels' (complete cases), dus een filtering is nodig waarbij studenten één of meerdere vragen niet beantwoord hebben die wél gebruikt worden in de RWA weggefilterd worden. 
+```{r Definities}
+vec_rwauitkomst <- 1                # Kies vaag die de uitkomst variabele zal zijn
+vec_rwavariabelen <- c(2,3,6:10,12) # Kies vragen die voorspellende variabelen zijn
+vec_rwavragen <- append(vec_NSEvragen[vec_rwauitkomst], vec_NSEvragen[vec_rwavariabelen]) # Alle vragen die gebruikt worden in de RWA
+N_variabelen <- length(vec_rwavariabelen)
+NSEvragen_kort <- substr(NSEvragen, nchar(NSEvragen)-1, nchar(NSEvragen)) #Afkortingen voor vragen
+
+```
+```{r Data cleaning benodigd voor model}
+HUscores_clean <- HUscores[complete.cases(HUscores[,vec_rwavragen]), ]
+```
+```{r RWA model berekenen}
+cat("Er wordt nu een RWA model berekend met vraag", NSEvragen[vec_rwauitkomst], "als uitkomst variabele.\nEen RWA model probeert om de uitkomst variabele te verklaren door gewichten toe te kennen aan een aantal vooraf gekozen variabelen. Voor dit model zijn alleen studenten meegenomen die voor zowel voor de uitkomst variabele én alle voorspellende variabelen ingevulde responses bevatten (complete gevallen).\nDe volgende lijst aan vragen zijn de voorspellende variabelen: \n", NSEvragen[vec_rwavariabelen])
+
+rwa_resultaten <- HUscores_clean %>%
+  rwa(outcome = NSEvragen[vec_rwauitkomst],
+      predictors = NSEvragen[vec_rwavariabelen],
+      applysigns = TRUE)
+```
+
+# 6. Visualiseren resultaat
+Een prioriteitenmatrix laat het gewicht van een voorspellende variabele (x-as) zien ten opzichte van de gemiddelde score op deze variabele (y-as). 
+
+```{r}
+rwa_scores <- unlist(lapply(HUscores_clean[,vec_rwavragen[2:9]], mean))
+
+plot(rwa_resultaten$result$Sign.Rescaled.RelWeight, rwa_scores, xlab = 'Bijdrage aan totaalscore', ylab = 'Score' ); abline(h=3.6, v=15, col="black")
+text(rwa_resultaten$result$Sign.Rescaled.RelWeight, rwa_scores, NSEvragen_kort[vec_rwavariabelen], cex=0.7, pos=2, col="blue")
+```
+# 10. Exporteren waardes
+```{r Preallocatie van data frame}
+Organisatieonderdeel <- "HU totaal"
+Bijdrage_score <- rwa_resultaten$result$Sign.Rescaled.RelWeight
+Prioriteitenmatrix <- data.frame(Organisatieonderdeel,rwa_scores,Bijdrage_score)
+```
+```{r Vullen met HU totalen}
+temp1 <- data.frame(...)
+
+nse_significanties <- rbind(...); rm(...)
+
+```
+```{r Wegschrijven naar .csv}
+write.csv(Prioriteitenmatrix,file = "~/research-drive/M21033303_DenA (Projectfolder)/DA_Onderzoek/2021nse/data_uit/NSEprioriteitenttabel.csv")
+```
