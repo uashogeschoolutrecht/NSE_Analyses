@@ -22,7 +22,7 @@ library(psych) #Nodig voor describeBy() functie
 
 # 2. Inladen NSE benchmark bestand
 ```{r Inlezen .csv}
-nse_benchmark <- read.csv2("~/research-drive/M21033303_DenA (Projectfolder)/DA_Onderzoek/2021nse/data_in/NSE2021 Definitief Benchmarkbestand permutatie.csv")
+nse_benchmark <- read.csv2("~/research-drive/M21033303_DenA (Projectfolder)/DA_Onderzoek/2021nse/data_in/NSE2021 Definitief Benchmarkbestand_v3 permutatie.csv")
 head(nse_benchmark,10)
 ```
 
