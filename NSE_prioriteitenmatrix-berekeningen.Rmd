@@ -157,6 +157,7 @@ rwa_resultaten <- HUscores_clean %>%
   rwa(outcome = NSEvragen[vec_rwauitkomst],
       predictors = NSEvragen[vec_rwavariabelen],
       applysigns = TRUE)
+rwa_resultaten
 ```
 
 # 6. Visualiseren resultaat
