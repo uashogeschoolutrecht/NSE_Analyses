@@ -123,6 +123,7 @@ Voor de vergelijkingen tussen groepen wordt de Welch T-test gebruikt: deze doet 
 HUscores <- nse_benchmark_clean[nse_benchmark_clean$Groep == "HU",]
 R5scores <- nse_benchmark_clean[nse_benchmark_clean$Groep == "R5",]
 Allescores <- nse_benchmark_clean[nse_benchmark_clean$Groep == "O" | nse_benchmark_clean$Groep == "R5",]
+#Pre-allocatie van objecten die in de volgende stap gevuld gaan worden
 p_HUR5 <- rep(NA, Nvragen)
 p_HUAlle <- rep(NA, Nvragen)
 p_HUR5_variant <- rep(NA, Nvragen)
@@ -182,6 +183,8 @@ plot(diff_HUAlle, col = groepering, pch = 19, xlab = "NSE vraag", ylab = "Gemidd
 
 # 7. Exporteren p waardes
 
+Eerst de benodigde output pre-alloceren:
+
 ```{r Preallocatie van data frame}
 nse_significanties <- data.frame(Opleidingsvorm3=character(),
                                  CrohoActueel   =character(),
@@ -192,6 +195,8 @@ nse_significanties <- data.frame(Opleidingsvorm3=character(),
                                  HUgem          =double(),
                                  Benchmarkgem   =double())
 ```
+
+Vervolgens de verschillende analyses stuk voor stuk in een dataframe zetten, en samenvoegen in 1:
 
 ```{r Vullen met HU totalen}
 temp1 <- data.frame(Opleidingsvorm3  = rep("Totaal",Nvragen), 
@@ -214,6 +219,8 @@ temp2 <- data.frame(Opleidingsvorm3  = rep("Totaal",Nvragen),
 nse_significanties <- rbind(nse_significanties, temp1, temp2); rm(temp1, temp2)
 
 ```
+
+Resultaten wegschrijven
 
 ```{r Wegschrijven naar .csv}
 write.csv2(nse_significanties, file = "~/research-drive/M21033303_DenA (Projectfolder)/DA_Onderzoek/2021nse/data_uit/NSEsignificantietabel.csv")
