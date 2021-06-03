@@ -80,11 +80,7 @@ NSEvragen_kort <- substr(NSEvragen, nchar(NSEvragen)-1, nchar(NSEvragen)) #Afkor
 ```{r Data cleaning benodigd voor model}
 HUscores_clean <- HUscores[complete.cases(HUscores[,vec_rwavragen]), ]
 
-```
-
-```{r}
 cat("In deze stap zijn het volende aantal studenten weggefilterd:", dim(HUscores)[1]-dim(HUscores_clean)[1],"(",(dim(HUscores)[1]-dim(HUscores_clean)[1])/dim(HUscores)[1]*100, "% van het totaal).")
-
 ```
 
 # 4. Exploratieve data analyse
@@ -153,9 +149,6 @@ Voor meer informatie over Relative weight analysis in R:
 
 Hierin is ook terug te vinden dat vragenlijstdata valide is als input
 voor een RWA.
-
-```{}
-```
 
 ```{r RWA model berekenen}
 cat("Er wordt nu een RWA model berekend met vraag", NSEvragen[vec_rwauitkomst], "als onafhankelijke variabele.\nEen RWA model probeert om de onafhankelijke variabele te verklaren door gewichten toe te kennen aan een aantal vooraf gekozen afhankelijke variabelen. Voor dit model zijn alleen studenten meegenomen die voor zowel voor de onafhankelijke variabele én alle afhankelijke variabelen ingevulde responses bevatten (complete gevallen).\nDe volgende lijst aan vragen zijn de voorspellende variabelen: \n", NSEvragen[vec_rwavariabelen])
