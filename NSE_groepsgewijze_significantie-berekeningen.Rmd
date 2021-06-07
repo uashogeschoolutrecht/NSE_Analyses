@@ -192,6 +192,7 @@ for (i_vorm in 1:Nvorm)
                                       mean(ALscores[vec_vorm[[i_vorm]],i_vraag],                                            na.rm = TRUE)
   }
 }
+rm(Ncor)
 ```
 
 # 6B. Multiple testing correctie p-waarden
@@ -211,25 +212,35 @@ voor testen die mogelijk positief met elkaar gecorrigeerd zijn
 [hier](https://projecteuclid.org/journals/annals-of-statistics/volume-29/issue-4/The-control-of-the-false-discovery-rate-in-multiple-testing/10.1214/aos/1013699998.full#:~:text=Abstract,many%20applied%20multiple%20testing%20problems.&text=For%20all%20other%20forms%20of,controls%20the%20false%20discovery%20rate.)
 
 ```{r FDR correctie}
-p_HUR6_adj <- p.adjust(p_HUR6, method = "BY")
-p_HUAL_adj <- p.adjust(p_HUAL, method = 'BY')
+p_HUR6_adj <- matrix(NA, Nvragen, Nvorm)
+p_HUAL_adj <- matrix(NA, Nvragen, Nvorm)
+for (i_vorm in 1:Nvorm)
+{
+  p_HUR6_adj[,i_vorm] <- p.adjust(p_HUR6[,i_vorm], method = "BY")
+  p_HUAL_adj[,i_vorm] <- p.adjust(p_HUAL[,i_vorm], method = 'BY')
+}
 # Bekijken van verschuiving oorspronkelijke p en p_adj
-plot(p_HUR6, p_HUR6_adj); abline(h = 0.05, v=0.05)
+i_vorm <- 4
+plot(p_HUR6[,i_vorm], p_HUR6_adj[,i_vorm]); abline(h = 0.05, v=0.05)
 rm(p_HUR6, p_HUAL)
 ```
 
 ```{r Visualiseren test-statistiek HU <> R6}
-plot(p_HUR6_adj)
+#Bekijken uitkomstmaten (delta inclusief significantie in kleur)
+plot(p_HUR6_adj[,i_vorm])
 abline(h = 0.05)
-groepering <- ifelse(diff_HUR6 > 0 & p_HUR6_adj < 0.05, 3, ifelse(diff_HUR6 < 0 & p_HUR6_adj < 0.05, 2, 1))
-plot(diff_HUR6, col = groepering, pch = 19, xlab = "NSE vraag", ylab = "Gemiddelde verschil tussen HU en R6")
+groepering <- ifelse(diff_HUR6[,i_vorm] > 0 & p_HUR6_adj[,i_vorm] < 0.05, 3, 
+              ifelse(diff_HUR6[,i_vorm] < 0 & p_HUR6_adj[,i_vorm] < 0.05, 2, 
+                                                                          1))
+plot(diff_HUR6[,i_vorm], col = groepering, pch = 19, xlab = "NSE vraag", ylab = "Gemiddelde verschil (delta) tussen HU en R6")
 ```
 
 ```{r Visualiseren test-statistiek HU <> AL}
-plot(p_HUAL_adj)
+plot(p_HUAL_adj[,i_vorm])
 abline(h = 0.05)
-groepering <- ifelse(diff_HUAL > 0 & p_HUAL_adj < 0.05, 3, ifelse(diff_HUAL < 0 & p_HUAL_adj < 0.05, 2, 1))
-plot(diff_HUAL, col = groepering, pch = 19, xlab = "NSE vraag", ylab = "Gemiddelde verschil tussen HU en AL andere hogescholen")
+groepering <- ifelse(diff_HUAL[,i_vorm] > 0 & p_HUAL_adj[,i_vorm] < 0.05, 3,                  ifelse(diff_HUAL[,i_vorm] < 0 & p_HUAL_adj[,i_vorm] < 0.05, 2, 
+                                                                          1))
+plot(diff_HUAL[,i_vorm], col = groepering, pch = 19, xlab = "NSE vraag", ylab = "Gemiddelde verschil tussen HU en AL andere hogescholen")
 ```
 
 # 7. Exporteren p waardes
