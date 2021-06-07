@@ -156,7 +156,7 @@ gem_Alle <- rep(NA, Nvragen)
 diff_HUR6 <- rep(NA, Nvragen)
 diff_HUAlle <- rep(NA, Nvragen)
 
-Ncor <- Neerste + 1 #correctiefactor zodat index voor het vullen van p waardes op 1 begint en niet op 28
+Ncor <- Neerste - 1 #correctiefactor zodat index voor het vullen van p waardes op 1 begint en niet op 28
 
 #Voor elke NSEvraag de respons tussen groepen vergelijken en p waarde opslaan
 for (i_vraag in vec_NSEvragen)
