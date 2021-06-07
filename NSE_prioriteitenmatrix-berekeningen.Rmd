@@ -1,0 +1,186 @@
+---
+title: "NSE prioriteitenmatrix berekeningen"
+output:
+  html_document:
+    df_print: paged
+number_sections: true
+---
+
+Dit is een [R Markdown](http://rmarkdown.rstudio.com) Notebook waarin
+voor de Nationale Student Enquete (NSE) prioriteitenmatrices worden
+berekend. Dit proces bestaat uit de volgende stappen:
+
+1.  Laden benodigde R-bibliotheken
+
+2.  Inladen NSE benchmark data
+
+3.  Selecteren van de juiste data
+
+4.  Exploratieve data analyse
+
+5.  Uitvoeren van de Relative Weight Analysis (RWA)
+
+6.  Visualiseren van resultaten
+
+7.  Exporteren van waardes
+
+# 1. Laden R-bibliotheken
+
+```{r libraries, message=FALSE, warning=FALSE, include=FALSE}
+library(rwa)       #Nodig voor de relative weight analysis functie rwa()
+library(tidyverse) #Nodig voor de functie rwa() (onder water)
+library(corrplot)  #Nodig voor het visualiseren van correlaties via corplot()
+```
+
+# 2. Inladen NSE benchmark bestand (clean data)
+
+```{r Inlezen .csv}
+load("~/research-drive/M21033303_DenA (Projectfolder)/DA_Onderzoek/2021nse/data_in/NSE2021 nse_benchmark_clean.RData")
+head(nse_benchmark_clean,10)
+```
+
+# 3. Data selectie
+
+Alleen studenten van de Hogeschool Utrecht worden gebruikt in deze data
+analyse.
+
+```{r Selecteer alleen HU reponse}
+HUscores <- nse_benchmark_clean[nse_benchmark_clean$BrinNaamActueel == "Hogeschool Utrecht",]
+rm(nse_benchmark_clean)
+```
+
+Voor deze analyse zullen de volgende vragen als uitkomst- en
+voorspellende variabelen gebruikt worden:
+
+Uitkomst: Vraag 01
+
+Voorspellende variabelen: 02, 03, 06, 07, 08, 09, 10, 12
+
+Dit is in overleg met de business besloten. Vraag 01 wordt traditioneel
+gezien als uitkomst-maat. Vraag 02 t/m 12 zijn algemene vragen
+(detailvragen zijn voor nu out-of-scope), waarbij vragen 04, 05 en 11
+afvallen omdat zij slecht aan een deel van de studenten gesteld zijn.
+
+```{r Definities van vragen}
+vec_rwauitkomst <- 1            # Kies vraag die de uitkomst variabele zal zijn
+vec_rwavariabelen <- c(2,3,6:10,12) # Kies vragen die voorspellende variabelen zijn
+vec_rwavragen <- append(vec_NSEvragen[vec_rwauitkomst], vec_NSEvragen[vec_rwavariabelen]) # Alle vragen die gebruikt worden in de RWA
+N_variabelen <- length(vec_rwavariabelen)
+NSEvragen_kort <- substr(NSEvragen, nchar(NSEvragen)-1, nchar(NSEvragen)) #Afkortingen voor vragen
+```
+
+> Opmerking: RWA (zie uitleg verderop voor de keuze en uitleg van het
+> RWA model) accepteert alleen 'volledige regels' (complete cases), dus
+> een filtering is nodig waarbij studenten één of meerdere vragen niet
+> beantwoord hebben die wél gebruikt worden in de RWA weggefilterd
+> worden. Een andere optie is om 'missing values' op te vullen met de
+> gemiddelde waarde, maar voor nu is hier niet voor gekozen. Het
+> wegfilteren van studenten die deels missing responses hebben
+
+```{r Data cleaning benodigd voor model}
+HUscores_clean <- HUscores[complete.cases(HUscores[,vec_rwavragen]), ]
+
+cat("In deze stap zijn het volende aantal studenten weggefilterd:", dim(HUscores)[1]-dim(HUscores_clean)[1],"(",(dim(HUscores)[1]-dim(HUscores_clean)[1])/dim(HUscores)[1]*100, "% van het totaal).")
+```
+
+# 4. Exploratieve data analyse
+
+Vraag 1 uit de vragenlijst wordt gebruikt om als predictor variabele.
+Allereerst ben ik benieuwd of er uberhaupt iets te zien is qua
+correlatie tussen Vraag 1 en de andere vragen, d.w.z.: als een student
+een hoge score geeft voor Vraag 1 geeft, geeft deze student dan ook
+gemiddeld genomen een hoge score op andere vragen? (en vice versa)
+
+```{r Bekijken Spearman correlatie, warning=FALSE, fig.cap = "Test"}
+correlaties = NA
+for (i in vec_NSEvragen)
+{
+  correlaties[i] <- cor.test(HUscores[,vec_NSEvragen[1]], HUscores[,i], method = "spearman")$estimate
+}
+plot(correlaties, xlab = 'Vraag'); abline(h=0.6); abline(h=0.4)
+```
+
+Conclusie: Het merendeel van de NSE vragen zijn ten minste matig (0.6 \>
+R \> 0.4) gecorreleerd met de algemene vraag 'Hoe tevreden ben jij met
+je opleiding in het algemeen?' (= vraag 1 uit NSE).
+
+Hoe zit het nu met correlaties tússen de voorspellende vragen?
+
+```{r Testen voor multicollineariteit}
+test <- cor(HUscores_clean[,vec_rwavragen[2:9]])
+colnames(test) <- NSEvragen_kort[vec_rwavariabelen]
+rownames(test) <- NSEvragen_kort[vec_rwavariabelen]
+corrplot(test, method = "number", diag = FALSE)
+```
+
+De bovenstaande correlatie-matrix laat de correlatie tussen elke
+voorspellende variabele combinatie zien. Voor een heel aantal
+combinaties is deze matig (0.6 \> R \> 0.4) gecorreleerd, waarbij vraag
+02 en 03 het sterkst gecorreleerd is met R = 0.53.
+
+Conclusie: er sprake van
+[multicollineariteit](https://en.wikipedia.org/wiki/Multicollinearity)
+tussen de verschillende voorspellende variabelen, en deze vragen zijn
+dus niet onafhankelijk van elkaar. Dit maakt het toepassen en
+interpreteren van een 'standaard' statistisch model (bijv. multiple
+regressie) ingewikkeld.
+
+# 5. Relative weight analysis
+
+Om de bijdrage van een aantal voorspellende variabelen op een
+uitkomstmaat te modelleren, wordt normaliter een multiple regressie
+gebruikt. De aanname bij multiple regressie is dat de voorspellende
+variabelen onafhankelijk van elkaar zijn (d.w.z. geen of minimale
+correlatie). In dit geval zijn de voorspellende variabelen zwak tot
+matig met elkaar gecorreleerd, en kan een multiple regressie dus niet
+eenvoudig ingezet worden.
+
+Een goed alternatief is de Relative Weight Analysis (RWA). Dit is een
+model waarin voor een set aan voorspellende variabelen wordt berekend
+wat hun relatieve bijdrage is aan een uitkomst variabele. Deze bijdrage
+wordt uitgedrukt in een gewicht (tussen 0 en 1) die inhoudt in welke
+mate de voorspellende variabele bijdraagt aan de variantie in de
+uitkomst variabele. Omdat in de RWA methode de voorspellende variabelen
+worden getransformeerd tot onafhankelijk van elkaar, is vooraf geen eis
+van onafhankelijke voorspellende variabelen.
+
+Voor meer informatie over Relative weight analysis in R:
+[<https://github.com/martinctc/rwa>](https://github.com/martinctc/rwa){.uri}
+
+Hierin is ook terug te vinden dat vragenlijstdata valide is als input
+voor een RWA.
+
+```{r RWA model berekenen}
+cat("Er wordt nu een RWA model berekend met vraag", NSEvragen[vec_rwauitkomst], "als onafhankelijke variabele.\nEen RWA model probeert om de onafhankelijke variabele te verklaren door gewichten toe te kennen aan een aantal vooraf gekozen afhankelijke variabelen. Voor dit model zijn alleen studenten meegenomen die voor zowel voor de onafhankelijke variabele én alle afhankelijke variabelen ingevulde responses bevatten (complete gevallen).\nDe volgende lijst aan vragen zijn de voorspellende variabelen: \n", NSEvragen[vec_rwavariabelen])
+
+rwa_resultaten <- HUscores_clean %>%
+  rwa(outcome = NSEvragen[vec_rwauitkomst],
+      predictors = NSEvragen[vec_rwavariabelen],
+      applysigns = TRUE)
+rwa_resultaten
+```
+
+# 6. Visualiseren resultaat
+
+Een prioriteitenmatrix laat het gewicht van een voorspellende variabele
+(x-as) zien ten opzichte van de gemiddelde score op deze variabele
+(y-as).
+
+```{r}
+rwa_scores <- unlist(lapply(HUscores_clean[,vec_rwavragen[2:9]], mean))
+
+plot(rwa_resultaten$result$Sign.Rescaled.RelWeight, rwa_scores, xlab = 'Bijdrage aan totaalscore', ylab = 'Score' ); abline(h=3.6, v=15, col="black")
+text(rwa_resultaten$result$Sign.Rescaled.RelWeight, rwa_scores, NSEvragen_kort[vec_rwavariabelen], cex=0.7, pos=2, col="blue")
+```
+
+# 7. Exporteren waardes
+
+```{r Vullen van data frame met resultaten}
+Organisatieonderdeel <- "HU totaal"
+Bijdrage_score <- rwa_resultaten$result$Sign.Rescaled.RelWeight
+Prioriteitenmatrix <- data.frame(Organisatieonderdeel,rwa_scores,Bijdrage_score)
+```
+
+```{r Wegschrijven naar .csv}
+write.csv(Prioriteitenmatrix,file = "~/research-drive/M21033303_DenA (Projectfolder)/DA_Onderzoek/2021nse/data_uit/NSEprioriteitenttabel.csv")
+```
