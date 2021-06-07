@@ -5,7 +5,9 @@ output:
     df_print: paged
 ---
 
-Dit is een [R Markdown](http://rmarkdown.rstudio.com) Notebook waarin voor de Nationale Student Enquete (NSE) groepsgewijze T-testen worden uitgerekend. Dit bestaat proces bestaat uit de volgende stappen:
+Dit is een [R Markdown](http://rmarkdown.rstudio.com) Notebook waarin
+voor de Nationale Student Enquete (NSE) groepsgewijze T-testen worden
+uitgerekend. Dit bestaat proces bestaat uit de volgende stappen:
 
 1.  Laden benodigde R-bibliotheken
 
@@ -37,40 +39,54 @@ head(nse_benchmark_clean,10)
 
 # 2. Groepen definiëren
 
-Voor de analyse zijn nodig de vergelijkingsgroepen: HU, R6 (behalve HU) en alles (behalve HU). Hiervoor wordt de volgende groepering aangebracht in de data: HU, R6, O (waarbij O staat voor 'overig'). Groep 'alles behalve HU' kan nu gemaakt worden door de groeperingen 'R6' en 'O' te combineren.
+Voor de analyse zijn nodig de vergelijkingsgroepen: HU, R6 (behalve HU)
+en alles (behalve HU). Hiervoor wordt de volgende groepering aangebracht
+in de data: HU, R6, O (waarbij O staat voor 'overig'). Groep 'alles
+behalve HU' kan nu gemaakt worden door de groeperingen 'R6' en 'O' te
+combineren.
 
-Vervolgens is er een gelaagdheid aan granulariteit waarop de groepen met elkaar vergeleken worden:
+Vervolgens is er een verschillende gelaagdheid (granulariteit) waarop de
+groepen met elkaar vergeleken worden:
 
 -   Totaal
 
--   Totaal variant (d.w.z.: voltijd, deeltijd, duaal)
+-   Totaal per vorm (d.w.z.: voltijd, deeltijd, duaal)
 
 -   Opleiding totaal
 
--   Opleiding variant
+-   Opleiding per vorm
 
 ```{r Definiëren analyse-groepen}
 groepHU <- "Hogeschool Utrecht"
 groepR6 <- c("Hogeschool van Amsterdam", "De Haagse Hogeschool", "Hogeschool INHOLLAND", "Hogeschool Leiden", "Hogeschool Rotterdam")
-varianttypes <- unique(nse_benchmark_clean$Opleidingsvorm3)
+vormtypes <- unique(nse_benchmark_clean$Opleidingsvorm3)
 ```
 
-Aanmaken van logische vectoren op basis van bovenstaande groepdefinities, waarmee in het vervolg eenvoudig datagroepen gekozen kunnen worden. Elke vector bevat TRUE voor elk regel in de NSE benchmark data binnen de groep valt, en FALSE als de rij buiten de groep valt.
+Aanmaken van logische vectoren op basis van bovenstaande
+groepdefinities, waarmee in het vervolg eenvoudig datagroepen gekozen
+kunnen worden. Elke vector bevat TRUE voor elk regel in de NSE benchmark
+data binnen de groep valt, en FALSE als de rij buiten de groep valt.
 
 ```{r Logische vectoren opzetten}
 vec_groepHU   <- nse_benchmark_clean$BrinNaamActueel == groepHU
 vec_groepR6   <- nse_benchmark_clean$BrinNaamActueel %in% groepR6
 vec_groepAlle <- nse_benchmark_clean$BrinNaamActueel != groepHU #alle instituten behalve de HU
+vec_vorm <- vector(mode = "list", length(vormtypes))
+for (i in vormtypes){
+  vec_vorm[[i]]     <- nse_benchmark_clean$Opleidingsvorm3 == vormtypes[i]
+}
 
 cat("Samenvatting student-aantallen per groep:")
 summary(vec_groepHU)
 summary(vec_groepR6)
 summary(vec_groepAlle)
+
 ```
 
 # 3. NSE Vragen definities
 
-De kolommen waarin de vraagresponses zich bevinden moeten aangegeven worden.
+De kolommen waarin de vraagresponses zich bevinden moeten aangegeven
+worden.
 
 ```{r Lijst met vragen maken}
 Nvragen = length(vec_NSEvragen)
@@ -85,19 +101,23 @@ NSEvragen
 -   Kijken naar verdeling van data binnen groepen
 
 ```{r Descriptieve statistieken per vraag weergeven}
-vraag <- 5
+vraag <- 2
 cat("Dit is de vraag: ", NSEvragen[vraag])
-HUscores <- nse_benchmark_clean[vec_groepHU,vec_NSEvragen[vraag]]
-R6scores <- nse_benchmark_clean[vec_groepR6,vec_NSEvragen[vraag]]
-Allescores <- nse_benchmark_clean[vec_groepAlle, vec_NSEvragen[vraag]]
+temp_HUscores   <- nse_benchmark_clean[vec_groepHU,vec_NSEvragen[vraag]]
+temp_R6scores   <- nse_benchmark_clean[vec_groepR6,vec_NSEvragen[vraag]]
+temp_Allescores <- nse_benchmark_clean[vec_groepAlle, vec_NSEvragen[vraag]]
 
-table(Allescores)
-hist(Allescores)
-hist(HUscores)
-hist(R6scores)
+temp_HUvorm     <- nse_benchmark_clean[vec_vorm[[1]]&vec_groepHU,                                      vec_NSEvragen[vraag]]
+temp_R6vorm     <- nse_benchmark_clean[vec_vorm[[2]]&vec_groepR6,                                      vec_NSEvragen[vraag]]
+temp_Allevorm   <- nse_benchmark_clean[vec_vorm[[3]]&vec_groepAlle,                                    vec_NSEvragen[vraag]]
+
+table(temp_Allescores)
+
+hist(temp_Allescores); hist(temp_HUscores); hist(temp_R6scores)
+hist(temp_HUvorm); hist(temp_R6vorm); hist(temp_Allevorm)
 
 #Weggooien tijdelijke objecten
-rm(HUscores, R6scores, Allescores)
+rm(list=ls(pattern="^temp_"))
 ```
 
 # 5. Samenvattende statistieken
@@ -114,7 +134,10 @@ describeBy(nse_benchmark_clean[,vec_NSEvragen], vec_groepAlle)
 
 # 6. Significanties uitrekenen
 
-Voor de vergelijkingen tussen groepen wordt de Welch T-test gebruikt: deze doet geen aannames over gelijke varianties tussen de testgroepen. Doordat je groepen met verschillende groepsgroottes vergelijkt is het namelijk mogelijk dat de varianties tussen groepen verschilt.
+Voor de vergelijkingen tussen groepen wordt de Welch T-test gebruikt:
+deze doet geen aannames over gelijke varianties tussen de testgroepen.
+Doordat je groepen met verschillende groepsgroottes vergelijkt is het
+namelijk mogelijk dat de varianties tussen groepen verschilt.
 
 ```{r T-test statistiek}
 #Bijeen zoeken van responsdata per groep
@@ -133,7 +156,8 @@ diff_HUAlle <- rep(NA, Nvragen)
 
 Ncor <- Neerste + 1 #correctiefactor zodat index voor het vullen van p waardes op 1 begint en niet op 28
 
-p_HUR6_variant[1] <- t.test(HUscores[HUscores$Opleidingsvorm3 == varianttypes[1],28],        R6scores[R6scores$Opleidingsvorm3 == varianttypes[1],28])$p.value
+#Granulariteit
+p_HUR6_variant[1] <- t.test(HUscores[vec_vorm1,28],        R6scores[R6scores$Opleidingsvorm3 == varianttypes[1],28])$p.value
 
 #Voor elke NSEvraag de respons tussen groepen vergelijken en p waarde opslaan
 for (i_vraag in vec_NSEvragen)
@@ -155,7 +179,19 @@ for (i_vraag in vec_NSEvragen)
 
 # 6B. Multiple testing correctie p-waarden
 
-Op het niveau van HU totaal worden in totaal 57 testen uitgevoerd onderverdeeld in 16 verschillende thema's, zie ook het bestand docs/NSE2021 MultipleTesting. Op het niveau van HU totaal zijn er dus 16 hypotheses die getest worden (sommige middels deel-vragen), namelijk voor elk van deze thema's is de nul-hypothese: "Het gemiddelde antwoord van HU studenten voor deze vraag is gelijk aan die van de R6 studenten". Correctie voor deze multiple-testing vindt plaats via de [Benjamini-Hochberg FDR correctie](https://en.wikipedia.org/wiki/False_discovery_rate#Benjamini%E2%80%93Hochberg_procedure), en dan de Benjamini-Yekutieli (BY) variant. Deze variant controleert ook voor testen die mogelijk positief met elkaar gecorrigeerd zijn (bijvoorbeeld de verschillende docent-deelvragen). Zie ook [hier](https://projecteuclid.org/journals/annals-of-statistics/volume-29/issue-4/The-control-of-the-false-discovery-rate-in-multiple-testing/10.1214/aos/1013699998.full#:~:text=Abstract,many%20applied%20multiple%20testing%20problems.&text=For%20all%20other%20forms%20of,controls%20the%20false%20discovery%20rate.)
+Op het niveau van HU totaal worden in totaal 57 testen uitgevoerd
+onderverdeeld in 16 verschillende thema's, zie ook het bestand
+docs/NSE2021 MultipleTesting. Op het niveau van HU totaal zijn er dus 16
+hypotheses die getest worden (sommige middels deel-vragen), namelijk
+voor elk van deze thema's is de nul-hypothese: "Het gemiddelde antwoord
+van HU studenten voor deze vraag is gelijk aan die van de R6 studenten".
+Correctie voor deze multiple-testing vindt plaats via de
+[Benjamini-Hochberg FDR
+correctie](https://en.wikipedia.org/wiki/False_discovery_rate#Benjamini%E2%80%93Hochberg_procedure),
+en dan de Benjamini-Yekutieli (BY) variant. Deze variant controleert ook
+voor testen die mogelijk positief met elkaar gecorrigeerd zijn
+(bijvoorbeeld de verschillende docent-deelvragen). Zie ook
+[hier](https://projecteuclid.org/journals/annals-of-statistics/volume-29/issue-4/The-control-of-the-false-discovery-rate-in-multiple-testing/10.1214/aos/1013699998.full#:~:text=Abstract,many%20applied%20multiple%20testing%20problems.&text=For%20all%20other%20forms%20of,controls%20the%20false%20discovery%20rate.)
 
 ```{r FDR correctie}
 p_HUR6_adj <- p.adjust(p_HUR6, method = "BY")
@@ -194,7 +230,8 @@ nse_significanties <- data.frame(Opleidingsvorm3=character(),
                                  Benchmarkgem   =double())
 ```
 
-Vervolgens de verschillende analyses stuk voor stuk in een dataframe zetten, en samenvoegen in 1:
+Vervolgens de verschillende analyses stuk voor stuk in een dataframe
+zetten, en samenvoegen in 1:
 
 ```{r Vullen met HU totalen}
 temp1 <- data.frame(Opleidingsvorm3  = rep("Totaal",Nvragen), 
