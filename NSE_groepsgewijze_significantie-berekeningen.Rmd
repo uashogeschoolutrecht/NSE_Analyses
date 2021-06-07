@@ -82,6 +82,7 @@ for (i in vormtypes){
 }
 #Voeg nu een extra lijst toe die alle vormen meeneemt (totaal-berekening)
 vec_vorm[[length(vormtypes)+1]] <- rep(TRUE, nrow(nse_benchmark_clean))
+Nvorm <- length(vec_vorm)
 
 # Weergeven verschillende groepen
 cat("Samenvatting student-aantallen per groep:")
@@ -153,8 +154,8 @@ HUscores    <- nse_benchmark_clean[vec_groepHU,]
 R6scores    <- nse_benchmark_clean[vec_groepR6,]
 Allescores  <- nse_benchmark_clean[vec_groepAlle,]
 #Pre-allocatie van objecten die in de volgende stap gevuld gaan worden
-p_HUR6      <- rep(NA, Nvragen)
-p_HUAlle    <- rep(NA, Nvragen)
+p_HUR6      <- matrix(NA, Nvragen, Nvorm)
+p_HUAlle    <- matrix(NA, Nvragen, Nvorm)
 
 gem_HU      <- rep(NA, Nvragen)
 gem_R6      <- rep(NA, Nvragen)
@@ -165,24 +166,27 @@ diff_HUAlle <- rep(NA, Nvragen)
 #Definieer correctiefactor zodat index voor het vullen van p waardes op 1 begint en niet op 28
 Ncor <- Neerste + 1 
 
-i_vorm <- 4
+#Voor elke vorm onderstaande berekening herhalen
+for (i_vorm in 1:Nvorm)
+{
 
-#Voor elke NSEvraag de respons tussen groepen vergelijken en p waarde opslaan
-for (i_vraag in vec_NSEvragen)
+  #Voor elke NSEvraag de respons tussen groepen vergelijken en p waarde opslaan
+  for (i_vraag in vec_NSEvragen)
   {
-  #Berekenen p waarden
-  p_HUR6[i_vraag-Ncor]      <- t.test(HUscores[vec_vorm[[i_vorm]],i_vraag],                                           R6scores[vec_vorm[[i_vorm]],i_vraag]                                           )$p.value
-  p_HUAlle[i_vraag-Ncor]    <- t.test(HUscores[vec_vorm[[i_vorm]],i_vraag],                                           Allescores[vec_vorm[[i_vorm]],i_vraag]                                         )$p.value
-  #Berekenen gemiddelden per groep
-  gem_HU[i_vraag-Ncor]      <- t.test(HUscores[vec_vorm[[i_vorm]],i_vraag],                                           R6scores[vec_vorm[[i_vorm]],i_vraag]                                           )$estimate[1]
-  gem_R6[i_vraag-Ncor]      <- t.test(HUscores[vec_vorm[[i_vorm]],i_vraag],                                           R6scores[vec_vorm[[i_vorm]],i_vraag]                                           )$estimate[2]
-  gem_Alle[i_vraag-Ncor]    <- t.test(HUscores[vec_vorm[[i_vorm]],i_vraag],                                           Allescores[vec_vorm[[i_vorm]],i_vraag]                                         )$estimate[2]
-  
-  #Berekenen verschil tussen gemiddelden (delta)
-  diff_HUR6[i_vraag-Ncor]   <- mean(HUscores[,i_vraag], na.rm = TRUE) - 
-                               mean(R6scores[,i_vraag], na.rm = TRUE)
-  diff_HUAlle[i_vraag-Ncor] <- mean(HUscores[,i_vraag], na.rm = TRUE) - 
-                               mean(Allescores[,i_vraag], na.rm = TRUE)
+    #Berekenen p waarden
+    p_HUR6[i_vraag-Ncor,i_vorm]  <- t.test(HUscores[vec_vorm[[i_vorm]],i_vraag],                                            R6scores[vec_vorm[[i_vorm]],i_vraag]                                            )$p.value
+    p_HUAlle[i_vraag-Ncor,i_vorm]<- t.test(HUscores[vec_vorm[[i_vorm]],i_vraag],                                            Allescores[vec_vorm[[i_vorm]]                                                   ,i_vraag])$p.value
+    #Berekenen gemiddelden per groep
+    gem_HU[i_vraag-Ncor]      <- t.test(HUscores[vec_vorm[[i_vorm]],i_vraag],                                           R6scores[vec_vorm[[i_vorm]],i_vraag]                                           )$estimate[1]
+    gem_R6[i_vraag-Ncor]      <- t.test(HUscores[vec_vorm[[i_vorm]],i_vraag],                                           R6scores[vec_vorm[[i_vorm]],i_vraag]                                           )$estimate[2]
+    gem_Alle[i_vraag-Ncor]    <- t.test(HUscores[vec_vorm[[i_vorm]],i_vraag],                                           Allescores[vec_vorm[[i_vorm]],i_vraag]                                         )$estimate[2]
+    
+    #Berekenen verschil tussen gemiddelden (delta)
+    diff_HUR6[i_vraag-Ncor]   <- mean(HUscores[,i_vraag], na.rm = TRUE) - 
+      mean(R6scores[,i_vraag], na.rm = TRUE)
+    diff_HUAlle[i_vraag-Ncor] <- mean(HUscores[,i_vraag], na.rm = TRUE) - 
+      mean(Allescores[,i_vraag], na.rm = TRUE)
+  }
 }
 ```
 
