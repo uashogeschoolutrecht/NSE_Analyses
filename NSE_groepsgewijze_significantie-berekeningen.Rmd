@@ -158,9 +158,6 @@ diff_HUAlle <- rep(NA, Nvragen)
 
 Ncor <- Neerste + 1 #correctiefactor zodat index voor het vullen van p waardes op 1 begint en niet op 28
 
-#Granulariteit
-p_HUR6_variant[1] <- t.test(HUscores[vec_vorm1,28],        R6scores[R6scores$Opleidingsvorm3 == varianttypes[1],28])$p.value
-
 #Voor elke NSEvraag de respons tussen groepen vergelijken en p waarde opslaan
 for (i_vraag in vec_NSEvragen)
   {
