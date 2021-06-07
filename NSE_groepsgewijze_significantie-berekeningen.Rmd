@@ -149,17 +149,17 @@ namelijk mogelijk dat de varianties tussen groepen verschilt.
 
 ```{r T-test statistiek}
 #Bijeen zoeken van responsdata per groep
-HUscores   <- nse_benchmark_clean[vec_groepHU,]
-R6scores   <- nse_benchmark_clean[vec_groepR6,]
-Allescores <- nse_benchmark_clean[vec_groepAlle,]
+HUscores    <- nse_benchmark_clean[vec_groepHU,]
+R6scores    <- nse_benchmark_clean[vec_groepR6,]
+Allescores  <- nse_benchmark_clean[vec_groepAlle,]
 #Pre-allocatie van objecten die in de volgende stap gevuld gaan worden
-p_HUR6 <- rep(NA, Nvragen)
-p_HUAlle <- rep(NA, Nvragen)
+p_HUR6      <- rep(NA, Nvragen)
+p_HUAlle    <- rep(NA, Nvragen)
 
-gem_HU <- rep(NA, Nvragen)
-gem_R6 <- rep(NA, Nvragen)
-gem_Alle <- rep(NA, Nvragen)
-diff_HUR6 <- rep(NA, Nvragen)
+gem_HU      <- rep(NA, Nvragen)
+gem_R6      <- rep(NA, Nvragen)
+gem_Alle    <- rep(NA, Nvragen)
+diff_HUR6   <- rep(NA, Nvragen)
 diff_HUAlle <- rep(NA, Nvragen)
 
 Ncor <- Neerste + 1 #correctiefactor zodat index voor het vullen van p waardes op 1 begint en niet op 28
@@ -167,18 +167,19 @@ Ncor <- Neerste + 1 #correctiefactor zodat index voor het vullen van p waardes o
 #Voor elke NSEvraag de respons tussen groepen vergelijken en p waarde opslaan
 for (i_vraag in vec_NSEvragen)
   {
-
-
-  p_HUR6[i_vraag-Ncor]   <- t.test(HUscores[,i_vraag], R6scores[,i_vraag])$p.value
-  p_HUAlle[i_vraag-Ncor] <- t.test(HUscores[,i_vraag], Allescores[,i_vraag]
-                                   )$p.value
-  gem_HU[i_vraag-Ncor]  <- t.test(HUscores[,i_vraag], R6scores[,i_vraag])$estimate[1]
-  gem_R6[i_vraag-Ncor]   <- t.test(HUscores[,i_vraag], R6scores[,i_vraag])$estimate[2]
-  gem_Alle[i_vraag-Ncor] <- t.test(HUscores[,i_vraag], Allescores[,i_vraag]
-                                   )$estimate[2]
+  #Berekenen p waarden
+  p_HUR6[i_vraag-Ncor]      <- t.test(HUscores[,i_vraag], R6scores[,i_vraag]                                   )$p.value
+  p_HUAlle[i_vraag-Ncor]    <- t.test(HUscores[,i_vraag], Allescores[,i_vraag]
+                               )$p.value
+  #Berekenen gemiddelden per groep
+  gem_HU[i_vraag-Ncor]      <- t.test(HUscores[,i_vraag], R6scores[,i_vraag]                                   )$estimate[1]
+  gem_R6                    <- t.test(HUscores[,i_vraag], R6scores[,i_vraag]                                   )$estimate[2]
+  gem_Alle[i_vraag-Ncor]    <- t.test(HUscores[,i_vraag], Allescores[,i_vraag]
+                               )$estimate[2]
   
+  #Berekenen verschil tussen gemiddelden
   diff_HUR6[i_vraag-Ncor]   <- mean(HUscores[,i_vraag], na.rm = TRUE) - 
-                             mean(R6scores[,i_vraag], na.rm = TRUE)
+                               mean(R6scores[,i_vraag], na.rm = TRUE)
   diff_HUAlle[i_vraag-Ncor] <- mean(HUscores[,i_vraag], na.rm = TRUE) - 
                                mean(Allescores[,i_vraag], na.rm = TRUE)
 }
