@@ -52,6 +52,8 @@ groepen met elkaar vergeleken worden:
 
 -   Totaal per vorm (d.w.z.: voltijd, deeltijd, duaal)
 
+-   Totaal per type HO (d.w.z.: bachelor, master, ad)
+
 -   Opleiding totaal
 
 -   Opleiding per vorm
@@ -59,10 +61,11 @@ groepen met elkaar vergeleken worden:
 ```{r Definiëren analyse-groepen}
 groepHU    <- "Hogeschool Utrecht"
 groepR6    <- c("Hogeschool van Amsterdam", "De Haagse Hogeschool",                             "Hogeschool INHOLLAND",     "Hogeschool Leiden",                                "Hogeschool Rotterdam")
-vormtypes  <- unique(nse_benchmark_clean$Opleidingsvorm3)
+vormtypes  <- sort(unique(nse_benchmark_clean$Opleidingsvorm3))
+HOtypes    <- sort(unique(nse_benchmark_clean$BaMa))
 
 #Weergeven van de verschillende groepen
-groepHU; groepR6; vormtypes
+groepHU; groepR6; vormtypes; HOtypes
 ```
 
 Aanmaken van logische vectoren op basis van bovenstaande
@@ -86,6 +89,17 @@ for (i in vormtypes)
 vec_vorm[[length(vormtypes)+1]] <- rep(TRUE, nrow(nse_benchmark_clean))
 Nvorm <- length(vec_vorm)
 NSEvormen <- append(vormtypes, "Totaal")
+
+#Maak voor elke HOtype een logische verctor
+vec_HO <- vector(mode = "list", length(HOtypes))
+for (j in HOtypes)
+{
+  vec_HO[[j]]<- nse_benchmark_clean$BaMa == HOtypes[j]
+}
+#En extra lijst toevoegen voor HU-totaal
+vec_HO[[length(HOtypes)+1]] <- rep(TRUE, nrow(nse_benchmark_clean))
+NHO <- length(vec_HO)
+NSEHOtypes <- append(HOtypes, "Totaal")
 
 # Weergeven verschillende groepen
 cat("Samenvatting student-aantallen per groep:")
