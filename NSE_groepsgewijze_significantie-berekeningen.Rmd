@@ -137,12 +137,16 @@ temp_ALscores   <- nse_benchmark_clean[vec_groepAL,vec_NSEvragen[vraag]]
 temp_HUvorm     <- nse_benchmark_clean[vec_vorm[[1]]&vec_groepHU,                                                      vec_NSEvragen[vraag]]
 temp_R6vorm     <- nse_benchmark_clean[vec_vorm[[2]]&vec_groepR6,                                                      vec_NSEvragen[vraag]]
 temp_ALvorm     <- nse_benchmark_clean[vec_vorm[[3]]&vec_groepAL,                                                      vec_NSEvragen[vraag]]
+temp_HOtype1    <- nse_benchmark_clean[vec_HO[[1]]&vec_groepHU,                                                        vec_NSEvragen[vraag]]
+temp_HOtype2    <- nse_benchmark_clean[vec_HO[[2]]&vec_groepHU,                                                        vec_NSEvragen[vraag]]
+temp_HOtype3    <- nse_benchmark_clean[vec_HO[[3]]&vec_groepHU,                                                        vec_NSEvragen[vraag]]
 
 table(temp_ALscores)
 
 #Histogrammen plotten
 hist(temp_ALscores); hist(temp_HUscores); hist(temp_R6scores)
 hist(temp_HUvorm); hist(temp_R6vorm); hist(temp_ALvorm)
+hist(temp_HOtype1);hist(temp_HOtype2); hist(temp_HOtype3)
 
 #Weggooien tijdelijke objecten
 rm(list=ls(pattern="^temp_"))
