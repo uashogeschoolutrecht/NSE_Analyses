@@ -159,6 +159,7 @@ HUscores    <- nse_benchmark_clean[vec_groepHU,]
 R6scores    <- nse_benchmark_clean[vec_groepR6,]
 ALscores    <- nse_benchmark_clean[vec_groepAL,]
 
+
 #Pre-allocatie van objecten die in de volgende stap gevuld gaan worden
 p_HUR6      <- matrix(NA, Nvragen, Nvorm)
 p_HUAL      <- matrix(NA, Nvragen, Nvorm)
@@ -177,6 +178,7 @@ for (i_vorm in 1:Nvorm)
 
   #Voor elke NSEvraag de respons tussen groepen vergelijken en p waarde opslaan
   for (i_vraag in vec_NSEvragen)
+
   {
     #Berekenen p waarden
     p_HUR6[i_vraag-Ncor,i_vorm]  <- t.test(HUscores[vec_vorm[[i_vorm]],i_vraag],                                            R6scores[vec_vorm[[i_vorm]],i_vraag]                                           )$p.value
