@@ -189,8 +189,6 @@ diff_HUAL   <- array(NA, c(Nvragen, Nvorm, NHO))
 #Definieer correctiefactor zodat index voor het vullen van p waardes op 1 begint en niet op 28
 Ncor <- Neerste + 1 
 
-i_ho <- 1
-
 #Voor elke type HO onderstaande berekening herhalen
 for (i_ho in 1:NHO)
 {
@@ -248,16 +246,21 @@ voor testen die mogelijk positief met elkaar gecorrigeerd zijn
 [hier](https://projecteuclid.org/journals/annals-of-statistics/volume-29/issue-4/The-control-of-the-false-discovery-rate-in-multiple-testing/10.1214/aos/1013699998.full#:~:text=Abstract,many%20applied%20multiple%20testing%20problems.&text=For%20all%20other%20forms%20of,controls%20the%20false%20discovery%20rate.)
 
 ```{r FDR correctie}
-p_HUR6_adj <- matrix(NA, Nvragen, Nvorm)
-p_HUAL_adj <- matrix(NA, Nvragen, Nvorm)
-for (i_vorm in 1:Nvorm)
+p_HUR6_adj <- array(NA, c(Nvragen, Nvorm, NHO))
+p_HUAL_adj <- array(NA, c(Nvragen, Nvorm, NHO))
+
+# Loop over alle HO types
+for (i_ho in 1:NHO)
 {
-  p_HUR6_adj[,i_vorm] <- p.adjust(p_HUR6[,i_vorm], method = "BY")
-  p_HUAL_adj[,i_vorm] <- p.adjust(p_HUAL[,i_vorm], method = 'BY')
+  # Loop over alle vorm varianten
+  for (i_vorm in 1:Nvorm)
+  {
+    p_HUR6_adj[,i_vorm,i_ho] <- p.adjust(p_HUR6[,i_vorm,i_ho], method = "BY")
+    p_HUAL_adj[,i_vorm,i_ho] <- p.adjust(p_HUAL[,i_vorm,i_ho], method = 'BY')
+  }
 }
 # Bekijken van verschuiving oorspronkelijke p en p_adj
-i_vorm <- 4
-plot(p_HUR6[,i_vorm], p_HUR6_adj[,i_vorm]); abline(h = 0.05, v=0.05)
+plot(p_HUR6[,i_vorm,i_ho], p_HUR6_adj[,i_vorm,i_ho]); abline(h = 0.05, v=0.05)
 rm(p_HUR6, p_HUAL)
 ```
 
