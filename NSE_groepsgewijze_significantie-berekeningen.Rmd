@@ -191,34 +191,40 @@ Ncor <- Neerste + 1
 
 i_ho <- 1
 
-#Voor elke vorm onderstaande berekening herhalen
-for (i_vorm in 1:Nvorm)
+#Voor elke type HO onderstaande berekening herhalen
+for (i_ho in 1:NHO)
 {
-
-  #Voor elke NSEvraag de respons tussen groepen vergelijken en p waarde opslaan
-  for (i_vraag in vec_NSEvragen)
-
+  
+  #Voor elke vorm onderstaande berekening herhalen
+  for (i_vorm in 1:Nvorm)
   {
-    #Groepsgroote moet minimaal 5 responses zijn
-    if (sum(!is.na(HUscores[(vec_HO[[i_ho]] & vec_vorm[[i_vorm]]),i_vraag])) < 5)
-    {
-      next #Sla groep over en ga naar volgende iteratie
-    }
-    else
-    {
-    #Berekenen p waarden
-    p_HUR6[i_vraag-Ncor,i_vorm,i_ho]  <- t.test(HUscores[vec_HO[[i_ho]]                                                                 &vec_vorm[[i_vorm]]                                                              ,i_vraag],                                                             R6scores[vec_HO[[i_ho]]                                                                 &vec_vorm[[i_vorm]]                                                              ,i_vraag]                                                             )$p.value
-    p_HUAL[i_vraag-Ncor,i_vorm,i_ho]  <- t.test(HUscores[vec_vorm[[i_vorm]],i_vraag],                                            ALscores[vec_vorm[[i_vorm]],i_vraag]                                           )$p.value
-    #Berekenen gemiddelden per groep
-    gem_HU[i_vraag-Ncor,i_vorm,i_ho]  <- t.test(HUscores[vec_vorm[[i_vorm]],i_vraag],                                            R6scores[vec_vorm[[i_vorm]],i_vraag]                                           )$estimate[1]
-    gem_R6[i_vraag-Ncor,i_vorm,i_ho]  <- t.test(HUscores[vec_vorm[[i_vorm]],i_vraag],                                            R6scores[vec_vorm[[i_vorm]],i_vraag]                                           )$estimate[2]
-    gem_AL[i_vraag-Ncor,i_vorm,i_ho]  <- t.test(HUscores[vec_vorm[[i_vorm]],i_vraag],                                            ALscores[vec_vorm[[i_vorm]],i_vraag]                                           )$estimate[2]
     
-    #Berekenen verschil tussen gemiddelden (delta)
-    diff_HUR6[i_vraag-Ncor,i_vorm,i_ho] <- mean(HUscores[vec_vorm[[i_vorm]],i_vraag],                                            na.rm = TRUE) - 
-                                      mean(R6scores[vec_vorm[[i_vorm]],i_vraag],                                            na.rm = TRUE)
-    diff_HUAL[i_vraag-Ncor,i_vorm,i_ho] <- mean(HUscores[vec_vorm[[i_vorm]],i_vraag],                                            na.rm = TRUE) - 
-                                      mean(ALscores[vec_vorm[[i_vorm]],i_vraag],                                            na.rm = TRUE)
+    #Voor elke NSEvraag de respons tussen groepen vergelijken en p waarde opslaan
+    for (i_vraag in vec_NSEvragen)
+      
+        {
+  #Berekenen gemiddelden per groep
+      gem_HU[i_vraag-Ncor,i_vorm,i_ho]  <- mean(HUscores[vec_HO[[i_ho]]&                                                                 vec_vorm[[i_vorm]]                                                             ,i_vraag], na.rm = TRUE)
+      gem_R6[i_vraag-Ncor,i_vorm,i_ho]  <- mean(R6scores[vec_HO[[i_ho]]&                                                                 vec_vorm[[i_vorm]]                                                             ,i_vraag], na.rm = TRUE)
+      gem_AL[i_vraag-Ncor,i_vorm,i_ho]  <- mean(ALscores[vec_HO[[i_ho]]&                                                                 vec_vorm[[i_vorm]]                                                             ,i_vraag], na.rm = TRUE)
+    
+      #Berekenen verschil tussen gemiddelden (delta)
+      diff_HUR6[i_vraag-Ncor,i_vorm,i_ho] <- gem_HU[i_vraag-Ncor,i_vorm,i_ho]- 
+                                             gem_R6[i_vraag-Ncor,i_vorm,i_ho]
+      diff_HUAL[i_vraag-Ncor,i_vorm,i_ho] <- gem_HU[i_vraag-Ncor,i_vorm,i_ho]- 
+                                             gem_AL[i_vraag-Ncor,i_vorm,i_ho]
+      
+      #Groepsgroote moet minimaal 5 responses zijn
+      if (sum(!is.na(HUscores[(vec_HO[[i_ho]]&vec_vorm[[i_vorm]]),i_vraag]))< 5)
+      {
+        next #Sla groep over en ga naar volgende iteratie
+      }
+      else
+      {
+        #Berekenen p waarden
+        p_HUR6[i_vraag-Ncor,i_vorm,i_ho]  <- t.test(HUscores[vec_HO[[i_ho]]&                                                                 vec_vorm[[i_vorm]]                                                              ,i_vraag],                                                             R6scores[vec_HO[[i_ho]]&                                                                 vec_vorm[[i_vorm]]                                                              ,i_vraag]                                                             )$p.value
+        p_HUAL[i_vraag-Ncor,i_vorm,i_ho]  <- t.test(HUscores[vec_HO[[i_ho]]&                                                                 vec_vorm[[i_vorm]]                                                              ,i_vraag],                                                             ALscores[vec_HO[[i_ho]]&                                                                 vec_vorm[[i_vorm]]                                                              ,i_vraag]                                                           )$p.value
+      }
     }
   }
 }
