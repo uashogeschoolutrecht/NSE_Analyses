@@ -296,6 +296,7 @@ Eerst de benodigde output pre-alloceren:
 ```{r Preallocatie van data frame}
 nse_significanties <- data.frame(Opleidingsvorm3=character(),
                                  CrohoActueel   =character(),
+                                 BaMa           =character(),
                                  Vraag          =character(),
                                  Benchmark      =character(),
                                  p              =double(),
@@ -308,28 +309,33 @@ Vervolgens de verschillende analyses stuk voor stuk in een dataframe
 zetten, en samenvoegen in 1:
 
 ```{r Vullen met HU totalen}
-for (i_vorm in 1:Nvorm)
+for (i_ho in 1:NHO)
 {
-  tempR6 <- data.frame(Opleidingsvorm3 = NSEvormen[i_vorm], 
-                     CrohoActueel    = rep("Totaal",Nvragen), 
-                     Vraag           = NSEvragen, 
-                     Benchmark       = rep("R6",Nvragen),  
-                     p               = p_HUR6_adj[,i_vorm], 
-                     Niveau          = rep("HU",Nvragen),
-                     HUgem           = gem_HU[,i_vorm],
-                     Benchmarkgem    = gem_R6[,i_vorm])
-
-  tempAL <- data.frame(Opleidingsvorm3 = NSEvormen[i_vorm],
-                     CrohoActueel    = rep("Totaal",Nvragen),
-                     Vraag           = NSEvragen,
-                     Benchmark       = rep("AL",Nvragen),
-                     p               = p_HUAL_adj[,i_vorm],
-                     Niveau          = rep("HU",Nvragen),
-                     HUgem           = gem_HU[,i_vorm],
-                     Benchmarkgem    = gem_AL[,i_vorm])
-  
-  #Toevoegen van tijdelijke dataframes aan output dataframe
-  nse_significanties <- rbind(nse_significanties, tempR6, tempAL); 
+  for (i_vorm in 1:Nvorm)
+  {
+    tempR6 <- data.frame(Opleidingsvorm3 = NSEvormen[i_vorm], 
+                         CrohoActueel    = rep("Totaal",Nvragen), 
+                         BaMa            = NSEHOtypes[i_ho],
+                         Vraag           = NSEvragen, 
+                         Benchmark       = rep("R6",Nvragen),  
+                         p               = p_HUR6_adj[,i_vorm,i_ho], 
+                         Niveau          = rep("HU",Nvragen),
+                         HUgem           = gem_HU[,i_vorm,i_ho],
+                         Benchmarkgem    = gem_R6[,i_vorm,i_ho])
+    
+    tempAL <- data.frame(Opleidingsvorm3 = NSEvormen[i_vorm],
+                         CrohoActueel    = rep("Totaal",Nvragen),
+                         BaMa            = NSEHOtypes[i_ho],
+                         Vraag           = NSEvragen,
+                         Benchmark       = rep("AL",Nvragen),
+                         p               = p_HUAL_adj[,i_vorm,i_ho],
+                         Niveau          = rep("HU",Nvragen),
+                         HUgem           = gem_HU[,i_vorm,i_ho],
+                         Benchmarkgem    = gem_AL[,i_vorm,i_ho])
+    
+    #Toevoegen van tijdelijke dataframes aan output dataframe
+    nse_significanties <- rbind(nse_significanties, tempR6, tempAL); 
+  }
 }
 rm(tempR6, tempAL)
 
