@@ -25,9 +25,9 @@ uitgerekend. Dit bestaat proces bestaat uit de volgende stappen:
 
 ```{r libraries, message=FALSE, warning=FALSE, include=FALSE}
 library(tidyverse) #Nodig voor add_column() functie
-library(psych) #Nodig voor describeBy() functie
-library(plyr) #Nodig voor rbind() functie
-library(dplyr) #Nodig voor na_if() functie
+library(psych)     #Nodig voor describeBy() functie
+library(plyr)      #Nodig voor rbind() functie
+library(dplyr)     #Nodig voor na_if() functie
 ```
 
 # 1. Inladen NSE benchmark bestand (clean data)
@@ -187,7 +187,7 @@ diff_HUR6   <- array(NA, c(Nvragen, Nvorm, NHO))
 diff_HUAL   <- array(NA, c(Nvragen, Nvorm, NHO))
 
 #Definieer correctiefactor zodat index voor het vullen van p waardes op 1 begint en niet op 28
-Ncor <- Neerste + 1 
+Ncor <- Neerste - 1 
 
 #Voor elke type HO onderstaande berekening herhalen
 for (i_ho in 1:NHO)
