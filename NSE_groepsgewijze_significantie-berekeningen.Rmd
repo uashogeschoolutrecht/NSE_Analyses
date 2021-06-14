@@ -340,6 +340,7 @@ for (i_ho in 1:NHO)
                          Niveau          = rep("HU",Nvragen),
                          HUgem           = gem_HU[,i_vorm,i_ho],
                          Benchmarkgem    = gem_R6[,i_vorm,i_ho],
+                         gem_delta       = diff_HUR6[,i_vorm,i_ho],
                          Afnamejaar      = rep(2021,Nvragen) )
     
     tempAL <- data.frame(Opleidingsvorm3 = NSEvormen[i_vorm],
@@ -351,6 +352,7 @@ for (i_ho in 1:NHO)
                          Niveau          = rep("HU",Nvragen),
                          HUgem           = gem_HU[,i_vorm,i_ho],
                          Benchmarkgem    = gem_AL[,i_vorm,i_ho],
+                         gem_delta       = diff_HUAL[,i_vorm,i_ho],
                          Afnamejaar      = rep(2021,Nvragen) )
     
     #Toevoegen van tijdelijke dataframes aan output dataframe
