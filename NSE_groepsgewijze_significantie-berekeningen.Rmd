@@ -176,6 +176,9 @@ namelijk mogelijk dat de varianties tussen groepen verschilt.
 HUscores    <- nse_benchmark_clean[vec_groepHU,]
 R6scores    <- nse_benchmark_clean[vec_groepR6,]
 ALscores    <- nse_benchmark_clean[vec_groepAL,]
+HUweging    <- nse_benchmark_clean$Weegfactor[vec_groepHU]
+R6weging    <- nse_benchmark_clean$Weegfactor[vec_groepR6]
+ALweging    <- nse_benchmark_clean$Weegfactor[vec_groepAL]
 
 #Pre-allocatie van objecten die in de volgende stap gevuld gaan worden
 p_HUR6      <- array(NA, c(Nvragen, Nvorm, NHO))
@@ -201,11 +204,25 @@ for (i_ho in 1:NHO)
     for (i_vraag in vec_NSEvragen)
       
         {
-  #Berekenen gemiddelden per groep
-      gem_HU[i_vraag-Ncor,i_vorm,i_ho]  <- mean(HUscores[vec_HO[[i_ho]]&                                                                 vec_vorm[[i_vorm]]                                                             ,i_vraag], na.rm = TRUE)
-      gem_R6[i_vraag-Ncor,i_vorm,i_ho]  <- mean(R6scores[vec_HO[[i_ho]]&                                                                 vec_vorm[[i_vorm]]                                                             ,i_vraag], na.rm = TRUE)
-      gem_AL[i_vraag-Ncor,i_vorm,i_ho]  <- mean(ALscores[vec_HO[[i_ho]]&                                                                 vec_vorm[[i_vorm]]                                                             ,i_vraag], na.rm = TRUE)
-    
+  #Berekenen gemiddelden per groep (gewogen)
+      gem_HU[i_vraag-Ncor,i_vorm,i_ho]  <- weighted.mean(HUscores[vec_HO[[i_ho]]&
+                                                                  vec_vorm[[i_vorm]],
+                                                                  i_vraag],
+                                                         HUweging[vec_HO[[i_ho]]&
+                                                                  vec_vorm[[i_vorm]]],
+                                                         na.rm = TRUE)
+      gem_R6[i_vraag-Ncor,i_vorm,i_ho]  <- weighted.mean(R6scores[vec_HO[[i_ho]]&
+                                                                  vec_vorm[[i_vorm]],
+                                                                  i_vraag],
+                                                         R6weging[vec_HO[[i_ho]]&
+                                                                  vec_vorm[[i_vorm]]],
+                                                         na.rm = TRUE)
+      gem_AL[i_vraag-Ncor,i_vorm,i_ho]  <- weighted.mean(ALscores[vec_HO[[i_ho]]&
+                                                                  vec_vorm[[i_vorm]],
+                                                                  i_vraag],
+                                                         ALweging[vec_HO[[i_ho]]&
+                                                                  vec_vorm[[i_vorm]]],
+                                                         na.rm = TRUE)
       #Berekenen verschil tussen gemiddelden (delta)
       diff_HUR6[i_vraag-Ncor,i_vorm,i_ho] <- gem_HU[i_vraag-Ncor,i_vorm,i_ho]- 
                                              gem_R6[i_vraag-Ncor,i_vorm,i_ho]
