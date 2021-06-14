@@ -183,6 +183,9 @@ ALweging    <- nse_benchmark_clean$Weegfactor[vec_groepAL]
 #Pre-allocatie van objecten die in de volgende stap gevuld gaan worden
 p_HUR6      <- array(NA, c(Nvragen, Nvorm, NHO))
 p_HUAL      <- array(NA, c(Nvragen, Nvorm, NHO))
+N_HU        <- array(NA, c(Nvragen, Nvorm, NHO))
+N_R6        <- array(NA, c(Nvragen, Nvorm, NHO))
+N_AL        <- array(NA, c(Nvragen, Nvorm, NHO))
 gem_HU      <- array(NA, c(Nvragen, Nvorm, NHO))
 gem_R6      <- array(NA, c(Nvragen, Nvorm, NHO))
 gem_AL      <- array(NA, c(Nvragen, Nvorm, NHO))
@@ -202,9 +205,20 @@ for (i_ho in 1:NHO)
     
     #Voor elke NSEvraag de respons tussen groepen vergelijken en p waarde opslaan
     for (i_vraag in vec_NSEvragen)
+    {
       
-        {
-  #Berekenen gemiddelden per groep (gewogen)
+      #Groepsgroottes (N) berekenen
+      N_HU[i_vraag-Ncor, i_vorm, i_ho] <- sum(!is.na(HUscores[(vec_HO[[i_ho]]&
+                                                               vec_vorm[[i_vorm]]),
+                                                               i_vraag]))
+      N_R6[i_vraag-Ncor, i_vorm, i_ho] <- sum(!is.na(R6scores[(vec_HO[[i_ho]]&
+                                                               vec_vorm[[i_vorm]]),
+                                                               i_vraag]))
+      N_AL[i_vraag-Ncor, i_vorm, i_ho] <- sum(!is.na(ALscores[(vec_HO[[i_ho]]&
+                                                               vec_vorm[[i_vorm]]),
+                                                               i_vraag]))
+      
+      #Berekenen gemiddelden per groep (gewogen)
       gem_HU[i_vraag-Ncor,i_vorm,i_ho]  <- weighted.mean(HUscores[vec_HO[[i_ho]]&
                                                                   vec_vorm[[i_vorm]],
                                                                   i_vraag],
@@ -223,22 +237,37 @@ for (i_ho in 1:NHO)
                                                          ALweging[vec_HO[[i_ho]]&
                                                                   vec_vorm[[i_vorm]]],
                                                          na.rm = TRUE)
+      
       #Berekenen verschil tussen gemiddelden (delta)
       diff_HUR6[i_vraag-Ncor,i_vorm,i_ho] <- gem_HU[i_vraag-Ncor,i_vorm,i_ho]- 
                                              gem_R6[i_vraag-Ncor,i_vorm,i_ho]
       diff_HUAL[i_vraag-Ncor,i_vorm,i_ho] <- gem_HU[i_vraag-Ncor,i_vorm,i_ho]- 
                                              gem_AL[i_vraag-Ncor,i_vorm,i_ho]
       
-      #Groepsgroote moet minimaal 5 responses zijn
-      if (sum(!is.na(HUscores[(vec_HO[[i_ho]]&vec_vorm[[i_vorm]]),i_vraag]))< 5)
+      #Groepsgroote moet minimaal 2 responses zijn
+      if (N_HU[i_vraag-Ncor,i_vorm,i_ho]< 2 |
+          N_R6[i_vraag-Ncor,i_vorm,i_ho]< 2 |
+          N_AL[i_vraag-Ncor,i_vorm,i_ho]< 2)
       {
         next #Sla groep over en ga naar volgende iteratie
       }
       else
       {
         #Berekenen p waarden
-        p_HUR6[i_vraag-Ncor,i_vorm,i_ho]  <- t.test(HUscores[vec_HO[[i_ho]]&                                                                 vec_vorm[[i_vorm]]                                                              ,i_vraag],                                                             R6scores[vec_HO[[i_ho]]&                                                                 vec_vorm[[i_vorm]]                                                              ,i_vraag]                                                             )$p.value
-        p_HUAL[i_vraag-Ncor,i_vorm,i_ho]  <- t.test(HUscores[vec_HO[[i_ho]]&                                                                 vec_vorm[[i_vorm]]                                                              ,i_vraag],                                                             ALscores[vec_HO[[i_ho]]&                                                                 vec_vorm[[i_vorm]]                                                              ,i_vraag]                                                           )$p.value
+        p_HUR6[i_vraag-Ncor,i_vorm,i_ho]  <- t.test(HUscores[vec_HO[[i_ho]]&
+                                                             vec_vorm[[i_vorm]]
+                                                             ,i_vraag],
+                                                    R6scores[vec_HO[[i_ho]]&
+                                                             vec_vorm[[i_vorm]]
+                                                             ,i_vraag]
+                                                    )$p.value
+        p_HUAL[i_vraag-Ncor,i_vorm,i_ho]  <- t.test(HUscores[vec_HO[[i_ho]]&
+                                                             vec_vorm[[i_vorm]]
+                                                             ,i_vraag],
+                                                    ALscores[vec_HO[[i_ho]]&
+                                                             vec_vorm[[i_vorm]]
+                                                             ,i_vraag]
+                                                    )$p.value
       }
     }
   }
@@ -320,6 +349,9 @@ nse_significanties <- data.frame(Opleidingsvorm3=character(),
                                  Niveau         =character(),
                                  HUgem          =double(),
                                  Benchmarkgem   =double(),
+                                 gem_delta      =double(),
+                                 N_HU           =double(),
+                                 N_benchmark    =double(),
                                  Afnamejaar     =double())
 ```
 
@@ -341,6 +373,8 @@ for (i_ho in 1:NHO)
                          HUgem           = gem_HU[,i_vorm,i_ho],
                          Benchmarkgem    = gem_R6[,i_vorm,i_ho],
                          gem_delta       = diff_HUR6[,i_vorm,i_ho],
+                         N_HU            = N_HU[,i_vorm,i_ho],
+                         N_benchmark     = N_R6[,i_vorm,i_ho],
                          Afnamejaar      = rep(2021,Nvragen) )
     
     tempAL <- data.frame(Opleidingsvorm3 = NSEvormen[i_vorm],
@@ -353,6 +387,8 @@ for (i_ho in 1:NHO)
                          HUgem           = gem_HU[,i_vorm,i_ho],
                          Benchmarkgem    = gem_AL[,i_vorm,i_ho],
                          gem_delta       = diff_HUAL[,i_vorm,i_ho],
+                         N_HU            = N_HU[,i_vorm,i_ho],
+                         N_benchmark     = N_AL[,i_vorm,i_ho],
                          Afnamejaar      = rep(2021,Nvragen) )
     
     #Toevoegen van tijdelijke dataframes aan output dataframe
