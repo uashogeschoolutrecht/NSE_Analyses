@@ -319,7 +319,8 @@ nse_significanties <- data.frame(Opleidingsvorm3=character(),
                                  p              =double(),
                                  Niveau         =character(),
                                  HUgem          =double(),
-                                 Benchmarkgem   =double())
+                                 Benchmarkgem   =double(),
+                                 Afnamejaar     =double())
 ```
 
 Vervolgens de verschillende analyses stuk voor stuk in een dataframe
@@ -338,7 +339,8 @@ for (i_ho in 1:NHO)
                          p               = p_HUR6_adj[,i_vorm,i_ho], 
                          Niveau          = rep("HU",Nvragen),
                          HUgem           = gem_HU[,i_vorm,i_ho],
-                         Benchmarkgem    = gem_R6[,i_vorm,i_ho])
+                         Benchmarkgem    = gem_R6[,i_vorm,i_ho],
+                         Afnamejaar      = rep(2021,Nvragen) )
     
     tempAL <- data.frame(Opleidingsvorm3 = NSEvormen[i_vorm],
                          CrohoActueel    = rep("Totaal",Nvragen),
@@ -348,7 +350,8 @@ for (i_ho in 1:NHO)
                          p               = p_HUAL_adj[,i_vorm,i_ho],
                          Niveau          = rep("HU",Nvragen),
                          HUgem           = gem_HU[,i_vorm,i_ho],
-                         Benchmarkgem    = gem_AL[,i_vorm,i_ho])
+                         Benchmarkgem    = gem_AL[,i_vorm,i_ho],
+                         Afnamejaar      = rep(2021,Nvragen) )
     
     #Toevoegen van tijdelijke dataframes aan output dataframe
     nse_significanties <- rbind(nse_significanties, tempR6, tempAL); 
