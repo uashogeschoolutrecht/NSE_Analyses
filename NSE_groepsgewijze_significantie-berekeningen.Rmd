@@ -60,7 +60,9 @@ groepen met elkaar vergeleken worden:
 
 ```{r Definiëren analyse-groepen}
 groepHU    <- "Hogeschool Utrecht"
-groepR6    <- c("Hogeschool van Amsterdam", "De Haagse Hogeschool",                             "Hogeschool INHOLLAND",     "Hogeschool Leiden",                                "Hogeschool Rotterdam")
+groepR6    <- c("Hogeschool van Amsterdam", "De Haagse Hogeschool",
+                "Hogeschool INHOLLAND",     "Hogeschool Leiden",
+                "Hogeschool Rotterdam")
 vormtypes  <- sort(unique(nse_benchmark_clean$Opleidingsvorm3))
 HOtypes    <- sort(unique(nse_benchmark_clean$BaMa))
 
@@ -134,12 +136,18 @@ temp_HUscores   <- nse_benchmark_clean[vec_groepHU,vec_NSEvragen[vraag]]
 temp_R6scores   <- nse_benchmark_clean[vec_groepR6,vec_NSEvragen[vraag]]
 temp_ALscores   <- nse_benchmark_clean[vec_groepAL,vec_NSEvragen[vraag]]
 
-temp_HUvorm     <- nse_benchmark_clean[vec_vorm[[1]]&vec_groepHU,                                                      vec_NSEvragen[vraag]]
-temp_R6vorm     <- nse_benchmark_clean[vec_vorm[[2]]&vec_groepR6,                                                      vec_NSEvragen[vraag]]
-temp_ALvorm     <- nse_benchmark_clean[vec_vorm[[3]]&vec_groepAL,                                                      vec_NSEvragen[vraag]]
-temp_HOtype1    <- nse_benchmark_clean[vec_HO[[1]]&vec_groepHU,                                                        vec_NSEvragen[vraag]]
-temp_HOtype2    <- nse_benchmark_clean[vec_HO[[2]]&vec_groepHU,                                                        vec_NSEvragen[vraag]]
-temp_HOtype3    <- nse_benchmark_clean[vec_HO[[3]]&vec_groepHU,                                                        vec_NSEvragen[vraag]]
+temp_HUvorm     <- nse_benchmark_clean[vec_vorm[[1]]&vec_groepHU,
+                                       vec_NSEvragen[vraag]]
+temp_R6vorm     <- nse_benchmark_clean[vec_vorm[[2]]&vec_groepR6,
+                                       vec_NSEvragen[vraag]]
+temp_ALvorm     <- nse_benchmark_clean[vec_vorm[[3]]&vec_groepAL,
+                                       vec_NSEvragen[vraag]]
+temp_HOtype1    <- nse_benchmark_clean[vec_HO[[1]]&vec_groepHU,
+                                       vec_NSEvragen[vraag]]
+temp_HOtype2    <- nse_benchmark_clean[vec_HO[[2]]&vec_groepHU,
+                                       vec_NSEvragen[vraag]]
+temp_HOtype3    <- nse_benchmark_clean[vec_HO[[3]]&vec_groepHU,
+                                       vec_NSEvragen[vraag]]
 
 table(temp_ALscores)
 
@@ -256,10 +264,10 @@ for (i_ho in 1:NHO)
                                  vec_HO[[i_ho]]&
                                  vec_vorm[[i_vorm]]),i_vraag]
                                                     )$p.value
-      }
-    }
-  }
-}
+      }#Sluiten van else loop
+    }#Sluiten van vraag-loop
+  }#Sluiten van vorm-loop
+}#Sluiten van typeHO-loop
 rm(Ncor)
 ```
 
@@ -381,8 +389,8 @@ for (i_ho in 1:NHO)
     
     #Toevoegen van tijdelijke dataframes aan output dataframe
     nse_significanties <- rbind(nse_significanties, tempR6, tempAL); 
-  }
-}
+  }#Sluiten van vorm-loop
+}#Sluiten van typeHO-loop
 rm(tempR6, tempAL)
 
 ```
