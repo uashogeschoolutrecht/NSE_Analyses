@@ -395,7 +395,6 @@ nse_significanties <- data.frame(Opleidingsvorm3=character(),
                                  Vraag          =character(),
                                  Benchmark      =character(),
                                  p              =double(),
-                                 Niveau         =character(),
                                  HUgem          =double(),
                                  Benchmarkgem   =double(),
                                  gem_delta      =double(),
@@ -408,42 +407,44 @@ Vervolgens de verschillende analyses stuk voor stuk in een dataframe
 zetten, en samenvoegen in 1:
 
 ```{r Vullen met HU totalen}
-for (i_ho in 1:NHO)
+for (i_croho in 1:Ncrohos)
 {
-  for (i_vorm in 1:Nvorm)
+  for (i_ho in 1:NHO)
   {
-    tempR6 <- data.frame(Opleidingsvorm3 = NSEvormen[i_vorm], 
-                         CrohoActueel    = rep("Totaal",Nvragen), 
-                         BaMa            = NSEHOtypes[i_ho],
-                         Vraag           = NSEvragen, 
-                         Benchmark       = rep("R6",Nvragen),  
-                         p               = p_HUR6_adj[,i_vorm,i_ho], 
-                         Niveau          = rep("HU",Nvragen),
-                         HUgem           = gem_HU[,i_vorm,i_ho],
-                         Benchmarkgem    = gem_R6[,i_vorm,i_ho],
-                         gem_delta       = diff_HUR6[,i_vorm,i_ho],
-                         N_HU            = N_HU[,i_vorm,i_ho],
-                         N_benchmark     = N_R6[,i_vorm,i_ho],
-                         Afnamejaar      = rep(2021,Nvragen) )
-    
-    tempAL <- data.frame(Opleidingsvorm3 = NSEvormen[i_vorm],
-                         CrohoActueel    = rep("Totaal",Nvragen),
-                         BaMa            = NSEHOtypes[i_ho],
-                         Vraag           = NSEvragen,
-                         Benchmark       = rep("AL",Nvragen),
-                         p               = p_HUAL_adj[,i_vorm,i_ho],
-                         Niveau          = rep("HU",Nvragen),
-                         HUgem           = gem_HU[,i_vorm,i_ho],
-                         Benchmarkgem    = gem_AL[,i_vorm,i_ho],
-                         gem_delta       = diff_HUAL[,i_vorm,i_ho],
-                         N_HU            = N_HU[,i_vorm,i_ho],
-                         N_benchmark     = N_AL[,i_vorm,i_ho],
-                         Afnamejaar      = rep(2021,Nvragen) )
-    
-    #Toevoegen van tijdelijke dataframes aan output dataframe
-    nse_significanties <- rbind(nse_significanties, tempR6, tempAL); 
-  }#Sluiten van vorm-loop
-}#Sluiten van typeHO-loop
+    for (i_vorm in 1:Nvorm)
+    {
+      tempR6 <- data.frame(Opleidingsvorm3 = NSEvormen[i_vorm], 
+                           CrohoActueel    = crohos[i_croho], 
+                           BaMa            = NSEHOtypes[i_ho],
+                           Vraag           = NSEvragen, 
+                           Benchmark       = rep("R6",Nvragen),  
+                           p               = p_HUR6_adj[,i_vorm,i_ho,i_croho], 
+                           HUgem           = gem_HU[,i_vorm,i_ho,i_croho],
+                           Benchmarkgem    = gem_R6[,i_vorm,i_ho,i_croho],
+                           gem_delta       = diff_HUR6[,i_vorm,i_ho,i_croho],
+                           N_HU            = N_HU[,i_vorm,i_ho,i_croho],
+                           N_benchmark     = N_R6[,i_vorm,i_ho,i_croho],
+                           Afnamejaar      = rep(2021,Nvragen) )
+      
+      tempAL <- data.frame(Opleidingsvorm3 = NSEvormen[i_vorm],
+                           CrohoActueel    = crohos[i_croho],
+                           BaMa            = NSEHOtypes[i_ho],
+                           Vraag           = NSEvragen,
+                           Benchmark       = rep("AL",Nvragen),
+                           p               = p_HUAL_adj[,i_vorm,i_ho,i_croho],
+                           HUgem           = gem_HU[,i_vorm,i_ho,i_croho],
+                           Benchmarkgem    = gem_AL[,i_vorm,i_ho,i_croho],
+                           gem_delta       = diff_HUAL[,i_vorm,i_ho,i_croho],
+                           N_HU            = N_HU[,i_vorm,i_ho,i_croho],
+                           N_benchmark     = N_AL[,i_vorm,i_ho,i_croho],
+                           Afnamejaar      = rep(2021,Nvragen) )
+      
+      #Toevoegen van tijdelijke dataframes aan output dataframe
+      nse_significanties <- rbind(nse_significanties, tempR6, tempAL); 
+      
+    }#Sluiten van vorm-loop
+  }#Sluiten van typeHO-loop
+}#Sluiten van croho-loop
 rm(tempR6, tempAL)
 
 ```
