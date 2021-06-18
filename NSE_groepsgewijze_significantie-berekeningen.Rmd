@@ -112,7 +112,9 @@ for (h in 1:Ncrohos)
 {
   vec_croho[[h]] <- nse_benchmark_clean$CrohoNaamActueel == crohos[h]
 }
-vec_croho[[Ncrohos+1]] <- rep(TRUE, nrow(nse_benchmark_clean)); Ncrohos <- length(vec_croho)
+vec_croho[[Ncrohos+1]] <- rep(TRUE, nrow(nse_benchmark_clean)); 
+Ncrohos <- length(vec_croho)
+NSEcrohos <- append(Ncrohos, "Totaal")
 # Weergeven verschillende groepen
 cat("Samenvatting student-aantallen per groep:")
 summary(vec_groepHU)
@@ -414,7 +416,7 @@ for (i_croho in 1:Ncrohos)
     for (i_vorm in 1:Nvorm)
     {
       tempR6 <- data.frame(Opleidingsvorm3 = NSEvormen[i_vorm], 
-                           CrohoActueel    = crohos[i_croho], 
+                           CrohoActueel    = NSEcrohos[i_croho], 
                            BaMa            = NSEHOtypes[i_ho],
                            Vraag           = NSEvragen, 
                            Benchmark       = rep("R6",Nvragen),  
@@ -427,7 +429,7 @@ for (i_croho in 1:Ncrohos)
                            Afnamejaar      = rep(2021,Nvragen) )
       
       tempAL <- data.frame(Opleidingsvorm3 = NSEvormen[i_vorm],
-                           CrohoActueel    = crohos[i_croho],
+                           CrohoActueel    = NSEcrohos[i_croho],
                            BaMa            = NSEHOtypes[i_ho],
                            Vraag           = NSEvragen,
                            Benchmark       = rep("AL",Nvragen),
