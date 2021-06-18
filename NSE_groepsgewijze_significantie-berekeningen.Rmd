@@ -272,10 +272,11 @@ for (i_ho in 1:NHO)
       diff_HUAL[i_vraag-Ncor,i_vorm,i_ho,i_croho] <-gem_HU[i_vraag-Ncor,i_vorm,i_ho,i_croho]-
         gem_AL[i_vraag-Ncor,i_vorm,i_ho,i_croho]
       
-      #Groepsgroote moet minimaal 5 responses zijn
+      #Groepsgroote moet minimaal 5 responses zijn en vraag 64 wordt overgeslagen
       if (N_HU[i_vraag-Ncor,i_vorm,i_ho,i_croho]< 5 |
           N_R6[i_vraag-Ncor,i_vorm,i_ho,i_croho]< 5 |
-          N_AL[i_vraag-Ncor,i_vorm,i_ho,i_croho]< 5)
+          N_AL[i_vraag-Ncor,i_vorm,i_ho,i_croho]< 5 |
+          i_vraag == i_exclusie)
       {
         next #Sla groep over en ga naar volgende iteratie
       }
