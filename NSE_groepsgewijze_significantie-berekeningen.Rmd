@@ -361,25 +361,25 @@ rm(p_HUR6, p_HUAL)
 
 ```{r Visualiseren test-statistiek HU <> R6}
 #Bekijken uitkomstmaten (delta inclusief significantie in kleur)
-plot(p_HUR6_adj[,i_vorm,i_ho])
+plot(p_HUR6_adj[,i_vorm,i_ho,i_croho])
 abline(h = 0.05)
-groepering <- ifelse(diff_HUR6[,i_vorm,i_ho]  > 0 & 
-                     p_HUR6_adj[,i_vorm,i_ho] < 0.05, 3, 
-              ifelse(diff_HUR6[,i_vorm,i_ho]  < 0 & 
-                     p_HUR6_adj[,i_vorm,i_ho] < 0.05, 2, 1))
-plot(diff_HUR6[,i_vorm,i_ho], col = groepering, pch = 19, 
+groepering <- ifelse(diff_HUR6[,i_vorm,i_ho,i_croho]  > 0 & 
+                     p_HUR6_adj[,i_vorm,i_ho,i_croho] < 0.05, 3, 
+              ifelse(diff_HUR6[,i_vorm,i_ho,i_croho]  < 0 & 
+                     p_HUR6_adj[,i_vorm,i_ho,i_croho] < 0.05, 2, 1))
+plot(diff_HUR6[,i_vorm,i_ho,i_croho], col = groepering, pch = 19, 
      xlab = "NSE vraag", 
      ylab = "Gemiddelde verschil (delta) tussen HU en R6")
 ```
 
 ```{r Visualiseren test-statistiek HU <> AL}
-plot(p_HUAL_adj[,i_vorm,i_ho])
+plot(p_HUAL_adj[,i_vorm,i_ho,i_croho])
 abline(h = 0.05)
-groepering <- ifelse(diff_HUAL[,i_vorm,i_ho]  > 0 &
-                     p_HUAL_adj[,i_vorm,i_ho] < 0.05, 3,               
-              ifelse(diff_HUAL[,i_vorm,i_ho]  < 0 & 
-                     p_HUAL_adj[,i_vorm,i_ho] < 0.05, 2, 1))
-plot(diff_HUAL[,i_vorm,i_ho], col = groepering, pch = 19, 
+groepering <- ifelse(diff_HUAL[,i_vorm,i_ho,i_croho]  > 0 &
+                     p_HUAL_adj[,i_vorm,i_ho,i_croho] < 0.05, 3,               
+              ifelse(diff_HUAL[,i_vorm,i_ho,i_croho]  < 0 & 
+                     p_HUAL_adj[,i_vorm,i_ho,i_croho] < 0.05, 2, 1))
+plot(diff_HUAL[,i_vorm,i_ho,i_croho], col = groepering, pch = 19, 
      xlab = "NSE vraag", 
      ylab = "Gemiddelde verschil tussen HU en AL andere hogescholen")
 ```
