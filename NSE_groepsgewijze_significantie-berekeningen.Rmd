@@ -114,7 +114,7 @@ for (h in 1:Ncrohos)
 }
 vec_croho[[Ncrohos+1]] <- rep(TRUE, nrow(nse_benchmark_clean)); 
 Ncrohos <- length(vec_croho)
-NSEcrohos <- append(Ncrohos, "Totaal")
+NSEcrohos <- append(crohos, "Totaal")
 # Weergeven verschillende groepen
 cat("Samenvatting student-aantallen per groep:")
 summary(vec_groepHU)
