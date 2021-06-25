@@ -191,6 +191,12 @@ deze doet geen aannames over gelijke varianties tussen de testgroepen.
 Doordat je groepen met verschillende groepsgroottes vergelijkt is het
 namelijk mogelijk dat de varianties tussen groepen verschilt.
 
+Bij het berekenen van elke vorm van statistiek (gemiddelden, p-waarden)
+wordt de weegfactor meegenomen. Deze weegfactor corrigeert voor
+verschillen in responspercentages tussen verschillende
+opleidingsvarianten en instellingen. Voor meer informatie, zie de
+[README.md](https://github.com/Fraukje/NSE_Analyses/blob/main/README.md).
+
 ```{r T-test statistiek}
 #Bijeen zoeken van wegingsdata
 Weging      <- nse_benchmark_clean$Weegfactor
@@ -335,7 +341,11 @@ voor testen die mogelijk positief met elkaar gecorrigeerd zijn
 (bijvoorbeeld de verschillende docent-deelvragen). Zie ook
 [hier](https://projecteuclid.org/journals/annals-of-statistics/volume-29/issue-4/The-control-of-the-false-discovery-rate-in-multiple-testing/10.1214/aos/1013699998.full#:~:text=Abstract,many%20applied%20multiple%20testing%20problems.&text=For%20all%20other%20forms%20of,controls%20the%20false%20discovery%20rate.)
 
-Het niveau waarop gecorrigeerd wordt is de kleinste granulariteit, namelijk: croho-vorm-typeHO combinatie. De argumentatie hiervoor is dat de voornamelijke doelgroep de opleidingsmanagers (croho) zijn; het is dus alsof elke opleidingsmanager (d.w.z. op niveau croho, waarbij vorm en typeHO al vastliggen) zijn eigen significantie-toetsing doet. 
+Het niveau waarop gecorrigeerd wordt is de kleinste granulariteit,
+namelijk: croho-vorm-typeHO combinatie. De argumentatie hiervoor is dat
+de voornamelijke doelgroep de opleidingsmanagers (croho) zijn; het is
+dus alsof elke opleidingsmanager (d.w.z. op niveau croho, waarbij vorm
+en typeHO al vastliggen) zijn eigen significantie-toetsing doet.
 
 ```{r FDR correctie}
 p_HUR6_adj <- array(NA, c(Nvragen, Nvorm, NHO, Ncrohos))
