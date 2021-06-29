@@ -349,8 +349,10 @@ dus alsof elke opleidingsmanager (d.w.z. op niveau croho, waarbij vorm
 en typeHO al vastliggen) zijn eigen significantie-toetsing doet.
 
 ```{r FDR correctie}
-p_HUR6_adj <- array(NA, c(Nvragen, Nvorm, NHO, Ncrohos))
-p_HUAL_adj <- array(NA, c(Nvragen, Nvorm, NHO, Ncrohos))
+p_HUR6_adj  <- array(NA, c(Nvragen, Nvorm, NHO, Ncrohos))
+p_HUAL_adj  <- array(NA, c(Nvragen, Nvorm, NHO, Ncrohos))
+p_HUR6_w_adj<- array(NA, c(Nvragen, Nvorm, NHO, Ncrohos))
+p_HUAL_w_adj<- array(NA, c(Nvragen, Nvorm, NHO, Ncrohos))
 
 #Loop over alle crohos
 for (i_croho in 1:Ncrohos)
@@ -364,6 +366,8 @@ for (i_croho in 1:Ncrohos)
     {
       p_HUR6_adj[,i_vorm,i_ho,i_croho] <- p.adjust(p_HUR6[,i_vorm,i_ho,i_croho], method = "BY")
       p_HUAL_adj[,i_vorm,i_ho,i_croho] <- p.adjust(p_HUAL[,i_vorm,i_ho,i_croho], method = 'BY')
+      p_HUR6_w_adj[,i_vorm,i_ho,i_croho] <- p.adjust(p_HUR6_w[,i_vorm,i_ho,i_croho], method = "BY")
+      p_HUAL_w_adj[,i_vorm,i_ho,i_croho] <- p.adjust(p_HUAL_w[,i_vorm,i_ho,i_croho], method = 'BY')
     }
   }
 }
