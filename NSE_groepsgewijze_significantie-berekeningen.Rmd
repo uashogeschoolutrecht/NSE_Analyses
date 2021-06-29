@@ -198,6 +198,9 @@ verschillen in responspercentages tussen verschillende
 opleidingsvarianten en instellingen. Voor meer informatie, zie de
 [README.md](https://github.com/Fraukje/NSE_Analyses/blob/main/README.md).
 
+Let op dat het draaien van onderstaande chunk veel tijd vraagt (ca. 310 minuten).
+Om kort-durende tests te draaien is de aanbeveling om de loops bijvoorbeeld voor 1 croho te draaien, waarbij het belangrijk is om te beseffen dat croho = 95 alle croho's samen is (!). 
+
 ```{r T-test statistiek}
 #Pre-allocatie van objecten die in de volgende stap gevuld gaan worden
 p_HUR6      <- array(NA, c(Nvragen, Nvorm, NHO, Ncrohos))
