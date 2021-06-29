@@ -27,6 +27,7 @@ uitgerekend. Dit bestaat proces bestaat uit de volgende stappen:
 library(tidyverse) #Nodig voor add_column() functie
 library(psych)     #Nodig voor describeBy() functie
 library(plyr)      #Nodig voor rbind() functie
+library(weights)   #Nodig voor weighted.mean() en wtd.t.test() functies
 library(dplyr)     #Nodig voor na_if() functie
 ```
 
@@ -200,7 +201,9 @@ opleidingsvarianten en instellingen. Voor meer informatie, zie de
 ```{r T-test statistiek}
 #Pre-allocatie van objecten die in de volgende stap gevuld gaan worden
 p_HUR6      <- array(NA, c(Nvragen, Nvorm, NHO, Ncrohos))
+p_HUR6_w    <- array(NA, c(Nvragen, Nvorm, NHO, Ncrohos))
 p_HUAL      <- array(NA, c(Nvragen, Nvorm, NHO, Ncrohos))
+p_HUAL_w    <- array(NA, c(Nvragen, Nvorm, NHO, Ncrohos))
 N_HU        <- array(NA, c(Nvragen, Nvorm, NHO, Ncrohos))
 N_R6        <- array(NA, c(Nvragen, Nvorm, NHO, Ncrohos))
 N_AL        <- array(NA, c(Nvragen, Nvorm, NHO, Ncrohos))
@@ -290,11 +293,29 @@ for (i_croho in 1:Ncrohos)
         else
         {
           #Berekenen p waarden
+          p_HUR6_w[i_vraag-Ncor,i_vorm,i_ho,i_croho] <- unname(wtd.t.test(data_HU,
+                                                                          data_R6, 
+                                                                          weight   = data_w_HU,
+                                                                          weighty  = data_w_R6,
+                                                                          mean1    = TRUE, 
+                                                                          samedata = FALSE, 
+                                                                          bootse   = TRUE)
+                                                               $coefficients[3])
+          
+          p_HUAL_w[i_vraag-Ncor,i_vorm,i_ho,i_croho] <- unname(wtd.t.test(data_HU,
+                                                                          data_AL, 
+                                                                          weight   = data_w_HU,
+                                                                          weighty  = data_w_AL,
+                                                                          mean1    = TRUE, 
+                                                                          samedata = FALSE, 
+                                                                          bootse   = TRUE)
+                                                               $coefficients[3])
+
           p_HUR6[i_vraag-Ncor,i_vorm,i_ho,i_croho]  <- t.test(data_HU
-                                                              ,dataR6
+                                                              ,data_R6
           )$p.value
           p_HUAL[i_vraag-Ncor,i_vorm,i_ho,i_croho]  <- t.test(data_HU
-                                                              ,dataAL
+                                                              ,data_AL
           )$p.value
         }#Sluiten van else loop
       }#Sluiten van vraag-loop
