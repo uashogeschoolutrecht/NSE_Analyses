@@ -27,6 +27,7 @@ uitgerekend. Dit bestaat proces bestaat uit de volgende stappen:
 library(tidyverse) #Nodig voor add_column() functie
 library(psych)     #Nodig voor describeBy() functie
 library(plyr)      #Nodig voor rbind() functie
+library(weights)   #Nodig voor weighted.mean() en wtd.t.test() functies
 library(dplyr)     #Nodig voor na_if() functie
 ```
 
@@ -191,13 +192,21 @@ deze doet geen aannames over gelijke varianties tussen de testgroepen.
 Doordat je groepen met verschillende groepsgroottes vergelijkt is het
 namelijk mogelijk dat de varianties tussen groepen verschilt.
 
-```{r T-test statistiek}
-#Bijeen zoeken van wegingsdata
-Weging      <- nse_benchmark_clean$Weegfactor
+Bij het berekenen van elke vorm van statistiek (gemiddelden, p-waarden)
+wordt de weegfactor meegenomen. Deze weegfactor corrigeert voor
+verschillen in responspercentages tussen verschillende
+opleidingsvarianten en instellingen. Voor meer informatie, zie de
+[README.md](https://github.com/Fraukje/NSE_Analyses/blob/main/README.md).
 
+Let op dat het draaien van onderstaande chunk veel tijd vraagt (ca. 310 minuten).
+Om kort-durende tests te draaien is de aanbeveling om de loops bijvoorbeeld voor 1 croho te draaien, waarbij het belangrijk is om te beseffen dat croho = 95 alle croho's samen is (!). 
+
+```{r T-test statistiek}
 #Pre-allocatie van objecten die in de volgende stap gevuld gaan worden
 p_HUR6      <- array(NA, c(Nvragen, Nvorm, NHO, Ncrohos))
+p_HUR6_w    <- array(NA, c(Nvragen, Nvorm, NHO, Ncrohos))
 p_HUAL      <- array(NA, c(Nvragen, Nvorm, NHO, Ncrohos))
+p_HUAL_w    <- array(NA, c(Nvragen, Nvorm, NHO, Ncrohos))
 N_HU        <- array(NA, c(Nvragen, Nvorm, NHO, Ncrohos))
 N_R6        <- array(NA, c(Nvragen, Nvorm, NHO, Ncrohos))
 N_AL        <- array(NA, c(Nvragen, Nvorm, NHO, Ncrohos))
@@ -213,109 +222,110 @@ Ncor <- Neerste - 1
 #Voor elke croho
 for (i_croho in 1:Ncrohos)
 {
-
-#Voor elke type HO onderstaande berekening herhalen
-for (i_ho in 1:NHO)
-{
   
-  #Voor elke vorm onderstaande berekening herhalen
-  for (i_vorm in 1:Nvorm)
+  #Voor elke type HO onderstaande berekening herhalen
+  for (i_ho in 1:NHO)
   {
     
-    #Voor elke NSEvraag de respons tussen groepen vergelijken en p waarde opslaan
-    for (i_vraag in vec_NSEvragen)
+    #Voor elke vorm onderstaande berekening herhalen
+    for (i_vorm in 1:Nvorm)
     {
       
-      #Groepsgroottes (N) berekenen
-      N_HU[i_vraag-Ncor, i_vorm, i_ho, i_croho] <- sum(!is.na(nse_benchmark_clean[
-        (vec_groepHU & vec_HO[[i_ho]]&vec_vorm[[i_vorm]] & vec_croho[[i_croho]]),i_vraag]))
-      N_R6[i_vraag-Ncor, i_vorm, i_ho, i_croho] <- sum(!is.na(nse_benchmark_clean[
-        (vec_groepR6 & vec_HO[[i_ho]]&vec_vorm[[i_vorm]] & vec_croho[[i_croho]]),i_vraag]))
-      N_AL[i_vraag-Ncor, i_vorm, i_ho, i_croho] <- sum(!is.na(nse_benchmark_clean[
-        (vec_groepAL & vec_HO[[i_ho]]&vec_vorm[[i_vorm]] & vec_croho[[i_croho]]),i_vraag]))
-      
-      #Berekenen gemiddelden per groep (gewogen)
-      gem_HU[i_vraag-Ncor,i_vorm,i_ho, i_croho]  <- weighted.mean(nse_benchmark_clean
-                                                                  [(vec_groepHU 
-                                                                    &vec_HO[[i_ho]]
-                                                                    &vec_vorm[[i_vorm]]
-                                                                    &vec_croho[[i_croho]])
-                                                                    ,i_vraag],
-                                                                  Weging[(vec_groepHU
-                                                                          &vec_HO[[i_ho]]
-                                                                          &vec_vorm[[i_vorm]]
-                                                                          &vec_croho[[i_croho]])],
-                                                                  na.rm = TRUE)
-      gem_R6[i_vraag-Ncor,i_vorm,i_ho, i_croho]  <- weighted.mean(nse_benchmark_clean
-                                                                  [(vec_groepR6
-                                                                    & vec_HO[[i_ho]]
-                                                                    &vec_vorm[[i_vorm]]
-                                                                    &vec_croho[[i_croho]])
-                                                                    ,i_vraag],
-                                                                  Weging[(vec_groepR6 
-                                                                          &vec_HO[[i_ho]]
-                                                                          &vec_vorm[[i_vorm]]
-                                                                          &vec_croho[[i_croho]])],
-                                                                  na.rm = TRUE)
-      gem_AL[i_vraag-Ncor,i_vorm,i_ho, i_croho]  <- weighted.mean(nse_benchmark_clean
-                                                                  [(vec_groepAL &vec_HO[[i_ho]]
-                                                                    &vec_vorm[[i_vorm]]
-                                                                    &vec_croho[[i_croho]])
-                                                                    ,i_vraag],
-                                                                  Weging[(vec_groepAL 
-                                                                          & vec_HO[[i_ho]]
-                                                                          &vec_vorm[[i_vorm]]
-                                                                          &vec_croho[[i_croho]])],
-                                                                  na.rm = TRUE)
-      
-      #Berekenen verschil tussen gemiddelden (delta)
-      diff_HUR6[i_vraag-Ncor,i_vorm,i_ho,i_croho] <-gem_HU[i_vraag-Ncor,i_vorm,i_ho,i_croho]-
-        gem_R6[i_vraag-Ncor,i_vorm,i_ho,i_croho]
-      diff_HUAL[i_vraag-Ncor,i_vorm,i_ho,i_croho] <-gem_HU[i_vraag-Ncor,i_vorm,i_ho,i_croho]-
-        gem_AL[i_vraag-Ncor,i_vorm,i_ho,i_croho]
-      
-      #Groepsgroote moet minimaal 5 responses zijn en vraag 64 wordt overgeslagen
-      if (N_HU[i_vraag-Ncor,i_vorm,i_ho,i_croho]< 5 |
-          N_R6[i_vraag-Ncor,i_vorm,i_ho,i_croho]< 5 |
-          N_AL[i_vraag-Ncor,i_vorm,i_ho,i_croho]< 5 |
-          i_vraag == i_exclusie)
+      #Voor elke NSEvraag de respons tussen groepen vergelijken en p waarde opslaan
+      for (i_vraag in vec_NSEvragen)
       {
-        next #Sla groep over en ga naar volgende iteratie
-      }
-      else
-      {
-        #Berekenen p waarden
-        p_HUR6[i_vraag-Ncor,i_vorm,i_ho,i_croho]  <- t.test(nse_benchmark_clean
-                                                            [(vec_groepHU 
-                                                              &vec_HO[[i_ho]]
-                                                              &vec_vorm[[i_vorm]]
-                                                              &vec_croho[[i_croho]])
-                                                              ,i_vraag]
-                                                            ,nse_benchmark_clean
-                                                            [(vec_groepR6 
-                                                              &vec_HO[[i_ho]]
-                                                              &vec_vorm[[i_vorm]]
-                                                              &vec_croho[[i_croho]])
-                                                              ,i_vraag]
-                                                            )$p.value
-        p_HUAL[i_vraag-Ncor,i_vorm,i_ho,i_croho]  <- t.test(nse_benchmark_clean
-                                                            [(vec_groepHU 
-                                                              &vec_HO[[i_ho]]
-                                                              &vec_vorm[[i_vorm]]
-                                                              &vec_croho[[i_croho]])
-                                                              ,i_vraag]
-                                                            ,nse_benchmark_clean
-                                                            [(vec_groepAL 
-                                                              &vec_HO[[i_ho]]
-                                                              &vec_vorm[[i_vorm]]
-                                                              &vec_croho[[i_croho]])
-                                                              ,i_vraag]
-                                                            )$p.value
-      }#Sluiten van else loop
-    }#Sluiten van vraag-loop
-  }#Sluiten van vorm-loop
-}#Sluiten van typeHO-loop
-}
+        #Groepsdata bij elkaar zoeken
+        data_HU   <- nse_benchmark_clean[(vec_groepHU
+                                          &vec_HO[[i_ho]]
+                                          &vec_vorm[[i_vorm]]
+                                          &vec_croho[[i_croho]])
+                                         ,i_vraag]
+        data_R6   <- nse_benchmark_clean[(vec_groepR6
+                                          &vec_HO[[i_ho]]
+                                          &vec_vorm[[i_vorm]]
+                                          &vec_croho[[i_croho]])
+                                         ,i_vraag]
+        data_AL   <- nse_benchmark_clean[(vec_groepAL
+                                          &vec_HO[[i_ho]]
+                                          &vec_vorm[[i_vorm]]
+                                          &vec_croho[[i_croho]])
+                                         ,i_vraag]      
+        data_w_HU <- nse_benchmark_clean$Weegfactor[(vec_groepHU
+                                                     &vec_HO[[i_ho]]
+                                                     &vec_vorm[[i_vorm]]
+                                                     &vec_croho[[i_croho]])]
+        data_w_R6 <- nse_benchmark_clean$Weegfactor[(vec_groepR6
+                                                     &vec_HO[[i_ho]]
+                                                     &vec_vorm[[i_vorm]]
+                                                     &vec_croho[[i_croho]])]
+        data_w_AL <- nse_benchmark_clean$Weegfactor[(vec_groepAL
+                                                     &vec_HO[[i_ho]]
+                                                     &vec_vorm[[i_vorm]]
+                                                     &vec_croho[[i_croho]])]
+        
+        #Groepsgroottes (N) berekenen
+        N_HU[i_vraag-Ncor, i_vorm, i_ho, i_croho] <- sum(!is.na(data_HU))
+        N_R6[i_vraag-Ncor, i_vorm, i_ho, i_croho] <- sum(!is.na(data_R6))
+        N_AL[i_vraag-Ncor, i_vorm, i_ho, i_croho] <- sum(!is.na(data_AL))
+        
+        #Berekenen gemiddelden per groep (gewogen)
+        gem_HU[i_vraag-Ncor,i_vorm,i_ho, i_croho]  <- weighted.mean(data_HU,
+                                                                    data_w_HU,
+                                                                    na.rm = TRUE)
+        gem_R6[i_vraag-Ncor,i_vorm,i_ho, i_croho]  <- weighted.mean(data_R6,
+                                                                    data_w_R6,
+                                                                    na.rm = TRUE)
+        gem_AL[i_vraag-Ncor,i_vorm,i_ho, i_croho]  <- weighted.mean(data_AL,
+                                                                    data_w_AL,
+                                                                    na.rm = TRUE)
+        
+        #Berekenen verschil tussen gemiddelden (delta)
+        diff_HUR6[i_vraag-Ncor,i_vorm,i_ho,i_croho] <-gem_HU[i_vraag-Ncor,i_vorm,i_ho,i_croho]-
+          gem_R6[i_vraag-Ncor,i_vorm,i_ho,i_croho]
+        diff_HUAL[i_vraag-Ncor,i_vorm,i_ho,i_croho] <-gem_HU[i_vraag-Ncor,i_vorm,i_ho,i_croho]-
+          gem_AL[i_vraag-Ncor,i_vorm,i_ho,i_croho]
+        
+        #Groepsgroote moet minimaal 5 responses zijn en vraag 64 wordt overgeslagen
+        if (N_HU[i_vraag-Ncor,i_vorm,i_ho,i_croho]< 5 |
+            N_R6[i_vraag-Ncor,i_vorm,i_ho,i_croho]< 5 |
+            N_AL[i_vraag-Ncor,i_vorm,i_ho,i_croho]< 5 |
+            i_vraag == i_exclusie)
+        {
+          next #Sla groep over en ga naar volgende iteratie
+        }
+        else
+        {
+          #Berekenen p waarden
+          p_HUR6_w[i_vraag-Ncor,i_vorm,i_ho,i_croho] <- unname(wtd.t.test(data_HU,
+                                                                          data_R6, 
+                                                                          weight   = data_w_HU,
+                                                                          weighty  = data_w_R6,
+                                                                          mean1    = TRUE, 
+                                                                          samedata = FALSE, 
+                                                                          bootse   = TRUE)
+                                                               $coefficients[3])
+          
+          p_HUAL_w[i_vraag-Ncor,i_vorm,i_ho,i_croho] <- unname(wtd.t.test(data_HU,
+                                                                          data_AL, 
+                                                                          weight   = data_w_HU,
+                                                                          weighty  = data_w_AL,
+                                                                          mean1    = TRUE, 
+                                                                          samedata = FALSE, 
+                                                                          bootse   = TRUE)
+                                                               $coefficients[3])
+
+          p_HUR6[i_vraag-Ncor,i_vorm,i_ho,i_croho]  <- t.test(data_HU
+                                                              ,data_R6
+          )$p.value
+          p_HUAL[i_vraag-Ncor,i_vorm,i_ho,i_croho]  <- t.test(data_HU
+                                                              ,data_AL
+          )$p.value
+        }#Sluiten van else loop
+      }#Sluiten van vraag-loop
+    }#Sluiten van vorm-loop
+  }#Sluiten van typeHO-loop
+}#Sluiten van croho-loop
+
 rm(Ncor)
 ```
 
@@ -335,11 +345,17 @@ voor testen die mogelijk positief met elkaar gecorrigeerd zijn
 (bijvoorbeeld de verschillende docent-deelvragen). Zie ook
 [hier](https://projecteuclid.org/journals/annals-of-statistics/volume-29/issue-4/The-control-of-the-false-discovery-rate-in-multiple-testing/10.1214/aos/1013699998.full#:~:text=Abstract,many%20applied%20multiple%20testing%20problems.&text=For%20all%20other%20forms%20of,controls%20the%20false%20discovery%20rate.)
 
-Het niveau waarop gecorrigeerd wordt is de kleinste granulariteit, namelijk: croho-vorm-typeHO combinatie. De argumentatie hiervoor is dat de voornamelijke doelgroep de opleidingsmanagers (croho) zijn; het is dus alsof elke opleidingsmanager (d.w.z. op niveau croho, waarbij vorm en typeHO al vastliggen) zijn eigen significantie-toetsing doet. 
+Het niveau waarop gecorrigeerd wordt is de kleinste granulariteit,
+namelijk: croho-vorm-typeHO combinatie. De argumentatie hiervoor is dat
+de voornamelijke doelgroep de opleidingsmanagers (croho) zijn; het is
+dus alsof elke opleidingsmanager (d.w.z. op niveau croho, waarbij vorm
+en typeHO al vastliggen) zijn eigen significantie-toetsing doet.
 
 ```{r FDR correctie}
-p_HUR6_adj <- array(NA, c(Nvragen, Nvorm, NHO, Ncrohos))
-p_HUAL_adj <- array(NA, c(Nvragen, Nvorm, NHO, Ncrohos))
+p_HUR6_adj  <- array(NA, c(Nvragen, Nvorm, NHO, Ncrohos))
+p_HUAL_adj  <- array(NA, c(Nvragen, Nvorm, NHO, Ncrohos))
+p_HUR6_w_adj<- array(NA, c(Nvragen, Nvorm, NHO, Ncrohos))
+p_HUAL_w_adj<- array(NA, c(Nvragen, Nvorm, NHO, Ncrohos))
 
 #Loop over alle crohos
 for (i_croho in 1:Ncrohos)
@@ -353,6 +369,8 @@ for (i_croho in 1:Ncrohos)
     {
       p_HUR6_adj[,i_vorm,i_ho,i_croho] <- p.adjust(p_HUR6[,i_vorm,i_ho,i_croho], method = "BY")
       p_HUAL_adj[,i_vorm,i_ho,i_croho] <- p.adjust(p_HUAL[,i_vorm,i_ho,i_croho], method = 'BY')
+      p_HUR6_w_adj[,i_vorm,i_ho,i_croho] <- p.adjust(p_HUR6_w[,i_vorm,i_ho,i_croho], method = "BY")
+      p_HUAL_w_adj[,i_vorm,i_ho,i_croho] <- p.adjust(p_HUAL_w[,i_vorm,i_ho,i_croho], method = 'BY')
     }
   }
 }
@@ -398,6 +416,7 @@ nse_significanties <- data.frame(Opleidingsvorm3=character(),
                                  Vraag          =character(),
                                  Benchmark      =character(),
                                  p              =double(),
+                                 p_w            =double(),
                                  HUgem          =double(),
                                  Benchmarkgem   =double(),
                                  gem_delta      =double(),
@@ -422,6 +441,7 @@ for (i_croho in 1:Ncrohos)
                            Vraag           = NSEvragen, 
                            Benchmark       = rep("R6",Nvragen),  
                            p               = p_HUR6_adj[,i_vorm,i_ho,i_croho], 
+                           p_w             = p_HUR6_w_adj[,i_vorm,i_ho,i_croho],
                            HUgem           = gem_HU[,i_vorm,i_ho,i_croho],
                            Benchmarkgem    = gem_R6[,i_vorm,i_ho,i_croho],
                            gem_delta       = diff_HUR6[,i_vorm,i_ho,i_croho],
@@ -435,6 +455,7 @@ for (i_croho in 1:Ncrohos)
                            Vraag           = NSEvragen,
                            Benchmark       = rep("AL",Nvragen),
                            p               = p_HUAL_adj[,i_vorm,i_ho,i_croho],
+                           p_w             = p_HUAL_w_adj[,i_vorm,i_ho,i_croho],
                            HUgem           = gem_HU[,i_vorm,i_ho,i_croho],
                            Benchmarkgem    = gem_AL[,i_vorm,i_ho,i_croho],
                            gem_delta       = diff_HUAL[,i_vorm,i_ho,i_croho],
