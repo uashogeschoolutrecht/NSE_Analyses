@@ -8,6 +8,6 @@ wiki: <https://github.com/uashogeschoolutrecht/NSE_Analyses/wiki>
 
 Belangrijke notities bij het gebruik van NSE respondent data
 
-<https://github.com/uashogeschoolutrecht/NSE_Analyses/wiki/Methoden---Weegfactor-&-normalisatie>
+<https://github.com/uashogeschoolutrecht/NSE_Analyses/wiki/Methoden-weegfactor-&-normalisatie>
 
 ## 
