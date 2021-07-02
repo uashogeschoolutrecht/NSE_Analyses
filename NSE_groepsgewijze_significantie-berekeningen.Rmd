@@ -9,15 +9,18 @@ Dit is een [R Markdown](http://rmarkdown.rstudio.com) Notebook waarin
 voor de Nationale Student Enquete (NSE) groepsgewijze T-testen worden
 uitgerekend. Dit bestaat proces bestaat uit de volgende stappen:
 
-1.  Laden benodigde R-bibliotheken
+(0. Laden benodigde R-bibliotheken)
 
-2.  Inladen NSE benchmark bestand
+1.  Inladen NSE benchmark bestand
 
-3.  Groepen definiëren - HU totaal - Benchmark R6 - Benchmark A (alles)
+3.  Groepen definiëren - HU totaal - Benchmark R6 - Benchmark AL (alles)
 
-4.  Kijken naar verdeling van data binnen groepen
+3   NSE vragen definiëren
 
-5.  T-testen uitvoeren
+4.  Samenvattende statistieken
+
+5A. T-testen uitvoeren
+5B. Correctie voor multiple testing probleem
 
 6.  Resultaten wegschrijven
 
@@ -41,23 +44,16 @@ head(nse_benchmark_clean,10)
 # 2. Groepen definiëren
 
 Voor de analyse zijn nodig de vergelijkingsgroepen: HU, R6 (behalve HU)
-en alles (behalve HU). Hiervoor wordt de volgende groepering aangebracht
-in de data: HU, R6, O (waarbij O staat voor 'overig'). Groep 'alles
-behalve HU' kan nu gemaakt worden door de groeperingen 'R6' en 'O' te
-combineren.
+en alles (behalve HU). 
 
 Vervolgens is er een verschillende gelaagdheid (granulariteit) waarop de
 groepen met elkaar vergeleken worden:
 
--   Totaal
+-   Per vorm (d.w.z.: voltijd, deeltijd, duaal, of totaal)
 
--   Totaal per vorm (d.w.z.: voltijd, deeltijd, duaal)
+-   Per type hoger onderwijs (HO) (d.w.z.: bachelor, master, ad, of totaal)
 
--   Totaal per type HO (d.w.z.: bachelor, master, ad)
-
--   Opleiding (Croho) totaal
-
--   Opleiding per vorm
+-   Per opleiding (Croho) gegeven aan de HU totaal
 
 ```{r Definiëren analyse-groepen}
 groepHU    <- "Hogeschool Utrecht"
@@ -75,8 +71,8 @@ groepHU; groepR6; vormtypes; HOtypes; crohos
 
 Aanmaken van logische vectoren op basis van bovenstaande
 groepdefinities, waarmee in het vervolg eenvoudig datagroepen gekozen
-kunnen worden. Elke vector bevat TRUE voor elk regel in de NSE benchmark
-data binnen de groep valt, en FALSE als de rij buiten de groep valt.
+kunnen worden. Elke vector bevat TRUE voor elke regel in de NSE benchmark
+data die binnen de groep valt, en FALSE als de rij geen deel uitmaakt van de groep.
 
 ```{r Logische vectoren opzetten}
 #Aanmaken logische vectoren voor elke groep
@@ -116,7 +112,7 @@ for (h in 1:Ncrohos)
 vec_croho[[Ncrohos+1]] <- rep(TRUE, nrow(nse_benchmark_clean)); 
 Ncrohos <- length(vec_croho)
 NSEcrohos <- append(crohos, "Totaal")
-# Weergeven verschillende groepen
+# Weergeven aantallen binnen de drie verschillende groepen
 cat("Samenvatting student-aantallen per groep:")
 summary(vec_groepHU)
 summary(vec_groepR6)
@@ -127,55 +123,19 @@ summary(vec_groepAL)
 # 3. NSE Vragen definities
 
 De kolommen waarin de vraagresponses zich bevinden moeten aangegeven
-worden.
+worden. Daarnaast is het belangrijk om ook exclusie-vragen scherp te hebben.
 
 ```{r Lijst met vragen maken}
 Nvragen <- length(vec_NSEvragen)
 Neerste <- min(vec_NSEvragen)
-cat("De volgende ",toString(Nvragen)," vragen zijn opgenomen in deze significantie berekening:")
+cat("De volgende ",toString(Nvragen)," vragen zijn opgenomen in deze analyse:")
 NSEvragen
+cat("De volgende vraag/vragen zullen in de specifieke significantie-toetsing worden ge-excludeerd:", NSEvragen[vec_NSEvragen == i_exclusie])
 ```
 
-# 4. Samenvattende statistieken (exploratieve data analyse)
+# 4. Samenvattende statistieken
 
--   Kijken naar outliers
--   Kijken naar verdeling van data binnen groepen
-
-```{r Descriptieve statistieken per vraag weergeven}
-vraag <- 2
-cat("Dit is de vraag: ", NSEvragen[vraag])
-#Tijdelijke objecten aanmaken om data te bekijken
-temp_HUscores   <- nse_benchmark_clean[vec_groepHU,vec_NSEvragen[vraag]]
-temp_R6scores   <- nse_benchmark_clean[vec_groepR6,vec_NSEvragen[vraag]]
-temp_ALscores   <- nse_benchmark_clean[vec_groepAL,vec_NSEvragen[vraag]]
-
-temp_HUvorm     <- nse_benchmark_clean[vec_vorm[[1]]&vec_groepHU,
-                                       vec_NSEvragen[vraag]]
-temp_R6vorm     <- nse_benchmark_clean[vec_vorm[[2]]&vec_groepR6,
-                                       vec_NSEvragen[vraag]]
-temp_ALvorm     <- nse_benchmark_clean[vec_vorm[[3]]&vec_groepAL,
-                                       vec_NSEvragen[vraag]]
-temp_HOtype1    <- nse_benchmark_clean[vec_HO[[1]]&vec_groepHU,
-                                       vec_NSEvragen[vraag]]
-temp_HOtype2    <- nse_benchmark_clean[vec_HO[[2]]&vec_groepHU,
-                                       vec_NSEvragen[vraag]]
-temp_HOtype3    <- nse_benchmark_clean[vec_HO[[3]]&vec_groepHU,
-                                       vec_NSEvragen[vraag]]
-
-table(temp_ALscores)
-
-#Histogrammen plotten
-hist(temp_ALscores); hist(temp_HUscores); hist(temp_R6scores)
-hist(temp_HUvorm); hist(temp_R6vorm); hist(temp_ALvorm)
-hist(temp_HOtype1);hist(temp_HOtype2); hist(temp_HOtype3)
-
-#Weggooien tijdelijke objecten
-rm(list=ls(pattern="^temp_"))
-```
-
-# 5. Samenvattende statistieken
-
-Algemene statistieken bekijken voor alle vragen, per groep.
+Algemene statistieken bekijken voor alle vragen, per groep. Dit geeft een inkijk in hoe de data er ongeveer uit ziet per groep, en per vraag. Voor verdiepende exploratieve data analyse is een ander (ad hoc-type) script gebruikt wat slecht reproduceerbaar is.
 
 ```{r Statistieken voor alle vragen}
 
@@ -185,7 +145,7 @@ describeBy(nse_benchmark_clean[,vec_NSEvragen], vec_groepAL)
 
 ```
 
-# 6. Significanties uitrekenen
+# 5A. Significanties uitrekenen
 
 Voor de vergelijkingen tussen groepen wordt de Welch T-test gebruikt:
 deze doet geen aannames over gelijke varianties tussen de testgroepen.
@@ -196,9 +156,18 @@ Bij het berekenen van elke vorm van statistiek (gemiddelden, p-waarden)
 wordt de weegfactor meegenomen. Deze weegfactor corrigeert voor
 verschillen in responspercentages tussen verschillende
 opleidingsvarianten en instellingen. Voor meer informatie, zie de
-[README.md](https://github.com/Fraukje/NSE_Analyses/blob/main/README.md).
+[Methoden weegfactor & normalisatie](https://github.com/uashogeschoolutrecht/NSE_Analyses/wiki/Methoden-weegfactor-&-normalisatie).
 
-Let op dat het draaien van onderstaande chunk veel tijd vraagt (ca. 310 minuten).
+Op een aantal verschillende dwarsdoorsnedes worden groepen vergeleken. Zie voor meer informatie de [Methoden](https://github.com/uashogeschoolutrecht/NSE_Analyses/wiki/Methoden).
+
+Voor elke mogelijke granulariteit worden stuk voor stuk volgende stappen genomen:
+1. Bepalen data voor elke groep (HU, R6 en Alle hogescholen)
+2. Bepalen bijbehorende weegfactoren voor elke groep
+3. Berekenen gemiddelden en groepsgrootte (N) per groep
+4. Berekenen verschil in gemiddelden tussen HU en R6, en HU en AL. Dit heet de delta.
+5. Als aan de juiste criteria voldaan wordt, dan wordt de HU groep vergeleken met de R6 groep via een onafhankelijke en gewogen Welch t-Test met bootstrapping. Daarnaast wordt de HU groep via deze zelfde test ook vergeleken met de AL groep.
+
+Let op dat het draaien van onderstaande chunk veel tijd vraagt (ca. 220 minuten).
 Om kort-durende tests te draaien is de aanbeveling om de loops bijvoorbeeld voor 1 croho te draaien, waarbij het belangrijk is om te beseffen dat croho = 95 alle croho's samen is (!). 
 
 ```{r T-test statistiek}
@@ -329,27 +298,18 @@ for (i_croho in 1:Ncrohos)
 rm(Ncor)
 ```
 
-# 6B. Multiple testing correctie p-waarden
+# 5B. Multiple testing correctie p-waarden
 
-Op het niveau van HU totaal worden in totaal 57 testen uitgevoerd
-onderverdeeld in 16 verschillende thema's, zie ook het bestand
-docs/NSE2021 MultipleTesting. Op het niveau van HU totaal zijn er dus 16
-hypotheses die getest worden (sommige middels deel-vragen), namelijk
-voor elk van deze thema's is de nul-hypothese: "Het gemiddelde antwoord
-van HU studenten voor deze vraag is gelijk aan die van de R6 studenten".
+Op het niveau van 1 croho-vorm-typeHO combinatie worden in totaal voor 56 NSE vragen getoetst. Deze toetsing wordt gedaan voor twee verschillende benchmarks. Op het niveau van 1 croho-vorm-typeHO combinatie zijn er dus 56 x 2 = 112 hypotheses die getest worden (sommige middels deel-vragen), namelijk voor elk van deze NSE vragen is de nul-hypothese: "Het gemiddelde antwoord van HU studenten voor deze vraag is gelijk aan die van de benchmark groep studenten". Daarnaast wordt dit voor elke croho-vorm-typeHO combinatie uitgevoerd, resulterende in een zeer hoog aantal significantie toetsen. 
+
+Het multiple testing probleem ontstaat doordat alle testen door 1 onderzoeksgroep wordt uitgevoerd, en niet bij de eindgebruiker ligt (de opleidingsmanagers). Op basis hiervan hebben wij besloten dat het niveau waarop gecorrigeerd moet worden voor multiple testing is op de kleinste granulariteit, namelijk: croho-vorm-typeHO combinatie. De argumentatie hiervoor is dat de voornamelijke doelgroep de opleidingsmanagers (croho) zijn; het is dus alsof elke opleidingsmanager (d.w.z. op niveau croho, waarbij vorm en typeHO al vastliggen) zijn eigen significantie-toetsing doet.
+
 Correctie voor deze multiple-testing vindt plaats via de
 [Benjamini-Hochberg FDR
-correctie](https://en.wikipedia.org/wiki/False_discovery_rate#Benjamini%E2%80%93Hochberg_procedure),
-en dan de Benjamini-Yekutieli (BY) variant. Deze variant controleert ook
+correctie](https://en.wikipedia.org/wiki/False_discovery_rate#Benjamini%E2%80%93Hochberg_procedure), en dan de Benjamini-Yekutieli (BY) variant. Deze variant controleert ook
 voor testen die mogelijk positief met elkaar gecorrigeerd zijn
 (bijvoorbeeld de verschillende docent-deelvragen). Zie ook
 [hier](https://projecteuclid.org/journals/annals-of-statistics/volume-29/issue-4/The-control-of-the-false-discovery-rate-in-multiple-testing/10.1214/aos/1013699998.full#:~:text=Abstract,many%20applied%20multiple%20testing%20problems.&text=For%20all%20other%20forms%20of,controls%20the%20false%20discovery%20rate.)
-
-Het niveau waarop gecorrigeerd wordt is de kleinste granulariteit,
-namelijk: croho-vorm-typeHO combinatie. De argumentatie hiervoor is dat
-de voornamelijke doelgroep de opleidingsmanagers (croho) zijn; het is
-dus alsof elke opleidingsmanager (d.w.z. op niveau croho, waarbij vorm
-en typeHO al vastliggen) zijn eigen significantie-toetsing doet.
 
 ```{r FDR correctie}
 p_HUR6_adj  <- array(NA, c(Nvragen, Nvorm, NHO, Ncrohos))
@@ -405,7 +365,7 @@ plot(diff_HUAL[,i_vorm,i_ho,i_croho], col = groepering, pch = 19,
      ylab = "Gemiddelde verschil tussen HU en AL andere hogescholen")
 ```
 
-# 7. Exporteren p waardes
+# 6. Exporteren p waardes
 
 Eerst de benodigde output pre-alloceren:
 
