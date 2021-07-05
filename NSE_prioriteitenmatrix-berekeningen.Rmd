@@ -182,21 +182,36 @@ voor een RWA.
 ```{r RWA model berekenen}
 cat("Er wordt nu een RWA model berekend met vraag", NSEvragen[vec_rwauitkomst], "als onafhankelijke variabele.\nEen RWA model probeert om de onafhankelijke variabele te verklaren door gewichten toe te kennen aan een aantal vooraf gekozen afhankelijke variabelen. Voor dit model zijn alleen studenten meegenomen die voor zowel voor de onafhankelijke variabele én alle afhankelijke variabelen ingevulde responses bevatten (complete gevallen).\nDe volgende lijst aan vragen zijn de voorspellende variabelen: \n", NSEvragen[vec_rwavariabelen])
 
-rwa_bijdrage <- array(NA, dim = c(Nvorm, length(vec_rwavariabelen)))
-rwa_scores   <- array(NA, dim = c(Nvorm, length(vec_rwavariabelen)))
-N            <- array(NA, dim = c(Nvorm))
-for (idx_vorm in 1:Nvorm)
+rwa_bijdrage <- array(NA, dim = c(Nvorm, NHO, length(vec_rwavariabelen)))
+rwa_scores   <- array(NA, dim = c(Nvorm, NHO,length(vec_rwavariabelen)))
+N            <- array(NA, dim = c(Nvorm, NHO))
+for (idx_ho in 1:NHO)
 {
-  rwa_resultaten <- HUscores_clean[vec_vorm[[idx_vorm]],] %>% 
-    rwa(outcome    = NSEvragen[vec_rwauitkomst],
-        predictors = NSEvragen[vec_rwavariabelen],
-        applysigns = TRUE)
-  rwa_bijdrage[idx_vorm,] <- rwa_resultaten$result$Sign.Rescaled.RelWeight #Bijdrage aan de totaalscore
-  rwa_scores[idx_vorm,]   <- unlist(lapply(HUscores_clean[vec_vorm[[idx_vorm]],
-                                                          vec_rwavragen[2:9]], mean))
-  N[idx_vorm]             <-nrow(HUscores_clean[vec_vorm[[idx_vorm]],])
-}
-rwa_resultaten
+  for (idx_vorm in 1:Nvorm)
+  {
+    # Groepsgroote (N) berekenen
+    N[idx_vorm,idx_ho] <-nrow(HUscores_clean[vec_vorm[[idx_vorm]]&vec_HO[[idx_ho]],])
+    
+    # Als N < 10 dan geen rwa uitvoeren
+    if (N[idx_vorm,idx_ho] < 10)
+    {
+      next #Sla groep over en ga naar volgende iteratie
+    }
+    else
+    {
+      
+      rwa_resultaten <- HUscores_clean[vec_vorm[[idx_vorm]]&vec_HO[[idx_ho]],] %>% 
+        rwa(outcome    = NSEvragen[vec_rwauitkomst],
+            predictors = NSEvragen[vec_rwavariabelen],
+            applysigns = TRUE)
+      rwa_bijdrage[idx_vorm,idx_ho,] <- rwa_resultaten$result$Sign.Rescaled.RelWeight #Bijdrage aan de totaalscore
+      rwa_scores[idx_vorm,idx_ho,]   <- unlist(lapply(HUscores_clean[vec_vorm[[idx_vorm]]&
+                                                                       vec_HO[[idx_ho]],
+                                                                     vec_rwavragen[2:9]], 
+                                                      mean))
+    } #Sluiten rwa loop
+  } #Sluiten vorm-loop
+} #Sluiten type HO loop
 ```
 
 # 6. Visualiseren resultaat
