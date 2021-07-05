@@ -245,14 +245,18 @@ text(rwa_bijdrage[idx_vorm,idx_ho,], #Toevoegen nummer van vraag aan plot
 
 ```{r Vullen van data frame met resultaten}
 prioriteitenmatrix <- data.frame()
-for (idx_vorm in 1:Nvorm)
+for (idx_ho in 1:NHO)
 {
-  tmp <- data.frame(Opleidingsvorm3 = NSEvormen[idx_vorm],
-                    NSEvragen       = NSEvragen[vec_rwavariabelen],
-                    RWAscores       = rwa_scores[idx_vorm,],
-                    RWAbijdrage     = rwa_bijdrage[idx_vorm,],
-                    N               = N[idx_vorm])
-  prioriteitenmatrix <- rbind(prioriteitenmatrix, tmp); 
+  for (idx_vorm in 1:Nvorm)
+  {
+    tmp <- data.frame(Opleidingsvorm3 = NSEvormen[idx_vorm],
+                      BaMa            = NSEHOtypes[idx_ho],
+                      NSEvragen       = NSEvragen[vec_rwavariabelen],
+                      RWAscores       = rwa_scores[idx_vorm,idx_ho,],
+                      RWAbijdrage     = rwa_bijdrage[idx_vorm,idx_ho,],
+                      N               = N[idx_vorm,idx_ho])
+    prioriteitenmatrix <- rbind(prioriteitenmatrix, tmp); 
+  }
 }
 rm(tmp)
 ```
