@@ -99,6 +99,17 @@ vec_vorm[[length(vormtypes)+1]] <- rep(TRUE, nrow(HUscores_clean))
 Nvorm <- length(vec_vorm)
 NSEvormen <- append(vormtypes, "Totaal")
 
+#Maak voor elke HOtype een logische vector
+HOtypes    <- sort(unique(HUscores_clean$BaMa))
+vec_HO <- vector(mode = "list", length(HOtypes))
+for (j in HOtypes)
+{
+  vec_HO[[j]]<- HUscores_clean$BaMa == HOtypes[j]
+}
+#En extra lijst toevoegen voor HU-totaal
+vec_HO[[length(HOtypes)+1]] <- rep(TRUE, nrow(HUscores_clean))
+NHO <- length(vec_HO)
+NSEHOtypes <- append(HOtypes, "Totaal")
 ```
 
 # 4. Exploratieve data analyse
