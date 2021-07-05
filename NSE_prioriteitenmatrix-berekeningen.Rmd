@@ -39,7 +39,7 @@ load("~/research-drive/M21033303_DenA (Projectfolder)/DA_Onderzoek/2021nse/data_
 head(nse_benchmark_clean,10)
 ```
 
-# 3. Data selectie
+# 3. Data selectie & defintie
 
 Alleen studenten van de Hogeschool Utrecht worden gebruikt in deze data
 analyse.
@@ -81,6 +81,22 @@ NSEvragen_kort <- substr(NSEvragen, nchar(NSEvragen)-1, nchar(NSEvragen)) #Afkor
 HUscores_clean <- HUscores[complete.cases(HUscores[,vec_rwavragen]), ]
 
 cat("In deze stap zijn het volende aantal studenten weggefilterd:", dim(HUscores)[1]-dim(HUscores_clean)[1],"(d.w.z.",round((dim(HUscores)[1]-dim(HUscores_clean)[1])/dim(HUscores)[1]*100), "% van het totaal).")
+rm(HUscores)
+```
+Definieer verschillende dwarsdoorsnedes (vorm en typeHO)
+
+```{r}
+vormtypes  <- sort(unique(HUscores_clean$Opleidingsvorm3))
+vec_vorm <- vector(mode = "list", length(vormtypes))
+for (i in vormtypes)
+{
+  vec_vorm[[i]]<- HUscores_clean$Opleidingsvorm3 == vormtypes[i]
+}
+#Voeg nu een extra lijst toe die alle vormen meeneemt (totaal-berekening)
+vec_vorm[[length(vormtypes)+1]] <- rep(TRUE, nrow(HUscores_clean))
+Nvorm <- length(vec_vorm)
+NSEvormen <- append(vormtypes, "Totaal")
+
 ```
 
 # 4. Exploratieve data analyse
@@ -91,11 +107,11 @@ correlatie tussen Vraag 1 en de andere vragen, d.w.z.: als een student
 een hoge score geeft voor Vraag 1 geeft, geeft deze student dan ook
 gemiddeld genomen een hoge score op andere vragen? (en vice versa)
 
-```{r Bekijken Spearman correlatie, warning=FALSE, fig.cap = "Test"}
+```{r Bekijken Spearman correlatie, warning=FALSE}
 correlaties = NA
 for (i in vec_NSEvragen)
 {
-  correlaties[i-27] <- cor.test(HUscores[,vec_NSEvragen[1]], HUscores[,i], method = "spearman")$estimate
+  correlaties[i-27] <- cor.test(HUscores_clean[,vec_NSEvragen[1]], HUscores_clean[,i], method = "spearman")$estimate
 }
 plot(vec_NSEvragen,correlaties, xlab = 'Vraag'); abline(h=0.6); abline(h=0.4)
 ```
@@ -107,10 +123,10 @@ je opleiding in het algemeen?' (= vraag 1 uit NSE).
 Hoe zit het nu met correlaties tússen de voorspellende vragen?
 
 ```{r Testen voor multicollineariteit}
-test <- cor(HUscores_clean[,vec_rwavragen[2:9]])
-colnames(test) <- NSEvragen_kort[vec_rwavariabelen]
-rownames(test) <- NSEvragen_kort[vec_rwavariabelen]
-corrplot(test, method = "number", diag = FALSE)
+mcoll <- cor(HUscores_clean[,vec_rwavragen[2:9]])
+colnames(mcoll) <- NSEvragen_kort[vec_rwavariabelen]
+rownames(mcoll) <- NSEvragen_kort[vec_rwavariabelen]
+corrplot(mcoll, method = "number", diag = FALSE)
 ```
 
 De bovenstaande correlatie-matrix laat de correlatie tussen elke
@@ -153,10 +169,20 @@ voor een RWA.
 ```{r RWA model berekenen}
 cat("Er wordt nu een RWA model berekend met vraag", NSEvragen[vec_rwauitkomst], "als onafhankelijke variabele.\nEen RWA model probeert om de onafhankelijke variabele te verklaren door gewichten toe te kennen aan een aantal vooraf gekozen afhankelijke variabelen. Voor dit model zijn alleen studenten meegenomen die voor zowel voor de onafhankelijke variabele én alle afhankelijke variabelen ingevulde responses bevatten (complete gevallen).\nDe volgende lijst aan vragen zijn de voorspellende variabelen: \n", NSEvragen[vec_rwavariabelen])
 
-rwa_resultaten <- HUscores_clean %>%
-  rwa(outcome = NSEvragen[vec_rwauitkomst],
-      predictors = NSEvragen[vec_rwavariabelen],
-      applysigns = TRUE)
+rwa_bijdrage <- array(NA, dim = c(Nvorm, length(vec_rwavariabelen)))
+rwa_scores   <- array(NA, dim = c(Nvorm, length(vec_rwavariabelen)))
+N            <- array(NA, dim = c(Nvorm))
+for (idx_vorm in 1:Nvorm)
+{
+  rwa_resultaten <- HUscores_clean[vec_vorm[[idx_vorm]],] %>% 
+    rwa(outcome    = NSEvragen[vec_rwauitkomst],
+        predictors = NSEvragen[vec_rwavariabelen],
+        applysigns = TRUE)
+  rwa_bijdrage[idx_vorm,] <- rwa_resultaten$result$Sign.Rescaled.RelWeight #Bijdrage aan de totaalscore
+  rwa_scores[idx_vorm,]   <- unlist(lapply(HUscores_clean[vec_vorm[[idx_vorm]],
+                                                          vec_rwavragen[2:9]], mean))
+  N[idx_vorm]             <-nrow(HUscores_clean[vec_vorm[[idx_vorm]],])
+}
 rwa_resultaten
 ```
 
@@ -167,18 +193,40 @@ Een prioriteitenmatrix laat het gewicht van een voorspellende variabele
 (y-as).
 
 ```{r}
-rwa_scores <- unlist(lapply(HUscores_clean[,vec_rwavragen[2:9]], mean))
+idx_vorm = 4
 
-plot(rwa_resultaten$result$Sign.Rescaled.RelWeight, rwa_scores, xlab = 'Bijdrage aan totaalscore', ylab = 'Score' ); abline(h=3.6, v=15, col="black")
-text(rwa_resultaten$result$Sign.Rescaled.RelWeight, rwa_scores, NSEvragen_kort[vec_rwavariabelen], cex=0.7, pos=2, col="blue")
+rwa_scores_gem   <- mean(rwa_scores)
+rwa_bijdrage_gem <- mean(rwa_bijdrage[idx_vorm,])
+
+plot(rwa_bijdrage[idx_vorm,], 
+     rwa_scores[idx_vorm,], 
+     xlab = 'Bijdrage aan totaalscore', 
+     ylab = 'Score' ); 
+abline(h=rwa_scores_gem, #Gemiddelden horizontale en verticale lijnen zodra de matrix vorm krijgt
+       v=rwa_bijdrage_gem, 
+       col="black")
+text(rwa_bijdrage[idx_vorm,], #Toevoegen nummer van vraag aan plot
+     rwa_scores, 
+     NSEvragen_kort[vec_rwavariabelen], 
+     cex=0.7, 
+     pos=2, 
+     col="blue")
 ```
 
 # 7. Exporteren waardes
 
 ```{r Vullen van data frame met resultaten}
-Organisatieonderdeel <- "HU totaal"
-Bijdrage_score <- rwa_resultaten$result$Sign.Rescaled.RelWeight
-Prioriteitenmatrix <- data.frame(Organisatieonderdeel,rwa_scores,Bijdrage_score)
+prioriteitenmatrix <- data.frame()
+for (idx_vorm in 1:Nvorm)
+{
+  tmp <- data.frame(Opleidingsvorm3 = NSEvormen[idx_vorm],
+                    NSEvragen       = NSEvragen[vec_rwavariabelen],
+                    RWAscores       = rwa_scores[idx_vorm,],
+                    RWAbijdrage     = rwa_bijdrage[idx_vorm,],
+                    N               = N[idx_vorm])
+  prioriteitenmatrix <- rbind(prioriteitenmatrix, tmp); 
+}
+rm(tmp)
 ```
 
 ```{r Wegschrijven naar .csv}
