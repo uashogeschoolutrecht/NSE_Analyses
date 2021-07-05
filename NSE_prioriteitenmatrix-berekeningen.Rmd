@@ -59,7 +59,7 @@ Voorspellende variabelen: 02, 03, 06, 07, 08, 09, 10, 12
 Dit is in overleg met de business besloten. Vraag 01 wordt traditioneel
 gezien als uitkomst-maat. Vraag 02 t/m 12 zijn algemene vragen
 (detailvragen zijn voor nu out-of-scope), waarbij vragen 04, 05 en 11
-afvallen omdat zij slecht aan een deel van de studenten gesteld zijn.
+afvallen omdat zij slechts aan een deel van de studenten gesteld zijn.
 
 ```{r Definities van vragen}
 vec_rwauitkomst <- 1            # Kies vraag die de uitkomst variabele zal zijn
@@ -80,7 +80,7 @@ NSEvragen_kort <- substr(NSEvragen, nchar(NSEvragen)-1, nchar(NSEvragen)) #Afkor
 ```{r Data cleaning benodigd voor model}
 HUscores_clean <- HUscores[complete.cases(HUscores[,vec_rwavragen]), ]
 
-cat("In deze stap zijn het volende aantal studenten weggefilterd:", dim(HUscores)[1]-dim(HUscores_clean)[1],"(",(dim(HUscores)[1]-dim(HUscores_clean)[1])/dim(HUscores)[1]*100, "% van het totaal).")
+cat("In deze stap zijn het volende aantal studenten weggefilterd:", dim(HUscores)[1]-dim(HUscores_clean)[1],"(d.w.z.",round((dim(HUscores)[1]-dim(HUscores_clean)[1])/dim(HUscores)[1]*100), "% van het totaal).")
 ```
 
 # 4. Exploratieve data analyse
@@ -95,9 +95,9 @@ gemiddeld genomen een hoge score op andere vragen? (en vice versa)
 correlaties = NA
 for (i in vec_NSEvragen)
 {
-  correlaties[i] <- cor.test(HUscores[,vec_NSEvragen[1]], HUscores[,i], method = "spearman")$estimate
+  correlaties[i-27] <- cor.test(HUscores[,vec_NSEvragen[1]], HUscores[,i], method = "spearman")$estimate
 }
-plot(correlaties, xlab = 'Vraag'); abline(h=0.6); abline(h=0.4)
+plot(vec_NSEvragen,correlaties, xlab = 'Vraag'); abline(h=0.6); abline(h=0.4)
 ```
 
 Conclusie: Het merendeel van de NSE vragen zijn ten minste matig (0.6 \>
