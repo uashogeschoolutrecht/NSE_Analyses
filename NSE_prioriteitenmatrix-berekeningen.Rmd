@@ -223,18 +223,18 @@ Een prioriteitenmatrix laat het gewicht van een voorspellende variabele
 ```{r}
 idx_vorm = 4
 
-rwa_scores_gem   <- mean(rwa_scores)
-rwa_bijdrage_gem <- mean(rwa_bijdrage[idx_vorm,])
+rwa_scores_gem   <- mean(rwa_scores[idx_vorm,idx_ho,])
+rwa_bijdrage_gem <- mean(rwa_bijdrage[idx_vorm,idx_ho,])
 
-plot(rwa_bijdrage[idx_vorm,], 
-     rwa_scores[idx_vorm,], 
+plot(rwa_bijdrage[idx_vorm,idx_ho,], 
+     rwa_scores[idx_vorm,idx_ho,], 
      xlab = 'Bijdrage aan totaalscore', 
      ylab = 'Score' ); 
 abline(h=rwa_scores_gem, #Gemiddelden horizontale en verticale lijnen zodra de matrix vorm krijgt
        v=rwa_bijdrage_gem, 
        col="black")
-text(rwa_bijdrage[idx_vorm,], #Toevoegen nummer van vraag aan plot
-     rwa_scores, 
+text(rwa_bijdrage[idx_vorm,idx_ho,], #Toevoegen nummer van vraag aan plot
+     rwa_scores[idx_vorm,idx_ho,], 
      NSEvragen_kort[vec_rwavariabelen], 
      cex=0.7, 
      pos=2, 
