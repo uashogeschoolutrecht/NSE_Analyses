@@ -36,6 +36,7 @@ library(corrplot)  #Nodig voor het visualiseren van correlaties via corplot()
 
 ```{r Inlezen .csv}
 load("~/research-drive/M21033303_DenA (Projectfolder)/DA_Onderzoek/2021nse/data_in/NSE2021 nse_benchmark_clean.RData")
+rm(i_exclusie) #Exclusie-vector is in deze analyse niet nodig
 head(nse_benchmark_clean,10)
 ```
 
@@ -86,6 +87,7 @@ rm(HUscores)
 Definieer verschillende dwarsdoorsnedes (vorm en typeHO)
 
 ```{r}
+#Maak voor elke vorm een logische vector
 vormtypes  <- sort(unique(HUscores_clean$Opleidingsvorm3))
 vec_vorm <- vector(mode = "list", length(vormtypes))
 for (i in vormtypes)
@@ -126,7 +128,7 @@ Hoe zit het nu met correlaties tússen de voorspellende vragen?
 mcoll <- cor(HUscores_clean[,vec_rwavragen[2:9]])
 colnames(mcoll) <- NSEvragen_kort[vec_rwavariabelen]
 rownames(mcoll) <- NSEvragen_kort[vec_rwavariabelen]
-corrplot(mcoll, method = "number", diag = FALSE)
+corrplot(mcoll, method = "number", diag = FALSE); rm(mcoll)
 ```
 
 De bovenstaande correlatie-matrix laat de correlatie tussen elke
