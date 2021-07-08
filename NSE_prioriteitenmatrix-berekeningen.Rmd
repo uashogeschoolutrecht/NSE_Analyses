@@ -143,7 +143,7 @@ plot(vec_NSEvragen,correlaties, xlab = 'Vraag'); abline(h=0.6); abline(h=0.4)
 
 Conclusie: Het merendeel van de NSE vragen zijn ten minste matig (0.6 \>
 R \> 0.4) gecorreleerd met de algemene vraag 'Hoe tevreden ben jij met
-je opleiding in het algemeen?' (= vraag 1 uit NSE).
+je opleiding in het algemeen?' (= vraag 1 uit NSE). Het valt verder op dat vraag 'Hoe ervaar je de studiedruk' negatief gecorreleerd is: dit is mogelijk de andere antwoordmogelijkheden op deze vraag. Opdat deze vraag in de verdere analyse niet wordt meegenomen, is dit voor nu out-of-scope. 
 
 Hoe zit het nu met correlaties tússen de voorspellende vragen?
 
@@ -194,36 +194,44 @@ voor een RWA.
 ```{r RWA model berekenen}
 cat("Er wordt nu een RWA model berekend met vraag", NSEvragen[vec_rwauitkomst], "als onafhankelijke variabele.\nEen RWA model probeert om de onafhankelijke variabele te verklaren door gewichten toe te kennen aan een aantal vooraf gekozen afhankelijke variabelen. Voor dit model zijn alleen studenten meegenomen die voor zowel voor de onafhankelijke variabele én alle afhankelijke variabelen ingevulde responses bevatten (complete gevallen).\nDe volgende lijst aan vragen zijn de voorspellende variabelen: \n", NSEvragen[vec_rwavariabelen])
 
-rwa_bijdrage <- array(NA, dim = c(Nvorm, NHO, length(vec_rwavariabelen)))
-rwa_scores   <- array(NA, dim = c(Nvorm, NHO,length(vec_rwavariabelen)))
-N            <- array(NA, dim = c(Nvorm, NHO))
-for (idx_ho in 1:NHO)
+rwa_bijdrage <- array(NA, dim = c(Nvorm, NHO, Ncrohos, length(vec_rwavariabelen)))
+rwa_scores   <- array(NA, dim = c(Nvorm, NHO, Ncrohos, length(vec_rwavariabelen)))
+N            <- array(NA, dim = c(Nvorm, NHO, Ncrohos))
+for (idx_croho in 1:Ncrohos)
 {
-  for (idx_vorm in 1:Nvorm)
+  for (idx_ho in 1:NHO)
   {
-    # Groepsgroote (N) berekenen
-    N[idx_vorm,idx_ho] <-nrow(HUscores_clean[vec_vorm[[idx_vorm]]&vec_HO[[idx_ho]],])
-    
-    # Als N < 10 dan geen rwa uitvoeren
-    if (N[idx_vorm,idx_ho] < 10)
+    for (idx_vorm in 1:Nvorm)
     {
-      next #Sla groep over en ga naar volgende iteratie
-    }
-    else
-    {
+      # Groepsgroote (N) berekenen
+      N[idx_vorm,idx_ho,idx_croho] <-nrow(HUscores_clean[vec_vorm[[idx_vorm]]&
+                                                           vec_HO[[idx_ho]]&
+                                                           vec_croho[[idx_croho]],])
       
-      rwa_resultaten <- HUscores_clean[vec_vorm[[idx_vorm]]&vec_HO[[idx_ho]],] %>% 
-        rwa(outcome    = NSEvragen[vec_rwauitkomst],
-            predictors = NSEvragen[vec_rwavariabelen],
-            applysigns = TRUE)
-      rwa_bijdrage[idx_vorm,idx_ho,] <- rwa_resultaten$result$Sign.Rescaled.RelWeight #Bijdrage aan de totaalscore
-      rwa_scores[idx_vorm,idx_ho,]   <- unlist(lapply(HUscores_clean[vec_vorm[[idx_vorm]]&
-                                                                       vec_HO[[idx_ho]],
-                                                                     vec_rwavragen[2:9]], 
-                                                      mean))
-    } #Sluiten rwa loop
-  } #Sluiten vorm-loop
-} #Sluiten type HO loop
+      # Als N < 10 dan geen rwa uitvoeren
+      if (N[idx_vorm,idx_ho,idx_croho] < 10)
+      {
+        next #Sla groep over en ga naar volgende iteratie
+      }
+      else
+      {
+        
+        rwa_resultaten <- HUscores_clean[vec_vorm[[idx_vorm]]&
+                                           vec_HO[[idx_ho]]&
+                                           vec_croho[[idx_croho]],] %>% 
+          rwa(outcome    = NSEvragen[vec_rwauitkomst],
+              predictors = NSEvragen[vec_rwavariabelen],
+              applysigns = TRUE)
+        rwa_bijdrage[idx_vorm,idx_ho,idx_croho,] <- rwa_resultaten$result$Sign.Rescaled.RelWeight #Bijdrage aan de totaalscore
+        rwa_scores[idx_vorm,idx_ho,idx_croho,]   <- unlist(lapply(HUscores_clean[vec_vorm[[idx_vorm]]&
+                                                                                   vec_HO[[idx_ho]]&
+                                                                                   vec_croho[[idx_croho]],
+                                                                                 vec_rwavragen[2:9]],
+                                                                  mean))
+      } #Sluiten rwa loop
+    } #Sluiten vorm-loop
+  } #Sluiten type HO loop
+}#Sluiten croho-loop
 ```
 
 # 6. Visualiseren resultaat
