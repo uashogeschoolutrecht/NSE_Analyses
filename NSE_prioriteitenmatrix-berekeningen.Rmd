@@ -267,20 +267,25 @@ text(rwa_bijdrage[idx_vorm,idx_ho,idx_croho,], #Toevoegen nummer van vraag aan p
 
 ```{r Vullen van data frame met resultaten}
 prioriteitenmatrix <- data.frame()
-for (idx_ho in 1:NHO)
+for(idx_croho in 1:Ncrohos)
 {
-  for (idx_vorm in 1:Nvorm)
+  for (idx_ho in 1:NHO)
   {
-    tmp <- data.frame(Opleidingsvorm3 = NSEvormen[idx_vorm],
-                      BaMa            = NSEHOtypes[idx_ho],
-                      NSEvragen       = NSEvragen[vec_rwavariabelen],
-                      RWAscores       = rwa_scores[idx_vorm,idx_ho,],
-                      RWAbijdrage     = rwa_bijdrage[idx_vorm,idx_ho,],
-                      N               = N[idx_vorm,idx_ho])
-    prioriteitenmatrix <- rbind(prioriteitenmatrix, tmp); 
+    for (idx_vorm in 1:Nvorm)
+    {
+      tmp <- data.frame(Opleidingsvorm3 = NSEvormen[idx_vorm],
+                        BaMa            = NSEHOtypes[idx_ho],
+                        Croho           = NSEcrohos[idx_croho],
+                        NSEvragen       = NSEvragen[vec_rwavariabelen],
+                        RWAscores       = rwa_scores[idx_vorm,idx_ho,idx_croho,],
+                        RWAbijdrage     = rwa_bijdrage[idx_vorm,idx_ho,idx_croho,],
+                        N               = N[idx_vorm,idx_ho,idx_croho])
+      prioriteitenmatrix <- rbind(prioriteitenmatrix, tmp); 
+    }
   }
 }
 rm(tmp)
+prioriteitenmatrix <- prioriteitenmatrix[!is.na(prioriteitenmatrix$RWAscores),]
 ```
 
 ```{r Wegschrijven naar .csv}
