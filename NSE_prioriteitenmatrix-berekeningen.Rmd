@@ -84,9 +84,21 @@ HUscores_clean <- HUscores[complete.cases(HUscores[,vec_rwavragen]), ]
 cat("In deze stap zijn het volende aantal studenten weggefilterd:", dim(HUscores)[1]-dim(HUscores_clean)[1],"(d.w.z.",round((dim(HUscores)[1]-dim(HUscores_clean)[1])/dim(HUscores)[1]*100), "% van het totaal).")
 rm(HUscores)
 ```
-Definieer verschillende dwarsdoorsnedes (vorm en typeHO)
+Definieer verschillende dwarsdoorsnedes (croho, vorm en typeHO)
 
 ```{r}
+#Maak voor elke croho een logische vector
+crohos     <- sort(unique(HUscores_clean$CrohoNaamActueel))
+Ncrohos <- length(crohos)
+vec_croho <- vector(mode = "list", Ncrohos)
+for (h in 1:Ncrohos)
+{
+  vec_croho[[h]] <- HUscores_clean$CrohoNaamActueel == crohos[h]
+}
+vec_croho[[Ncrohos+1]] <- rep(TRUE, nrow(HUscores_clean)); 
+Ncrohos <- length(vec_croho)
+NSEcrohos <- append(crohos, "Totaal")
+
 #Maak voor elke vorm een logische vector
 vormtypes  <- sort(unique(HUscores_clean$Opleidingsvorm3))
 vec_vorm <- vector(mode = "list", length(vormtypes))
