@@ -64,9 +64,10 @@ vormtypes  <- sort(unique(nse_benchmark_clean$Opleidingsvorm3))
 HOtypes    <- sort(unique(nse_benchmark_clean$BaMa))
 crohos     <- sort(unique(nse_benchmark_clean$CrohoNaamActueel
                           [nse_benchmark_clean$BrinNaamActueel == groepHU]))
+instituten <- c("Totaal", "Instituut Archimedes")
 
 #Weergeven van de verschillende groepen
-groepHU; groepR6; vormtypes; HOtypes; crohos
+groepHU; groepR6; vormtypes; HOtypes; crohos; instituten
 ```
 
 Aanmaken van logische vectoren op basis van bovenstaande
@@ -79,6 +80,13 @@ data die binnen de groep valt, en FALSE als de rij geen deel uitmaakt van de gro
 vec_groepHU    <- nse_benchmark_clean$BrinNaamActueel == groepHU
 vec_groepR6    <- nse_benchmark_clean$BrinNaamActueel %in% groepR6
 vec_groepAL    <- nse_benchmark_clean$BrinNaamActueel != groepHU #alle instituten behalve de HU
+
+#Maak voor elk instituut een logische vector en sla op als lijst
+vec_instituut  <- vector(mode = "list", 2)
+vec_instituut[[1]] <- nse_benchmark_clean$CrohoNaamActueel %in% crohos[c(43:56,80:88)]
+vec_instituut[[2]] <- rep(TRUE, nrow(nse_benchmark_clean))
+N_instituut <- length(vec_instituut)
+NSEinstituten  <- c("Instituut Archimedes", "Totaal")
 
 #Maak voor elke opleidingsvorm een logische vector en sla op als lijst
 vec_vorm <- vector(mode = "list", length(vormtypes))
@@ -189,7 +197,7 @@ diff_HUAL   <- array(NA, c(Nvragen, Nvorm, NHO, Ncrohos))
 Ncor <- Neerste - 1 
 
 #Voor elke croho
-for (i_croho in 1:Ncrohos)
+for (i_croho in 1:1)
 {
   
   #Voor elke type HO onderstaande berekening herhalen
