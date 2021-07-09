@@ -36,10 +36,11 @@ library(corrplot)  #Nodig voor het visualiseren van correlaties via corplot()
 
 ```{r Inlezen .csv}
 load("~/research-drive/M21033303_DenA (Projectfolder)/DA_Onderzoek/2021nse/data_in/NSE2021 nse_benchmark_clean.RData")
+rm(i_exclusie) #Exclusie-vector is in deze analyse niet nodig
 head(nse_benchmark_clean,10)
 ```
 
-# 3. Data selectie
+# 3. Data selectie & defintie
 
 Alleen studenten van de Hogeschool Utrecht worden gebruikt in deze data
 analyse.
@@ -59,7 +60,7 @@ Voorspellende variabelen: 02, 03, 06, 07, 08, 09, 10, 12
 Dit is in overleg met de business besloten. Vraag 01 wordt traditioneel
 gezien als uitkomst-maat. Vraag 02 t/m 12 zijn algemene vragen
 (detailvragen zijn voor nu out-of-scope), waarbij vragen 04, 05 en 11
-afvallen omdat zij slecht aan een deel van de studenten gesteld zijn.
+afvallen omdat zij slechts aan een deel van de studenten gesteld zijn.
 
 ```{r Definities van vragen}
 vec_rwauitkomst <- 1            # Kies vraag die de uitkomst variabele zal zijn
@@ -80,7 +81,47 @@ NSEvragen_kort <- substr(NSEvragen, nchar(NSEvragen)-1, nchar(NSEvragen)) #Afkor
 ```{r Data cleaning benodigd voor model}
 HUscores_clean <- HUscores[complete.cases(HUscores[,vec_rwavragen]), ]
 
-cat("In deze stap zijn het volende aantal studenten weggefilterd:", dim(HUscores)[1]-dim(HUscores_clean)[1],"(",(dim(HUscores)[1]-dim(HUscores_clean)[1])/dim(HUscores)[1]*100, "% van het totaal).")
+cat("In deze stap zijn het volende aantal studenten weggefilterd:", dim(HUscores)[1]-dim(HUscores_clean)[1],"(d.w.z.",round((dim(HUscores)[1]-dim(HUscores_clean)[1])/dim(HUscores)[1]*100), "% van het totaal).")
+rm(HUscores)
+```
+Definieer verschillende dwarsdoorsnedes (croho, vorm en typeHO)
+
+```{r}
+#Maak voor elke croho een logische vector
+crohos     <- sort(unique(HUscores_clean$CrohoNaamActueel))
+Ncrohos <- length(crohos)
+vec_croho <- vector(mode = "list", Ncrohos)
+for (h in 1:Ncrohos)
+{
+  vec_croho[[h]] <- HUscores_clean$CrohoNaamActueel == crohos[h]
+}
+vec_croho[[Ncrohos+1]] <- rep(TRUE, nrow(HUscores_clean)); 
+Ncrohos <- length(vec_croho)
+NSEcrohos <- append(crohos, "Totaal")
+
+#Maak voor elke vorm een logische vector
+vormtypes  <- sort(unique(HUscores_clean$Opleidingsvorm3))
+vec_vorm <- vector(mode = "list", length(vormtypes))
+for (i in vormtypes)
+{
+  vec_vorm[[i]]<- HUscores_clean$Opleidingsvorm3 == vormtypes[i]
+}
+#Voeg nu een extra lijst toe die alle vormen meeneemt (totaal-berekening)
+vec_vorm[[length(vormtypes)+1]] <- rep(TRUE, nrow(HUscores_clean))
+Nvorm <- length(vec_vorm)
+NSEvormen <- append(vormtypes, "Totaal")
+
+#Maak voor elke HOtype een logische vector
+HOtypes    <- sort(unique(HUscores_clean$BaMa))
+vec_HO <- vector(mode = "list", length(HOtypes))
+for (j in HOtypes)
+{
+  vec_HO[[j]]<- HUscores_clean$BaMa == HOtypes[j]
+}
+#En extra lijst toevoegen voor HU-totaal
+vec_HO[[length(HOtypes)+1]] <- rep(TRUE, nrow(HUscores_clean))
+NHO <- length(vec_HO)
+NSEHOtypes <- append(HOtypes, "Totaal")
 ```
 
 # 4. Exploratieve data analyse
@@ -91,26 +132,26 @@ correlatie tussen Vraag 1 en de andere vragen, d.w.z.: als een student
 een hoge score geeft voor Vraag 1 geeft, geeft deze student dan ook
 gemiddeld genomen een hoge score op andere vragen? (en vice versa)
 
-```{r Bekijken Spearman correlatie, warning=FALSE, fig.cap = "Test"}
+```{r Bekijken Spearman correlatie, warning=FALSE}
 correlaties = NA
 for (i in vec_NSEvragen)
 {
-  correlaties[i] <- cor.test(HUscores[,vec_NSEvragen[1]], HUscores[,i], method = "spearman")$estimate
+  correlaties[i-27] <- cor.test(HUscores_clean[,vec_NSEvragen[1]], HUscores_clean[,i], method = "spearman")$estimate
 }
-plot(correlaties, xlab = 'Vraag'); abline(h=0.6); abline(h=0.4)
+plot(vec_NSEvragen,correlaties, xlab = 'Vraag'); abline(h=0.6); abline(h=0.4)
 ```
 
 Conclusie: Het merendeel van de NSE vragen zijn ten minste matig (0.6 \>
 R \> 0.4) gecorreleerd met de algemene vraag 'Hoe tevreden ben jij met
-je opleiding in het algemeen?' (= vraag 1 uit NSE).
+je opleiding in het algemeen?' (= vraag 1 uit NSE). Het valt verder op dat vraag 'Hoe ervaar je de studiedruk' negatief gecorreleerd is: dit is mogelijk de andere antwoordmogelijkheden op deze vraag. Opdat deze vraag in de verdere analyse niet wordt meegenomen, is dit voor nu out-of-scope. 
 
 Hoe zit het nu met correlaties tússen de voorspellende vragen?
 
 ```{r Testen voor multicollineariteit}
-test <- cor(HUscores_clean[,vec_rwavragen[2:9]])
-colnames(test) <- NSEvragen_kort[vec_rwavariabelen]
-rownames(test) <- NSEvragen_kort[vec_rwavariabelen]
-corrplot(test, method = "number", diag = FALSE)
+mcoll <- cor(HUscores_clean[,vec_rwavragen[2:9]])
+colnames(mcoll) <- NSEvragen_kort[vec_rwavariabelen]
+rownames(mcoll) <- NSEvragen_kort[vec_rwavariabelen]
+corrplot(mcoll, method = "number", diag = FALSE); rm(mcoll)
 ```
 
 De bovenstaande correlatie-matrix laat de correlatie tussen elke
@@ -153,11 +194,44 @@ voor een RWA.
 ```{r RWA model berekenen}
 cat("Er wordt nu een RWA model berekend met vraag", NSEvragen[vec_rwauitkomst], "als onafhankelijke variabele.\nEen RWA model probeert om de onafhankelijke variabele te verklaren door gewichten toe te kennen aan een aantal vooraf gekozen afhankelijke variabelen. Voor dit model zijn alleen studenten meegenomen die voor zowel voor de onafhankelijke variabele én alle afhankelijke variabelen ingevulde responses bevatten (complete gevallen).\nDe volgende lijst aan vragen zijn de voorspellende variabelen: \n", NSEvragen[vec_rwavariabelen])
 
-rwa_resultaten <- HUscores_clean %>%
-  rwa(outcome = NSEvragen[vec_rwauitkomst],
-      predictors = NSEvragen[vec_rwavariabelen],
-      applysigns = TRUE)
-rwa_resultaten
+rwa_bijdrage <- array(NA, dim = c(Nvorm, NHO, Ncrohos, length(vec_rwavariabelen)))
+rwa_scores   <- array(NA, dim = c(Nvorm, NHO, Ncrohos, length(vec_rwavariabelen)))
+N            <- array(NA, dim = c(Nvorm, NHO, Ncrohos))
+for (idx_croho in 1:Ncrohos)
+{
+  for (idx_ho in 1:NHO)
+  {
+    for (idx_vorm in 1:Nvorm)
+    {
+      # Groepsgroote (N) berekenen
+      N[idx_vorm,idx_ho,idx_croho] <-nrow(HUscores_clean[vec_vorm[[idx_vorm]]&
+                                                           vec_HO[[idx_ho]]&
+                                                           vec_croho[[idx_croho]],])
+      
+      # Als N < 10 dan geen rwa uitvoeren
+      if (N[idx_vorm,idx_ho,idx_croho] < 10)
+      {
+        next #Sla groep over en ga naar volgende iteratie
+      }
+      else
+      {
+        
+        rwa_resultaten <- HUscores_clean[vec_vorm[[idx_vorm]]&
+                                           vec_HO[[idx_ho]]&
+                                           vec_croho[[idx_croho]],] %>% 
+          rwa(outcome    = NSEvragen[vec_rwauitkomst],
+              predictors = NSEvragen[vec_rwavariabelen],
+              applysigns = TRUE)
+        rwa_bijdrage[idx_vorm,idx_ho,idx_croho,] <- rwa_resultaten$result$Sign.Rescaled.RelWeight #Bijdrage aan de totaalscore
+        rwa_scores[idx_vorm,idx_ho,idx_croho,]   <- unlist(lapply(HUscores_clean[vec_vorm[[idx_vorm]]&
+                                                                                   vec_HO[[idx_ho]]&
+                                                                                   vec_croho[[idx_croho]],
+                                                                                 vec_rwavragen[2:9]],
+                                                                  mean))
+      } #Sluiten rwa loop
+    } #Sluiten vorm-loop
+  } #Sluiten type HO loop
+}#Sluiten croho-loop
 ```
 
 # 6. Visualiseren resultaat
@@ -167,20 +241,53 @@ Een prioriteitenmatrix laat het gewicht van een voorspellende variabele
 (y-as).
 
 ```{r}
-rwa_scores <- unlist(lapply(HUscores_clean[,vec_rwavragen[2:9]], mean))
+idx_vorm = 4
+idx_ho = 4
+idx_croho = 95
 
-plot(rwa_resultaten$result$Sign.Rescaled.RelWeight, rwa_scores, xlab = 'Bijdrage aan totaalscore', ylab = 'Score' ); abline(h=3.6, v=15, col="black")
-text(rwa_resultaten$result$Sign.Rescaled.RelWeight, rwa_scores, NSEvragen_kort[vec_rwavariabelen], cex=0.7, pos=2, col="blue")
+rwa_scores_gem   <- mean(rwa_scores[idx_vorm,idx_ho,idx_croho,])
+rwa_bijdrage_gem <- mean(rwa_bijdrage[idx_vorm,idx_ho,idx_croho,])
+
+plot(rwa_bijdrage[idx_vorm,idx_ho,idx_croho,], 
+     rwa_scores[idx_vorm,idx_ho,idx_croho,], 
+     xlab = 'Bijdrage aan totaalscore', 
+     ylab = 'Score' ); 
+abline(h=rwa_scores_gem, #Gemiddelden horizontale en verticale lijnen zodra de matrix vorm krijgt
+       v=rwa_bijdrage_gem, 
+       col="black")
+text(rwa_bijdrage[idx_vorm,idx_ho,idx_croho,], #Toevoegen nummer van vraag aan plot
+     rwa_scores[idx_vorm,idx_ho,idx_croho,], 
+     NSEvragen_kort[vec_rwavariabelen], 
+     cex=0.7, 
+     pos=2, 
+     col="blue")
 ```
 
 # 7. Exporteren waardes
 
 ```{r Vullen van data frame met resultaten}
-Organisatieonderdeel <- "HU totaal"
-Bijdrage_score <- rwa_resultaten$result$Sign.Rescaled.RelWeight
-Prioriteitenmatrix <- data.frame(Organisatieonderdeel,rwa_scores,Bijdrage_score)
+prioriteitenmatrix <- data.frame()
+for(idx_croho in 1:Ncrohos)
+{
+  for (idx_ho in 1:NHO)
+  {
+    for (idx_vorm in 1:Nvorm)
+    {
+      tmp <- data.frame(Opleidingsvorm3 = NSEvormen[idx_vorm],
+                        BaMa            = NSEHOtypes[idx_ho],
+                        Croho           = NSEcrohos[idx_croho],
+                        NSEvragen       = NSEvragen[vec_rwavariabelen],
+                        RWAscores       = rwa_scores[idx_vorm,idx_ho,idx_croho,],
+                        RWAbijdrage     = rwa_bijdrage[idx_vorm,idx_ho,idx_croho,],
+                        N               = N[idx_vorm,idx_ho,idx_croho])
+      prioriteitenmatrix <- rbind(prioriteitenmatrix, tmp); 
+    }
+  }
+}
+rm(tmp)
+prioriteitenmatrix <- prioriteitenmatrix[!is.na(prioriteitenmatrix$RWAscores),]
 ```
 
 ```{r Wegschrijven naar .csv}
-write.csv(Prioriteitenmatrix,file = "~/research-drive/M21033303_DenA (Projectfolder)/DA_Onderzoek/2021nse/data_uit/NSEprioriteitenttabel.csv")
+write.csv(prioriteitenmatrix,file = "~/research-drive/M21033303_DenA (Projectfolder)/DA_Onderzoek/2021nse/data_uit/NSEprioriteitenttabel.csv")
 ```
