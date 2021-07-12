@@ -196,6 +196,7 @@ cat("Er wordt nu een RWA model berekend met vraag", NSEvragen[vec_rwauitkomst], 
 
 rwa_bijdrage <- array(NA, dim = c(Nvorm, NHO, Ncrohos, length(vec_rwavariabelen)))
 rwa_scores   <- array(NA, dim = c(Nvorm, NHO, Ncrohos, length(vec_rwavariabelen)))
+rwa_R2       <- array(NA, dim = c(Nvorm, NHO, Ncrohos))
 N            <- array(NA, dim = c(Nvorm, NHO, Ncrohos))
 for (idx_croho in 1:Ncrohos)
 {
@@ -228,6 +229,7 @@ for (idx_croho in 1:Ncrohos)
                                                                                    vec_croho[[idx_croho]],
                                                                                  vec_rwavragen[2:9]],
                                                                   mean))
+        rwa_R2[idx_vorm,idx_ho,idx_croho]        <- rwa_resultaten$rsquare #Totale verklaarde variantie (R^2)
       } #Sluiten rwa loop
     } #Sluiten vorm-loop
   } #Sluiten type HO loop
@@ -279,7 +281,8 @@ for(idx_croho in 1:Ncrohos)
                         NSEvragen       = NSEvragen[vec_rwavariabelen],
                         RWAscores       = rwa_scores[idx_vorm,idx_ho,idx_croho,],
                         RWAbijdrage     = rwa_bijdrage[idx_vorm,idx_ho,idx_croho,],
-                        N               = N[idx_vorm,idx_ho,idx_croho])
+                        N               = N[idx_vorm,idx_ho,idx_croho],
+                        Rsquared        = rwa_R2[idx_vorm,idx_ho,idx_croho])
       prioriteitenmatrix <- rbind(prioriteitenmatrix, tmp); 
     }
   }
