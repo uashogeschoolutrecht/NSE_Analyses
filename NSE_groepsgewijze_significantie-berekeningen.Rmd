@@ -327,15 +327,12 @@ voor testen die mogelijk positief met elkaar gecorrigeerd zijn
 [hier](https://projecteuclid.org/journals/annals-of-statistics/volume-29/issue-4/The-control-of-the-false-discovery-rate-in-multiple-testing/10.1214/aos/1013699998.full#:~:text=Abstract,many%20applied%20multiple%20testing%20problems.&text=For%20all%20other%20forms%20of,controls%20the%20false%20discovery%20rate.)
 
 ```{r FDR correctie}
-p_HUR6_adj  <- array(NA, c(Nvragen, Nvorm, NHO, Ncrohos, N_instituut))
-p_HUAL_adj  <- array(NA, c(Nvragen, Nvorm, NHO, Ncrohos, N_instituut))
-p_HUR6_w_adj<- array(NA, c(Nvragen, Nvorm, NHO, Ncrohos, N_instituut))
-p_HUAL_w_adj<- array(NA, c(Nvragen, Nvorm, NHO, Ncrohos, N_instituut))
+p_HUR6_adj  <- array(NA, c(Nvragen, Nvorm, NHO, Ncrohos))
+p_HUAL_adj  <- array(NA, c(Nvragen, Nvorm, NHO, Ncrohos))
+p_HUR6_w_adj<- array(NA, c(Nvragen, Nvorm, NHO, Ncrohos))
+p_HUAL_w_adj<- array(NA, c(Nvragen, Nvorm, NHO, Ncrohos))
 
-#Loop over alle instituten
-for (i_instituut in 1:N_instituut)
-{
-  
+
   #Loop over alle crohos
   for (i_croho in 1:Ncrohos)
   {
@@ -346,56 +343,61 @@ for (i_instituut in 1:N_instituut)
       # Loop over alle vorm varianten
       for (i_vorm in 1:Nvorm)
       {
-        p_HUR6_adj[,i_vorm,i_ho,i_croho,i_instituut]   <- p.adjust(p_HUR6[,i_vorm
-                                                                          ,i_ho
-                                                                          ,i_croho
-                                                                          ,i_instituut]
-                                                                   ,method = "BY")
-        p_HUAL_adj[,i_vorm,i_ho,i_croho,i_instituut]   <- p.adjust(p_HUAL[,i_vorm
-                                                                          ,i_ho,i_croho
-                                                                          ,i_instituut]
-                                                                   ,method = 'BY')
-        p_HUR6_w_adj[,i_vorm,i_ho,i_croho,i_instituut] <- p.adjust(p_HUR6_w[,i_vorm
-                                                                            ,i_ho
-                                                                            ,i_croho
-                                                                            ,i_instituut]
-                                                                   ,method = "BY")
-        p_HUAL_w_adj[,i_vorm,i_ho,i_croho,i_instituut] <- p.adjust(p_HUAL_w[,i_vorm
-                                                                            ,i_ho
-                                                                            ,i_croho
-                                                                            ,i_instituut]
-                                                                   ,method = 'BY')
+        p_HUR6_adj[,i_vorm,i_ho,i_croho]   <- p.adjust(p_HUR6[,i_vorm
+                                                              ,i_ho
+                                                              ,i_croho]
+                                                       ,method = "BY")
+        p_HUAL_adj[,i_vorm,i_ho,i_croho]   <- p.adjust(p_HUAL[,i_vorm
+                                                              ,i_ho
+                                                              ,i_croho]
+                                                       ,method = 'BY')
+        p_HUR6_w_adj[,i_vorm,i_ho,i_croho] <- p.adjust(p_HUR6_w[,i_vorm
+                                                                ,i_ho
+                                                                ,i_croho]
+                                                       ,method = "BY")
+        p_HUAL_w_adj[,i_vorm,i_ho,i_croho] <- p.adjust(p_HUAL_w[,i_vorm
+                                                                ,i_ho
+                                                                ,i_croho]
+                                                       ,method = 'BY')
       }
     }
   }
-}
+
 # Bekijken van verschuiving oorspronkelijke p en p_adj
-i_vorm = 4; i_ho = 4; i_croho = 4; i_instituut = 2
-plot(p_HUR6[,i_vorm,i_ho,i_croho,i_instituut], p_HUR6_adj[,i_vorm,i_ho,i_croho,i_instituut]); abline(h = 0.05, v=0.05)
+i_vorm = 4; i_ho = 4; i_croho = 96; #Waardes bekijken voor croho = Instituut Archimedes
+
+plot(p_HUR6[,i_vorm,
+            i_ho,
+            i_croho], 
+     p_HUR6_adj[,i_vorm,
+                i_ho,
+                i_croho]); 
+abline(h = 0.05, v=0.05)
+
 rm(p_HUR6, p_HUAL)
 ```
 
 ```{r Visualiseren test-statistiek HU <> R6}
 #Bekijken uitkomstmaten (delta inclusief significantie in kleur)
-plot(p_HUR6_adj[,i_vorm,i_ho,i_croho,i_instituut])
+plot(p_HUR6_adj[,i_vorm,i_ho,i_croho])
 abline(h = 0.05)
-groepering <- ifelse(diff_HUR6[,i_vorm,i_ho,i_croho,i_instituut]  > 0 & 
-                     p_HUR6_adj[,i_vorm,i_ho,i_croho,i_instituut] < 0.05, 3, 
-              ifelse(diff_HUR6[,i_vorm,i_ho,i_croho,i_instituut]  < 0 & 
-                     p_HUR6_adj[,i_vorm,i_ho,i_croho,i_instituut] < 0.05, 2, 1))
-plot(diff_HUR6[,i_vorm,i_ho,i_croho,i_instituut], col = groepering, pch = 19, 
+groepering <- ifelse(diff_HUR6[,i_vorm,i_ho,i_croho]  > 0 & 
+                     p_HUR6_adj[,i_vorm,i_ho,i_croho] < 0.05, 3, 
+              ifelse(diff_HUR6[,i_vorm,i_ho,i_croho]  < 0 & 
+                     p_HUR6_adj[,i_vorm,i_ho,i_croho] < 0.05, 2, 1))
+plot(diff_HUR6[,i_vorm,i_ho,i_croho], col = groepering, pch = 19, 
      xlab = "NSE vraag", 
      ylab = "Gemiddelde verschil (delta) tussen HU en R6")
 ```
 
 ```{r Visualiseren test-statistiek HU <> AL}
-plot(p_HUAL_adj[,i_vorm,i_ho,i_croho,i_instituut])
+plot(p_HUAL_adj[,i_vorm,i_ho,i_croho])
 abline(h = 0.05)
-groepering <- ifelse(diff_HUAL[,i_vorm,i_ho,i_croho,i_instituut]  > 0 &
-                     p_HUAL_adj[,i_vorm,i_ho,i_croho,i_instituut] < 0.05, 3,               
-              ifelse(diff_HUAL[,i_vorm,i_ho,i_croho,i_instituut]  < 0 & 
-                     p_HUAL_adj[,i_vorm,i_ho,i_croho,i_instituut] < 0.05, 2, 1))
-plot(diff_HUAL[,i_vorm,i_ho,i_croho,i_instituut], col = groepering, pch = 19, 
+groepering <- ifelse(diff_HUAL[,i_vorm,i_ho,i_croho]  > 0 &
+                     p_HUAL_adj[,i_vorm,i_ho,i_croho] < 0.05, 3,               
+              ifelse(diff_HUAL[,i_vorm,i_ho,i_croho]  < 0 & 
+                     p_HUAL_adj[,i_vorm,i_ho,i_croho] < 0.05, 2, 1))
+plot(diff_HUAL[,i_vorm,i_ho,i_croho], col = groepering, pch = 19, 
      xlab = "NSE vraag", 
      ylab = "Gemiddelde verschil tussen HU en AL andere hogescholen")
 ```
@@ -406,7 +408,6 @@ Eerst de benodigde output pre-alloceren:
 
 ```{r Preallocatie van data frame}
 nse_significanties <- data.frame(Opleidingsvorm3=character(),
-                                 Instituut      =character(),
                                  CrohoActueel   =character(),
                                  BaMa           =character(),
                                  Vraag          =character(),
@@ -426,51 +427,46 @@ Vervolgens de verschillende analyses stuk voor stuk in een dataframe
 zetten, en samenvoegen in 1:
 
 ```{r Vullen met HU totalen}
-for (i_instituut in 1:N_instituut)
+for (i_croho in 1:Ncrohos)
 {
-  for (i_croho in 1:Ncrohos)
+  for (i_ho in 1:NHO)
   {
-    for (i_ho in 1:NHO)
+    for (i_vorm in 1:Nvorm)
     {
-      for (i_vorm in 1:Nvorm)
-      {
-        tempR6 <- data.frame(Opleidingsvorm3 = NSEvormen[i_vorm], 
-                             Instituut       = NSEinstituten[i_instituut],
-                             CrohoActueel    = NSEcrohos[i_croho], 
-                             BaMa            = NSEHOtypes[i_ho],
-                             Vraag           = NSEvragen, 
-                             Benchmark       = rep("R6",Nvragen),  
-                             p               = p_HUR6_adj[,i_vorm,i_ho,i_croho,i_instituut], 
-                             p_w             = p_HUR6_w_adj[,i_vorm,i_ho,i_croho,i_instituut],
-                             HUgem           = gem_HU[,i_vorm,i_ho,i_croho,i_instituut],
-                             Benchmarkgem    = gem_R6[,i_vorm,i_ho,i_croho,i_instituut],
-                             gem_delta       = diff_HUR6[,i_vorm,i_ho,i_croho,i_instituut],
-                             N_HU            = N_HU[,i_vorm,i_ho,i_croho,i_instituut],
-                             N_benchmark     = N_R6[,i_vorm,i_ho,i_croho,i_instituut],
-                             Afnamejaar      = rep(2021,Nvragen) )
-        
-        tempAL <- data.frame(Opleidingsvorm3 = NSEvormen[i_vorm],
-                             Instituut       = NSEinstituten[i_instituut],
-                             CrohoActueel    = NSEcrohos[i_croho],
-                             BaMa            = NSEHOtypes[i_ho],
-                             Vraag           = NSEvragen,
-                             Benchmark       = rep("AL",Nvragen),
-                             p               = p_HUAL_adj[,i_vorm,i_ho,i_croho,i_instituut],
-                             p_w             = p_HUAL_w_adj[,i_vorm,i_ho,i_croho,i_instituut],
-                             HUgem           = gem_HU[,i_vorm,i_ho,i_croho,i_instituut],
-                             Benchmarkgem    = gem_AL[,i_vorm,i_ho,i_croho,i_instituut],
-                             gem_delta       = diff_HUAL[,i_vorm,i_ho,i_croho,i_instituut],
-                             N_HU            = N_HU[,i_vorm,i_ho,i_croho,i_instituut],
-                             N_benchmark     = N_AL[,i_vorm,i_ho,i_croho,i_instituut],
-                             Afnamejaar      = rep(2021,Nvragen) )
-        
-        #Toevoegen van tijdelijke dataframes aan output dataframe
-        nse_significanties <- rbind(nse_significanties, tempR6, tempAL); 
-        
-      }#Sluiten van vorm-loop
-    }#Sluiten van typeHO-loop
-  }#Sluiten van croho-loop
-}#Sluiten van instituut-loop
+      tempR6 <- data.frame(Opleidingsvorm3 = NSEvormen[i_vorm], 
+                           CrohoActueel    = NSEcrohos[i_croho], 
+                           BaMa            = NSEHOtypes[i_ho],
+                           Vraag           = NSEvragen, 
+                           Benchmark       = rep("R6",Nvragen),  
+                           p               = p_HUR6_adj[,i_vorm,i_ho,i_croho], 
+                           p_w             = p_HUR6_w_adj[,i_vorm,i_ho,i_croho],
+                           HUgem           = gem_HU[,i_vorm,i_ho,i_croho],
+                           Benchmarkgem    = gem_R6[,i_vorm,i_ho,i_croho],
+                           gem_delta       = diff_HUR6[,i_vorm,i_ho,i_croho],
+                           N_HU            = N_HU[,i_vorm,i_ho,i_croho],
+                           N_benchmark     = N_R6[,i_vorm,i_ho,i_croho],
+                           Afnamejaar      = rep(2021,Nvragen) )
+      
+      tempAL <- data.frame(Opleidingsvorm3 = NSEvormen[i_vorm],
+                           CrohoActueel    = NSEcrohos[i_croho],
+                           BaMa            = NSEHOtypes[i_ho],
+                           Vraag           = NSEvragen,
+                           Benchmark       = rep("AL",Nvragen),
+                           p               = p_HUAL_adj[,i_vorm,i_ho,i_croho],
+                           p_w             = p_HUAL_w_adj[,i_vorm,i_ho,i_croho],
+                           HUgem           = gem_HU[,i_vorm,i_ho,i_croho],
+                           Benchmarkgem    = gem_AL[,i_vorm,i_ho,i_croho],
+                           gem_delta       = diff_HUAL[,i_vorm,i_ho,i_croho],
+                           N_HU            = N_HU[,i_vorm,i_ho,i_croho],
+                           N_benchmark     = N_AL[,i_vorm,i_ho,i_croho],
+                           Afnamejaar      = rep(2021,Nvragen) )
+      
+      #Toevoegen van tijdelijke dataframes aan output dataframe
+      nse_significanties <- rbind(nse_significanties, tempR6, tempAL); 
+      
+    }#Sluiten van vorm-loop
+  }#Sluiten van typeHO-loop
+}#Sluiten van croho-loop
 rm(tempR6, tempAL)
 
 ```
