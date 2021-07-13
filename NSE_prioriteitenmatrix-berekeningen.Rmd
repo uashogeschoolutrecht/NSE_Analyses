@@ -81,7 +81,7 @@ NSEvragen_kort <- substr(NSEvragen, nchar(NSEvragen)-1, nchar(NSEvragen)) #Afkor
 ```{r Data cleaning benodigd voor model}
 HUscores_clean <- HUscores[complete.cases(HUscores[,vec_rwavragen]), ]
 
-cat("In deze stap zijn het volende aantal studenten weggefilterd:", dim(HUscores)[1]-dim(HUscores_clean)[1],"(d.w.z.",round((dim(HUscores)[1]-dim(HUscores_clean)[1])/dim(HUscores)[1]*100), "% van het totaal).")
+cat("In deze stap zijn het volgende aantal studenten weggefilterd:", dim(HUscores)[1]-dim(HUscores_clean)[1],"(d.w.z.",round((dim(HUscores)[1]-dim(HUscores_clean)[1])/dim(HUscores)[1]*100), "% van het totaal).")
 rm(HUscores)
 ```
 Definieer verschillende dwarsdoorsnedes (croho, vorm en typeHO)
