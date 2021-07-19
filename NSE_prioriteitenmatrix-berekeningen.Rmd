@@ -93,6 +93,7 @@ nrow_nieuw <- sum(complete.cases(HUscores_hers[,vec_rwavragen]))
 nrow_oud <- nrow(HUscores_hers)
 HUscores_hers <- HUscores_hers[complete.cases(HUscores_hers[,vec_rwavragen]), ]
 
+
 cat("In deze stap zijn het volgende aantal rijen weggefilterd:", (nrow_oud-nrow_nieuw),"(d.w.z.",round((nrow_oud-nrow_nieuw)/nrow_oud*100), "% van het totaal).")
 ```
 Definieer verschillende dwarsdoorsnedes (croho, vorm en typeHO)
