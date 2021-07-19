@@ -50,6 +50,16 @@ HUscores <- nse_benchmark_clean[nse_benchmark_clean$BrinNaamActueel == "Hogescho
 rm(nse_benchmark_clean)
 ```
 
+De weegfactor die bij het benchmarkbestand wordt meegeleverd corrigeert voor verschillen in responspercentages tussen crohos en instelling. De weegfactor is hiermee een frequentietelling, d.w.z.: hoe vaak moet ik de betreffende meting meetellen, en heeft in deze HU dataset een waarde tussen 0.450 en 3.386. Om deze weegfactor correct in correlatie-berekeningen mee te nemen is het nodig de dataset te herschalen met een factor 1000. Door te herschalen via een factor 1000 (d.w.z. een weegfactor van 0.450 wordt 450, en 3.386 wordt 3386) is het mogelijk om de oorspronkelijke dataset opnieuw op te bouwen waarin observaties worden vermeerderd met deze herschaalde weegfactor. Eén meting met een herschaalde weegfactor 450 komt dan in de herschaalde data 450 maal voor, enzovoorts. 
+
+Let op: onderstaande bewerking is memory-heavy (~6.4 Gb bij factor = 1000)
+
+```{r Herschalen dataset}
+factor = 1000;
+HUscores_hers <- HUscores[rep(seq(nrow(HUscores)), round(HUscores$Weegfactor*factor)),]
+rm(HUscores)
+```
+
 Voor deze analyse zullen de volgende vragen als uitkomst- en
 voorspellende variabelen gebruikt worden:
 
