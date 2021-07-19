@@ -145,16 +145,16 @@ gemiddeld genomen een hoge score op andere vragen? (en vice versa)
 
 ```{r Bekijken Spearman correlatie, warning=FALSE}
 correlaties = NA
-for (i in vec_NSEvragen)
+for (i in vec_rwavragen[1]:vec_rwavragen[length(vec_rwavragen)])
 {
-  correlaties[i-27] <- cor.test(HUscores_hers[,vec_NSEvragen[1]], HUscores_hers[,i], method = "spearman")$estimate
+  correlaties[i] <- cor.test(HUscores_hers[,vec_rwavragen[1]], HUscores_hers[,i], method = "spearman")$estimate
 }
-plot(vec_NSEvragen,correlaties, xlab = 'Vraag'); abline(h=0.6); abline(h=0.4)
+plot(vec_rwavragen,correlaties[vec_rwavragen], xlab = 'Vraag', ylim = c(0,1)); abline(h=0.6); abline(h=0.4)
 ```
 
 Conclusie: Het merendeel van de NSE vragen zijn ten minste matig (0.6 \>
 R \> 0.4) gecorreleerd met de algemene vraag 'Hoe tevreden ben jij met
-je opleiding in het algemeen?' (= vraag 1 uit NSE). Het valt verder op dat vraag 'Hoe ervaar je de studiedruk' negatief gecorreleerd is: dit is mogelijk de andere antwoordmogelijkheden op deze vraag. Opdat deze vraag in de verdere analyse niet wordt meegenomen, is dit voor nu out-of-scope. 
+je opleiding in het algemeen?' (= vraag 1 uit NSE). 
 
 Hoe zit het nu met correlaties tússen de voorspellende vragen?
 
@@ -212,7 +212,6 @@ rwa_R2       <- array(NA, dim = c(Nvorm, NHO, Ncrohos))
 N            <- array(NA, dim = c(Nvorm, NHO, Ncrohos))
 #Maak functie die gewogen gemiddelde berekend
 fun_gewgem   <- function(x, w) weighted.mean(x, w) 
-
 for (idx_croho in 1:Ncrohos)
 {
   for (idx_ho in 1:NHO)
