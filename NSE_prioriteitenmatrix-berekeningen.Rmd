@@ -40,7 +40,7 @@ rm(i_exclusie) #Exclusie-vector is in deze analyse niet nodig
 head(nse_benchmark_clean,10)
 ```
 
-# 3. Data selectie & defintie
+# 3. Data selectie & definitie
 
 Alleen studenten van de Hogeschool Utrecht worden gebruikt in deze data
 analyse.
