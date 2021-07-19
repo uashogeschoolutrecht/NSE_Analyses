@@ -34,7 +34,7 @@ library(corrplot)  #Nodig voor het visualiseren van correlaties via corplot()
 
 # 2. Inladen NSE benchmark bestand (clean data)
 
-```{r Inlezen .csv}
+```{r Inlezen .csv, ca. 15 sec.}
 load("~/research-drive/M21033303_DenA (Projectfolder)/DA_Onderzoek/2021nse/data_in/NSE2021 nse_benchmark_clean.RData")
 rm(i_exclusie) #Exclusie-vector is in deze analyse niet nodig
 head(nse_benchmark_clean,10)
@@ -54,7 +54,7 @@ De weegfactor die bij het benchmarkbestand wordt meegeleverd corrigeert voor ver
 
 Let op: onderstaande bewerking is memory-heavy (~6.4 Gb bij factor = 1000)
 
-```{r Herschalen dataset}
+```{r Herschalen dataset, ca. 30 sec}
 factor = 1000;
 HUscores_hers <- HUscores[rep(seq(nrow(HUscores)), round(HUscores$Weegfactor*factor)),]
 rm(HUscores)
@@ -88,17 +88,16 @@ NSEvragen_kort <- substr(NSEvragen, nchar(NSEvragen)-1, nchar(NSEvragen)) #Afkor
 > gemiddelde waarde, maar voor nu is hier niet voor gekozen. Het
 > wegfilteren van studenten die deels missing responses hebben
 
-```{r Data cleaning benodigd voor model}
+```{r Data cleaning benodigd voor model, ca. 15 sec.}
 nrow_nieuw <- sum(complete.cases(HUscores_hers[,vec_rwavragen]))
 nrow_oud <- nrow(HUscores_hers)
 HUscores_hers <- HUscores_hers[complete.cases(HUscores_hers[,vec_rwavragen]), ]
 
-cat("In deze stap zijn het volende aantal studenten weggefilterd:", (nrow_oud-nrow_nieuw),"(d.w.z.",round((nrow_oud-nrow_nieuw)/nrow_oud*100), "% van het totaal).")
-rm(HUscores_hers)
+cat("In deze stap zijn het volgende aantal rijen weggefilterd:", (nrow_oud-nrow_nieuw),"(d.w.z.",round((nrow_oud-nrow_nieuw)/nrow_oud*100), "% van het totaal).")
 ```
 Definieer verschillende dwarsdoorsnedes (croho, vorm en typeHO)
 
-```{r}
+```{r Definities dwarsdoorsnedes}
 #Maak voor elke croho een logische vector
 crohos     <- sort(unique(HUscores_hers$CrohoNaamActueel))
 Ncrohos <- length(crohos)
