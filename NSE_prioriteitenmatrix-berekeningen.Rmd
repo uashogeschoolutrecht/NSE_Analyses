@@ -42,29 +42,10 @@ head(nse_benchmark_clean,10)
 
 # 3. Data selectie & definitie
 
-Alleen studenten van de Hogeschool Utrecht worden gebruikt in deze data
-analyse.
-
-```{r Selecteer alleen HU reponse}
-HUscores <- nse_benchmark_clean[nse_benchmark_clean$BrinNaamActueel == "Hogeschool Utrecht",]
-rm(nse_benchmark_clean)
-```
-
-De weegfactor die bij het benchmarkbestand wordt meegeleverd corrigeert voor verschillen in responspercentages tussen crohos en instelling. De weegfactor is hiermee een frequentietelling, d.w.z.: hoe vaak moet ik de betreffende meting meetellen, en heeft in deze HU dataset een waarde tussen 0.450 en 3.386. Om deze weegfactor correct in correlatie-berekeningen mee te nemen is het nodig de dataset te herschalen met een factor 1000. Door te herschalen via een factor 1000 (d.w.z. een weegfactor van 0.450 wordt 450, en 3.386 wordt 3386) is het mogelijk om de oorspronkelijke dataset opnieuw op te bouwen waarin observaties worden vermeerderd met deze herschaalde weegfactor. Eén meting met een herschaalde weegfactor 450 komt dan in de herschaalde data 450 maal voor, enzovoorts. 
-
-Let op: onderstaande bewerking is memory-heavy (~6.4 Gb bij factor = 1000)
-
-```{r Herschalen dataset, ca. 30 sec}
-factor = 1000;
-HUscores_hers <- HUscores[rep(seq(nrow(HUscores)), round(HUscores$Weegfactor*factor)),]
-rm(HUscores)
-```
-
 Voor deze analyse zullen de volgende vragen als uitkomst- en
 voorspellende variabelen gebruikt worden:
 
 Uitkomst: Vraag 01
-
 Voorspellende variabelen: 02, 03, 06, 07, 08, 09, 10, 12
 
 Dit is in overleg met de business besloten. Vraag 01 wordt traditioneel
@@ -78,6 +59,24 @@ vec_rwavariabelen <- c(2,3,6:10,12) # Kies vragen die voorspellende variabelen z
 vec_rwavragen <- append(vec_NSEvragen[vec_rwauitkomst], vec_NSEvragen[vec_rwavariabelen]) # Alle vragen die gebruikt worden in de RWA
 N_variabelen <- length(vec_rwavariabelen)
 NSEvragen_kort <- substr(NSEvragen, nchar(NSEvragen)-1, nchar(NSEvragen)) #Afkortingen voor vragen
+```
+
+Alleen studenten van de Hogeschool Utrecht worden gebruikt in deze data
+analyse.
+
+```{r Selecteer alleen HU reponse}
+HUscores <- nse_benchmark_clean[nse_benchmark_clean$BrinNaamActueel == "Hogeschool Utrecht",c(3,9,15,16,23,vec_rwavragen)]
+rm(nse_benchmark_clean)
+```
+
+De weegfactor die bij het benchmarkbestand wordt meegeleverd corrigeert voor verschillen in responspercentages tussen crohos en instelling. De weegfactor is hiermee een frequentietelling, d.w.z.: hoe vaak moet ik de betreffende meting meetellen, en heeft in deze HU dataset een waarde tussen 0.450 en 3.386. Om deze weegfactor correct in correlatie-berekeningen mee te nemen is het nodig de dataset te herschalen met een factor 1000. Door te herschalen via een factor 1000 (d.w.z. een weegfactor van 0.450 wordt 450, en 3.386 wordt 3386) is het mogelijk om de oorspronkelijke dataset opnieuw op te bouwen waarin observaties worden vermeerderd met deze herschaalde weegfactor. Eén meting met een herschaalde weegfactor 450 komt dan in de herschaalde data 450 maal voor, enzovoorts. 
+
+Let op: onderstaande bewerking is memory-heavy (~6.4 Gb bij factor = 1000)
+
+```{r Herschalen dataset, ca. 30 sec}
+factor = 1000;
+HUscores_hers <- HUscores[rep(seq(nrow(HUscores)), round(HUscores$Weegfactor*factor)),]
+rm(HUscores)
 ```
 
 > Opmerking: RWA (zie uitleg verderop voor de keuze en uitleg van het
