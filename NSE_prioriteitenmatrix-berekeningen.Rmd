@@ -254,6 +254,7 @@ for (idx_croho in 1:Ncrohos)
     } #Sluiten vorm-loop
   } #Sluiten type HO loop
 }#Sluiten croho-loop
+rm(HUdoorsnede)
 ```
 
 # 6. Visualiseren resultaat
