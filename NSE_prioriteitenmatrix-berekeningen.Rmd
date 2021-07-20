@@ -222,10 +222,13 @@ for (idx_croho in 1:Ncrohos)
   {
     for (idx_vorm in 1:Nvorm)
     {
+      # Data-doorsnede selecteren
+      HUdoorsnede <- HUscores_hers[vec_vorm[[idx_vorm]]&
+                                     vec_HO[[idx_ho]]&
+                                     vec_croho[[idx_croho]],]
+      
       # Groepsgroote (N) berekenen
-      N[idx_vorm,idx_ho,idx_croho] <-length(unique(HUscores_hers$UniekNummer[vec_vorm[[idx_vorm]]&
-                                                                      vec_HO[[idx_ho]]&
-                                                                      vec_croho[[idx_croho]]]))
+      N[idx_vorm,idx_ho,idx_croho] <-length(unique(HUdoorsnede$UniekNummer))
       
       # Als N < 10 dan geen rwa uitvoeren
       if (N[idx_vorm,idx_ho,idx_croho] < 10)
@@ -235,23 +238,16 @@ for (idx_croho in 1:Ncrohos)
       else
       {
         #Voor rwa berekening
-        rwa_resultaten <- HUscores_hers[vec_vorm[[idx_vorm]]&
-                                           vec_HO[[idx_ho]]&
-                                           vec_croho[[idx_croho]],] %>%
+        rwa_resultaten <- HUdoorsnede %>%
           rwa(outcome    = NSEvragen[vec_rwauitkomst],
               predictors = NSEvragen[vec_rwavariabelen],
               applysigns = TRUE)
         #Bijdrage aan de totaalscore
         rwa_bijdrage[idx_vorm,idx_ho,idx_croho,] <- rwa_resultaten$result$Sign.Rescaled.RelWeight
         #Gemiddelde score per vraag
-        rwa_scores[idx_vorm,idx_ho,idx_croho,]   <- unlist(lapply(HUscores_hers[vec_vorm[[idx_vorm]]&
-                                                                                   vec_HO[[idx_ho]]&
-                                                                                   vec_croho[[idx_croho]],
-                                                                                 vec_rwavragen[2:9]],
+        rwa_scores[idx_vorm,idx_ho,idx_croho,]   <- unlist(lapply(HUdoorsnede[,vec_rwavragen[2:9]],
                                                                   fun_gewgem,
-                                                                  HUscores_hers$Weegfactor[(vec_HO[[idx_ho]]&
-                                                                                               vec_vorm[[idx_vorm]]&
-                                                                                               vec_croho[[idx_croho]])]))
+                                                                  HUdoorsnede$Weegfactor))
         #Totale verklaarde variantie (R^2)
         rwa_R2[idx_vorm,idx_ho,idx_croho]        <- rwa_resultaten$rsquare
       } #Sluiten rwa loop
