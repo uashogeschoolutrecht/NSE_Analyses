@@ -213,6 +213,9 @@ rwa_R2       <- array(NA, dim = c(Nvorm, NHO, Ncrohos))
 N            <- array(NA, dim = c(Nvorm, NHO, Ncrohos))
 #Maak functie die gewogen gemiddelde berekend
 fun_gewgem   <- function(x, w) weighted.mean(x, w) 
+
+#Bereken voor elke dwarsdoorsnede de N, de score en bijdrage
+#!Let op: deze loop draait circa 20 minuten!
 for (idx_croho in 1:Ncrohos)
 {
   for (idx_ho in 1:NHO)
@@ -220,9 +223,9 @@ for (idx_croho in 1:Ncrohos)
     for (idx_vorm in 1:Nvorm)
     {
       # Groepsgroote (N) berekenen
-      N[idx_vorm,idx_ho,idx_croho] <-nrow(HUscores_hers[vec_vorm[[idx_vorm]]&
-                                                           vec_HO[[idx_ho]]&
-                                                           vec_croho[[idx_croho]],])
+      N[idx_vorm,idx_ho,idx_croho] <-length(unique(HUscores_hers$UniekNummer[vec_vorm[[idx_vorm]]&
+                                                                      vec_HO[[idx_ho]]&
+                                                                      vec_croho[[idx_croho]]]))
       
       # Als N < 10 dan geen rwa uitvoeren
       if (N[idx_vorm,idx_ho,idx_croho] < 10)
@@ -234,23 +237,23 @@ for (idx_croho in 1:Ncrohos)
         #Voor rwa berekening
         rwa_resultaten <- HUscores_hers[vec_vorm[[idx_vorm]]&
                                            vec_HO[[idx_ho]]&
-                                           vec_croho[[idx_croho]],] %>% 
+                                           vec_croho[[idx_croho]],] %>%
           rwa(outcome    = NSEvragen[vec_rwauitkomst],
               predictors = NSEvragen[vec_rwavariabelen],
               applysigns = TRUE)
         #Bijdrage aan de totaalscore
-        rwa_bijdrage[idx_vorm,idx_ho,idx_croho,] <- rwa_resultaten$result$Sign.Rescaled.RelWeight 
+        rwa_bijdrage[idx_vorm,idx_ho,idx_croho,] <- rwa_resultaten$result$Sign.Rescaled.RelWeight
         #Gemiddelde score per vraag
         rwa_scores[idx_vorm,idx_ho,idx_croho,]   <- unlist(lapply(HUscores_hers[vec_vorm[[idx_vorm]]&
                                                                                    vec_HO[[idx_ho]]&
                                                                                    vec_croho[[idx_croho]],
                                                                                  vec_rwavragen[2:9]],
-                                                                  fun_gewgem, 
+                                                                  fun_gewgem,
                                                                   HUscores_hers$Weegfactor[(vec_HO[[idx_ho]]&
                                                                                                vec_vorm[[idx_vorm]]&
                                                                                                vec_croho[[idx_croho]])]))
         #Totale verklaarde variantie (R^2)
-        rwa_R2[idx_vorm,idx_ho,idx_croho]        <- rwa_resultaten$rsquare 
+        rwa_R2[idx_vorm,idx_ho,idx_croho]        <- rwa_resultaten$rsquare
       } #Sluiten rwa loop
     } #Sluiten vorm-loop
   } #Sluiten type HO loop
