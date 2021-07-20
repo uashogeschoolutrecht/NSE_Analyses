@@ -34,27 +34,18 @@ library(corrplot)  #Nodig voor het visualiseren van correlaties via corplot()
 
 # 2. Inladen NSE benchmark bestand (clean data)
 
-```{r Inlezen .csv}
+```{r Inlezen .csv, ca. 15 sec.}
 load("~/research-drive/M21033303_DenA (Projectfolder)/DA_Onderzoek/2021nse/data_in/NSE2021 nse_benchmark_clean.RData")
 rm(i_exclusie) #Exclusie-vector is in deze analyse niet nodig
 head(nse_benchmark_clean,10)
 ```
 
-# 3. Data selectie & defintie
-
-Alleen studenten van de Hogeschool Utrecht worden gebruikt in deze data
-analyse.
-
-```{r Selecteer alleen HU reponse}
-HUscores <- nse_benchmark_clean[nse_benchmark_clean$BrinNaamActueel == "Hogeschool Utrecht",]
-rm(nse_benchmark_clean)
-```
+# 3. Data selectie & definitie
 
 Voor deze analyse zullen de volgende vragen als uitkomst- en
 voorspellende variabelen gebruikt worden:
 
 Uitkomst: Vraag 01
-
 Voorspellende variabelen: 02, 03, 06, 07, 08, 09, 10, 12
 
 Dit is in overleg met de business besloten. Vraag 01 wordt traditioneel
@@ -70,6 +61,25 @@ N_variabelen <- length(vec_rwavariabelen)
 NSEvragen_kort <- substr(NSEvragen, nchar(NSEvragen)-1, nchar(NSEvragen)) #Afkortingen voor vragen
 ```
 
+Alleen studenten van de Hogeschool Utrecht worden gebruikt in deze data
+analyse.
+
+```{r Selecteer alleen HU reponse}
+HUscores <- nse_benchmark_clean[nse_benchmark_clean$BrinNaamActueel == "Hogeschool Utrecht",c(1,3,9,15,16,23,c(vec_rwavragen[1]:vec_rwavragen[length(vec_rwavragen)]))]
+vec_rwavragen = vec_rwavragen - 21 #Er worden 21 kolommen weggegooid, dus de index schuift 21 plaatsen op
+rm(nse_benchmark_clean)
+```
+
+De weegfactor die bij het benchmarkbestand wordt meegeleverd corrigeert voor verschillen in responspercentages tussen crohos en instelling. De weegfactor is hiermee een frequentietelling, d.w.z.: hoe vaak moet ik de betreffende meting meetellen, en heeft in deze HU dataset een waarde tussen 0.450 en 3.386. Om deze weegfactor correct in correlatie-berekeningen mee te nemen is het nodig de dataset te herschalen met een factor 1000. Door te herschalen via een factor 1000 (d.w.z. een weegfactor van 0.450 wordt 450, en 3.386 wordt 3386) is het mogelijk om de oorspronkelijke dataset opnieuw op te bouwen waarin observaties worden vermeerderd met deze herschaalde weegfactor. Eén meting met een herschaalde weegfactor 450 komt dan in de herschaalde data 450 maal voor, enzovoorts. 
+
+Let op: onderstaande bewerking is memory-heavy (~1.8 Gb bij factor = 1000)
+
+```{r Herschalen dataset, ca. 30 sec}
+factor = 1000;
+HUscores_hers <- HUscores[rep(seq(nrow(HUscores)), round(HUscores$Weegfactor*factor)),]
+rm(HUscores)
+```
+
 > Opmerking: RWA (zie uitleg verderop voor de keuze en uitleg van het
 > RWA model) accepteert alleen 'volledige regels' (complete cases), dus
 > een filtering is nodig waarbij studenten één of meerdere vragen niet
@@ -78,48 +88,50 @@ NSEvragen_kort <- substr(NSEvragen, nchar(NSEvragen)-1, nchar(NSEvragen)) #Afkor
 > gemiddelde waarde, maar voor nu is hier niet voor gekozen. Het
 > wegfilteren van studenten die deels missing responses hebben
 
-```{r Data cleaning benodigd voor model}
-HUscores_clean <- HUscores[complete.cases(HUscores[,vec_rwavragen]), ]
+```{r Data cleaning benodigd voor model, ca. 15 sec.}
+nrow_nieuw <- sum(complete.cases(HUscores_hers[,vec_rwavragen]))
+nrow_oud <- nrow(HUscores_hers)
+HUscores_hers <- HUscores_hers[complete.cases(HUscores_hers[,vec_rwavragen]), ]
 
-cat("In deze stap zijn het volgende aantal studenten weggefilterd:", dim(HUscores)[1]-dim(HUscores_clean)[1],"(d.w.z.",round((dim(HUscores)[1]-dim(HUscores_clean)[1])/dim(HUscores)[1]*100), "% van het totaal).")
-rm(HUscores)
+
+cat("In deze stap zijn het volgende aantal rijen weggefilterd:", (nrow_oud-nrow_nieuw),"(d.w.z.",round((nrow_oud-nrow_nieuw)/nrow_oud*100), "% van het totaal).")
 ```
 Definieer verschillende dwarsdoorsnedes (croho, vorm en typeHO)
 
-```{r}
+```{r Definities dwarsdoorsnedes}
 #Maak voor elke croho een logische vector
-crohos     <- sort(unique(HUscores_clean$CrohoNaamActueel))
+crohos     <- sort(unique(HUscores_hers$CrohoNaamActueel))
 Ncrohos <- length(crohos)
 vec_croho <- vector(mode = "list", Ncrohos)
 for (h in 1:Ncrohos)
 {
-  vec_croho[[h]] <- HUscores_clean$CrohoNaamActueel == crohos[h]
+  vec_croho[[h]] <- HUscores_hers$CrohoNaamActueel == crohos[h]
 }
-vec_croho[[Ncrohos+1]] <- rep(TRUE, nrow(HUscores_clean)); 
+vec_croho[[Ncrohos+1]] <- rep(TRUE, nrow(HUscores_hers)); 
 Ncrohos <- length(vec_croho)
 NSEcrohos <- append(crohos, "Totaal")
 
 #Maak voor elke vorm een logische vector
-vormtypes  <- sort(unique(HUscores_clean$Opleidingsvorm3))
+vormtypes  <- sort(unique(HUscores_hers$Opleidingsvorm3))
 vec_vorm <- vector(mode = "list", length(vormtypes))
 for (i in vormtypes)
 {
-  vec_vorm[[i]]<- HUscores_clean$Opleidingsvorm3 == vormtypes[i]
+  vec_vorm[[i]]<- HUscores_hers$Opleidingsvorm3 == vormtypes[i]
 }
 #Voeg nu een extra lijst toe die alle vormen meeneemt (totaal-berekening)
-vec_vorm[[length(vormtypes)+1]] <- rep(TRUE, nrow(HUscores_clean))
+vec_vorm[[length(vormtypes)+1]] <- rep(TRUE, nrow(HUscores_hers))
 Nvorm <- length(vec_vorm)
 NSEvormen <- append(vormtypes, "Totaal")
 
 #Maak voor elke HOtype een logische vector
-HOtypes    <- sort(unique(HUscores_clean$BaMa))
+HOtypes    <- sort(unique(HUscores_hers$BaMa))
 vec_HO <- vector(mode = "list", length(HOtypes))
 for (j in HOtypes)
 {
-  vec_HO[[j]]<- HUscores_clean$BaMa == HOtypes[j]
+  vec_HO[[j]]<- HUscores_hers$BaMa == HOtypes[j]
 }
 #En extra lijst toevoegen voor HU-totaal
-vec_HO[[length(HOtypes)+1]] <- rep(TRUE, nrow(HUscores_clean))
+vec_HO[[length(HOtypes)+1]] <- rep(TRUE, nrow(HUscores_hers))
 NHO <- length(vec_HO)
 NSEHOtypes <- append(HOtypes, "Totaal")
 ```
@@ -134,21 +146,21 @@ gemiddeld genomen een hoge score op andere vragen? (en vice versa)
 
 ```{r Bekijken Spearman correlatie, warning=FALSE}
 correlaties = NA
-for (i in vec_NSEvragen)
+for (i in vec_rwavragen[1]:vec_rwavragen[length(vec_rwavragen)])
 {
-  correlaties[i-27] <- cor.test(HUscores_clean[,vec_NSEvragen[1]], HUscores_clean[,i], method = "spearman")$estimate
+  correlaties[i] <- cor.test(HUscores_hers[,vec_rwavragen[1]], HUscores_hers[,i], method = "spearman")$estimate
 }
-plot(vec_NSEvragen,correlaties, xlab = 'Vraag'); abline(h=0.6); abline(h=0.4)
+plot(vec_rwavragen,correlaties[vec_rwavragen], xlab = 'Vraag', ylim = c(0,1)); abline(h=0.6); abline(h=0.4)
 ```
 
 Conclusie: Het merendeel van de NSE vragen zijn ten minste matig (0.6 \>
 R \> 0.4) gecorreleerd met de algemene vraag 'Hoe tevreden ben jij met
-je opleiding in het algemeen?' (= vraag 1 uit NSE). Het valt verder op dat vraag 'Hoe ervaar je de studiedruk' negatief gecorreleerd is: dit is mogelijk de andere antwoordmogelijkheden op deze vraag. Opdat deze vraag in de verdere analyse niet wordt meegenomen, is dit voor nu out-of-scope. 
+je opleiding in het algemeen?' (= vraag 1 uit NSE). 
 
 Hoe zit het nu met correlaties tússen de voorspellende vragen?
 
 ```{r Testen voor multicollineariteit}
-mcoll <- cor(HUscores_clean[,vec_rwavragen[2:9]])
+mcoll <- cor(HUscores_hers[,vec_rwavragen[2:9]])
 colnames(mcoll) <- NSEvragen_kort[vec_rwavariabelen]
 rownames(mcoll) <- NSEvragen_kort[vec_rwavariabelen]
 corrplot(mcoll, method = "number", diag = FALSE); rm(mcoll)
@@ -194,19 +206,29 @@ voor een RWA.
 ```{r RWA model berekenen}
 cat("Er wordt nu een RWA model berekend met vraag", NSEvragen[vec_rwauitkomst], "als onafhankelijke variabele.\nEen RWA model probeert om de onafhankelijke variabele te verklaren door gewichten toe te kennen aan een aantal vooraf gekozen afhankelijke variabelen. Voor dit model zijn alleen studenten meegenomen die voor zowel voor de onafhankelijke variabele én alle afhankelijke variabelen ingevulde responses bevatten (complete gevallen).\nDe volgende lijst aan vragen zijn de voorspellende variabelen: \n", NSEvragen[vec_rwavariabelen])
 
+#Pre-alloceer objecten die in loop gevuld gaan worden
 rwa_bijdrage <- array(NA, dim = c(Nvorm, NHO, Ncrohos, length(vec_rwavariabelen)))
 rwa_scores   <- array(NA, dim = c(Nvorm, NHO, Ncrohos, length(vec_rwavariabelen)))
+rwa_R2       <- array(NA, dim = c(Nvorm, NHO, Ncrohos))
 N            <- array(NA, dim = c(Nvorm, NHO, Ncrohos))
+#Maak functie die gewogen gemiddelde berekend
+fun_gewgem   <- function(x, w) weighted.mean(x, w) 
+
+#Bereken voor elke dwarsdoorsnede de N, de score en bijdrage
+#!Let op: deze loop draait circa 20 minuten!
 for (idx_croho in 1:Ncrohos)
 {
   for (idx_ho in 1:NHO)
   {
     for (idx_vorm in 1:Nvorm)
     {
+      # Data-doorsnede selecteren
+      HUdoorsnede <- HUscores_hers[vec_vorm[[idx_vorm]]&
+                                     vec_HO[[idx_ho]]&
+                                     vec_croho[[idx_croho]],]
+      
       # Groepsgroote (N) berekenen
-      N[idx_vorm,idx_ho,idx_croho] <-nrow(HUscores_clean[vec_vorm[[idx_vorm]]&
-                                                           vec_HO[[idx_ho]]&
-                                                           vec_croho[[idx_croho]],])
+      N[idx_vorm,idx_ho,idx_croho] <-length(unique(HUdoorsnede$UniekNummer))
       
       # Als N < 10 dan geen rwa uitvoeren
       if (N[idx_vorm,idx_ho,idx_croho] < 10)
@@ -215,23 +237,24 @@ for (idx_croho in 1:Ncrohos)
       }
       else
       {
-        
-        rwa_resultaten <- HUscores_clean[vec_vorm[[idx_vorm]]&
-                                           vec_HO[[idx_ho]]&
-                                           vec_croho[[idx_croho]],] %>% 
+        #Voor rwa berekening
+        rwa_resultaten <- HUdoorsnede %>%
           rwa(outcome    = NSEvragen[vec_rwauitkomst],
               predictors = NSEvragen[vec_rwavariabelen],
               applysigns = TRUE)
-        rwa_bijdrage[idx_vorm,idx_ho,idx_croho,] <- rwa_resultaten$result$Sign.Rescaled.RelWeight #Bijdrage aan de totaalscore
-        rwa_scores[idx_vorm,idx_ho,idx_croho,]   <- unlist(lapply(HUscores_clean[vec_vorm[[idx_vorm]]&
-                                                                                   vec_HO[[idx_ho]]&
-                                                                                   vec_croho[[idx_croho]],
-                                                                                 vec_rwavragen[2:9]],
-                                                                  mean))
+        #Bijdrage aan de totaalscore
+        rwa_bijdrage[idx_vorm,idx_ho,idx_croho,] <- rwa_resultaten$result$Sign.Rescaled.RelWeight
+        #Gemiddelde score per vraag
+        rwa_scores[idx_vorm,idx_ho,idx_croho,]   <- unlist(lapply(HUdoorsnede[,vec_rwavragen[2:9]],
+                                                                  fun_gewgem,
+                                                                  HUdoorsnede$Weegfactor))
+        #Totale verklaarde variantie (R^2)
+        rwa_R2[idx_vorm,idx_ho,idx_croho]        <- rwa_resultaten$rsquare
       } #Sluiten rwa loop
     } #Sluiten vorm-loop
   } #Sluiten type HO loop
 }#Sluiten croho-loop
+rm(HUdoorsnede)
 ```
 
 # 6. Visualiseren resultaat
@@ -279,7 +302,8 @@ for(idx_croho in 1:Ncrohos)
                         NSEvragen       = NSEvragen[vec_rwavariabelen],
                         RWAscores       = rwa_scores[idx_vorm,idx_ho,idx_croho,],
                         RWAbijdrage     = rwa_bijdrage[idx_vorm,idx_ho,idx_croho,],
-                        N               = N[idx_vorm,idx_ho,idx_croho])
+                        N               = N[idx_vorm,idx_ho,idx_croho],
+                        Rsquared        = rwa_R2[idx_vorm,idx_ho,idx_croho])
       prioriteitenmatrix <- rbind(prioriteitenmatrix, tmp); 
     }
   }
