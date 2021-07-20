@@ -65,8 +65,8 @@ Alleen studenten van de Hogeschool Utrecht worden gebruikt in deze data
 analyse.
 
 ```{r Selecteer alleen HU reponse}
-HUscores <- nse_benchmark_clean[nse_benchmark_clean$BrinNaamActueel == "Hogeschool Utrecht",c(3,9,15,16,23,c(vec_rwavragen[1]:vec_rwavragen[length(vec_rwavragen)]))]
-vec_rwavragen = vec_rwavragen - 22 #Er worden 22 kolommen weggegooid, dus de index schuift 22 plaatsen op
+HUscores <- nse_benchmark_clean[nse_benchmark_clean$BrinNaamActueel == "Hogeschool Utrecht",c(1,3,9,15,16,23,c(vec_rwavragen[1]:vec_rwavragen[length(vec_rwavragen)]))]
+vec_rwavragen = vec_rwavragen - 21 #Er worden 21 kolommen weggegooid, dus de index schuift 21 plaatsen op
 rm(nse_benchmark_clean)
 ```
 
