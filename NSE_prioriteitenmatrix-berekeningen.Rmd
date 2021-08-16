@@ -111,6 +111,13 @@ vec_croho[[Ncrohos+1]] <- rep(TRUE, nrow(HUscores_hers));
 Ncrohos <- length(vec_croho)
 NSEcrohos <- append(crohos, "Totaal")
 
+#Maak voor het instituut archimdes een logische vector en voeg toe aan crohos
+instituut_archimedes <- ("Instituut Archimedes")
+vec_instituut <- HUscores_hers$CrohoNaamActueel %in% crohos[c(43:56,80:88)]
+vec_croho[[Ncrohos+1]] <- vec_instituut
+Ncrohos <- length(vec_croho)
+NSEcrohos <- append(crohos, c("Totaal", instituut_archimedes))
+
 #Maak voor elke vorm een logische vector
 vormtypes  <- sort(unique(HUscores_hers$Opleidingsvorm3))
 vec_vorm <- vector(mode = "list", length(vormtypes))
