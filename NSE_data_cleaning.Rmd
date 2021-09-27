@@ -32,7 +32,7 @@ Op basis van afwijkende antwoorden (1-Ja/2-Nee i.p.v. 1-Zeer mee oneens t/m 5-Ze
 ```{r Definiëren van NSE vragen}
 vec_NSEvragen = c(28:84)
 NSEvragen = colnames(nse_benchmark[vec_NSEvragen])
-ind_exclusie <- 64; 
+i_exclusie <- 64; 
 cat("De geëxcludeerde vraag is: ",
     colnames(nse_benchmark[i_exclusie]), "\n") 
 cat("De geïncludeerde vragen zijn: ", NSEvragen[vec_NSEvragen != i_exclusie])
