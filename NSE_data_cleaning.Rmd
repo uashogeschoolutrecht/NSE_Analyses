@@ -31,33 +31,33 @@ In deze stap worden vectoren aangemaakt die helpen de specifieke NSE vragen te v
 Op basis van afwijkende antwoorden (1-Ja/2-Nee i.p.v. 1-Zeer mee oneens t/m 5-Zeer mee eens) wordt vraag "BEGELEIDING_SELECTIE" niet meegenomen. Hiervoor wordt een index-vector gemaakt die als hulpvector dient. 
 ```{r Definiëren van NSE vragen}
 vec_NSEvragen = c(28:84)
-NSEvragen = colnames(nse_benchmark[vec_NSEvragen])
-i_exclusie <- 64; 
+str_NSEvragen = colnames(nse_benchmark[vec_NSEvragen])
+ind_exclusie <- 64; 
 cat("De geëxcludeerde vraag is: ",
-    colnames(nse_benchmark[i_exclusie]), "\n") 
-cat("De geïncludeerde vragen zijn: ", NSEvragen[vec_NSEvragen != i_exclusie])
+    colnames(nse_benchmark[ind_exclusie]), "\n") 
+cat("De geïncludeerde vragen zijn: ", str_NSEvragen[vec_NSEvragen != ind_exclusie])
 ```
 
 # 4. Data cleaning
 - Universiteiten verwijderen
 - Missende data op NA zetten
 ```{r Alleen hogescholen subset selecteren}
-nse_benchmark_subset <- nse_benchmark[nse_benchmark$SoortHo == 1,] #SoortHo = 1 filtert alle uni's weg
-unique(nse_benchmark_subset$BrinNaamActueel)
+data_nse_benchmark <- nse_benchmark[nse_benchmark$SoortHo == 1,] #SoortHo = 1 filtert alle uni's weg
+unique(data_nse_benchmark$BrinNaamActueel)
 ```
 ```{r Missende responses (-1 t/m -9) naar NA}
-missingdata = c(-1:-9) #Missende data wordt aangeven met codes -1 t/m -9
-nse_benchmark_clean <- nse_benchmark_subset #Gecleande data is gebaseerd op originele data
-for (missingnumber in missingdata){
-  nse_benchmark_clean <- nse_benchmark_clean %>% dplyr::na_if(missingnumber)
+vec_missingdata = c(-1:-9) #Missende data wordt aangeven met codes -1 t/m -9
+nse_benchmark_clean <- data_nse_benchmark #Gecleande data is gebaseerd op originele data
+for (int_missingnumber in vec_missingdata){
+  nse_benchmark_clean <- nse_benchmark_clean %>% dplyr::na_if(int_missingnumber)
 }
 ```
 ```{r Responsewaarde samenvatting bekijken, echo=TRUE, paged.print=TRUE}
 describeBy(nse_benchmark_clean[,vec_NSEvragen], group = NULL)
-rm(nse_benchmark, nse_benchmark_subset)
+rm(nse_benchmark, data_nse_benchmark)
 ```
 
 # 5. Opslaan
 ```{r Save dataframe en 2 vectoren}
-save(nse_benchmark_clean, NSEvragen, vec_NSEvragen, i_exclusie, file = "~/research-drive/M21033303_DenA (Projectfolder)/DA_Onderzoek/2021nse/data_in/NSE2021 nse_benchmark_clean.RData")
+save(nse_benchmark_clean, str_NSEvragen, vec_NSEvragen, ind_exclusie, file = "~/research-drive/M21033303_DenA (Projectfolder)/DA_Onderzoek/2021nse/data_in/NSE2021 nse_benchmark_clean.RData")
 ```
