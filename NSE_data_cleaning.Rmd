@@ -42,19 +42,19 @@ cat("De geïncludeerde vragen zijn: ", str_NSEvragen[vec_NSEvragen != ind_exclus
 - Universiteiten verwijderen
 - Missende data op NA zetten
 ```{r Alleen hogescholen subset selecteren}
-sub_nse_benchmark <- nse_benchmark[nse_benchmark$SoortHo == 1,] #SoortHo = 1 filtert alle uni's weg
-unique(sub_nse_benchmark$BrinNaamActueel)
+data_nse_benchmark <- nse_benchmark[nse_benchmark$SoortHo == 1,] #SoortHo = 1 filtert alle uni's weg
+unique(data_nse_benchmark$BrinNaamActueel)
 ```
 ```{r Missende responses (-1 t/m -9) naar NA}
 vec_missingdata = c(-1:-9) #Missende data wordt aangeven met codes -1 t/m -9
-nse_benchmark_clean <- sub_nse_benchmark #Gecleande data is gebaseerd op originele data
+nse_benchmark_clean <- data_nse_benchmark #Gecleande data is gebaseerd op originele data
 for (int_missingnumber in vec_missingdata){
   nse_benchmark_clean <- nse_benchmark_clean %>% dplyr::na_if(int_missingnumber)
 }
 ```
 ```{r Responsewaarde samenvatting bekijken, echo=TRUE, paged.print=TRUE}
 describeBy(nse_benchmark_clean[,vec_NSEvragen], group = NULL)
-rm(nse_benchmark, sub_nse_benchmark)
+rm(nse_benchmark, data_nse_benchmark)
 ```
 
 # 5. Opslaan
