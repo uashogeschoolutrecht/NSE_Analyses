@@ -57,8 +57,8 @@ afvallen omdat zij slechts aan een deel van de studenten gesteld zijn.
 vec_rwauitkomst <- 1            # Kies vraag die de uitkomst variabele zal zijn
 vec_rwavariabelen <- c(2,3,6:10,12) # Kies vragen die voorspellende variabelen zijn
 vec_rwavragen <- append(vec_NSEvragen[vec_rwauitkomst], vec_NSEvragen[vec_rwavariabelen]) # Alle vragen die gebruikt worden in de RWA
-N_variabelen <- length(vec_rwavariabelen)
-NSEvragen_kort <- substr(NSEvragen, nchar(NSEvragen)-1, nchar(NSEvragen)) #Afkortingen voor vragen
+#N_variabelen <- length(vec_rwavariabelen) #Not used in script?
+str_NSEvragen_kort <- substr(NSEvragen, nchar(NSEvragen)-1, nchar(NSEvragen)) #Afkortingen voor vragen
 ```
 
 Alleen studenten van de Hogeschool Utrecht worden gebruikt in deze data
@@ -101,21 +101,21 @@ Definieer verschillende dwarsdoorsnedes (croho, vorm en typeHO)
 ```{r Definities dwarsdoorsnedes}
 #Maak voor elke croho een logische vector
 crohos     <- sort(unique(HUscores_hers$CrohoNaamActueel))
-Ncrohos <- length(crohos)
-vec_croho <- vector(mode = "list", Ncrohos)
-for (h in 1:Ncrohos)
+int_crohos <- length(crohos)
+vec_croho <- vector(mode = "list", int_crohos)
+for (h in 1:int_crohos)
 {
   vec_croho[[h]] <- HUscores_hers$CrohoNaamActueel == crohos[h]
 }
-vec_croho[[Ncrohos+1]] <- rep(TRUE, nrow(HUscores_hers)); 
-Ncrohos <- length(vec_croho)
+vec_croho[[int_crohos+1]] <- rep(TRUE, nrow(HUscores_hers)); 
+int_crohos <- length(vec_croho)
 NSEcrohos <- append(crohos, "Totaal")
 
 #Maak voor het instituut archimdes een logische vector en voeg toe aan crohos
 instituut_archimedes <- ("Instituut Archimedes")
 vec_instituut <- HUscores_hers$CrohoNaamActueel %in% crohos[c(43:56,80:88)]
-vec_croho[[Ncrohos+1]] <- vec_instituut
-Ncrohos <- length(vec_croho)
+vec_croho[[int_crohos+1]] <- vec_instituut
+int_crohos <- length(vec_croho)
 NSEcrohos <- append(crohos, c("Totaal", instituut_archimedes))
 
 #Maak voor elke vorm een logische vector
@@ -139,7 +139,7 @@ for (j in HOtypes)
 }
 #En extra lijst toevoegen voor HU-totaal
 vec_HO[[length(HOtypes)+1]] <- rep(TRUE, nrow(HUscores_hers))
-NHO <- length(vec_HO)
+int_NHO <- length(vec_HO)
 NSEHOtypes <- append(HOtypes, "Totaal")
 ```
 
@@ -168,8 +168,8 @@ Hoe zit het nu met correlaties tússen de voorspellende vragen?
 
 ```{r Testen voor multicollineariteit}
 mcoll <- cor(HUscores_hers[,vec_rwavragen[2:9]])
-colnames(mcoll) <- NSEvragen_kort[vec_rwavariabelen]
-rownames(mcoll) <- NSEvragen_kort[vec_rwavariabelen]
+colnames(mcoll) <- str_NSEvragen_kort[vec_rwavariabelen]
+rownames(mcoll) <- str_NSEvragen_kort[vec_rwavariabelen]
 corrplot(mcoll, method = "number", diag = FALSE); rm(mcoll)
 ```
 
@@ -214,31 +214,31 @@ voor een RWA.
 cat("Er wordt nu een RWA model berekend met vraag", NSEvragen[vec_rwauitkomst], "als onafhankelijke variabele.\nEen RWA model probeert om de onafhankelijke variabele te verklaren door gewichten toe te kennen aan een aantal vooraf gekozen afhankelijke variabelen. Voor dit model zijn alleen studenten meegenomen die voor zowel voor de onafhankelijke variabele én alle afhankelijke variabelen ingevulde responses bevatten (complete gevallen).\nDe volgende lijst aan vragen zijn de voorspellende variabelen: \n", NSEvragen[vec_rwavariabelen])
 
 #Pre-alloceer objecten die in loop gevuld gaan worden
-rwa_bijdrage <- array(NA, dim = c(Nvorm, NHO, Ncrohos, length(vec_rwavariabelen)))
-rwa_scores   <- array(NA, dim = c(Nvorm, NHO, Ncrohos, length(vec_rwavariabelen)))
-rwa_R2       <- array(NA, dim = c(Nvorm, NHO, Ncrohos))
-N            <- array(NA, dim = c(Nvorm, NHO, Ncrohos))
+rwa_bijdrage <- array(NA, dim = c(Nvorm, int_NHO, int_crohos, length(vec_rwavariabelen)))
+rwa_scores   <- array(NA, dim = c(Nvorm, int_NHO, int_crohos, length(vec_rwavariabelen)))
+rwa_R2       <- array(NA, dim = c(Nvorm, int_NHO, int_crohos))
+N            <- array(NA, dim = c(Nvorm, int_NHO, int_crohos))
 #Maak functie die gewogen gemiddelde berekend
 fun_gewgem   <- function(x, w) weighted.mean(x, w) 
 
 #Bereken voor elke dwarsdoorsnede de N, de score en bijdrage
 #!Let op: deze loop draait circa 20 minuten!
-for (idx_croho in 1:Ncrohos)
+for (ind_croho in 1:int_crohos)
 {
-  for (idx_ho in 1:NHO)
+  for (ind_ho in 1:int_NHO)
   {
-    for (idx_vorm in 1:Nvorm)
+    for (ind_vorm in 1:Nvorm)
     {
       # Data-doorsnede selecteren
-      HUdoorsnede <- HUscores_hers[vec_vorm[[idx_vorm]]&
-                                     vec_HO[[idx_ho]]&
-                                     vec_croho[[idx_croho]],]
+      HUdoorsnede <- HUscores_hers[vec_vorm[[ind_vorm]]&
+                                     vec_HO[[ind_ho]]&
+                                     vec_croho[[ind_croho]],]
       
       # Groepsgroote (N) berekenen
-      N[idx_vorm,idx_ho,idx_croho] <-length(unique(HUdoorsnede$UniekNummer))
+      N[ind_vorm,ind_ho,ind_croho] <-length(unique(HUdoorsnede$UniekNummer))
       
       # Als N < 10 dan geen rwa uitvoeren
-      if (N[idx_vorm,idx_ho,idx_croho] < 10)
+      if (N[ind_vorm,ind_ho,ind_croho] < 10)
       {
         next #Sla groep over en ga naar volgende iteratie
       }
@@ -250,13 +250,13 @@ for (idx_croho in 1:Ncrohos)
               predictors = NSEvragen[vec_rwavariabelen],
               applysigns = TRUE)
         #Bijdrage aan de totaalscore
-        rwa_bijdrage[idx_vorm,idx_ho,idx_croho,] <- rwa_resultaten$result$Sign.Rescaled.RelWeight
+        rwa_bijdrage[ind_vorm,ind_ho,ind_croho,] <- rwa_resultaten$result$Sign.Rescaled.RelWeight
         #Gemiddelde score per vraag
-        rwa_scores[idx_vorm,idx_ho,idx_croho,]   <- unlist(lapply(HUdoorsnede[,vec_rwavragen[2:9]],
+        rwa_scores[ind_vorm,ind_ho,ind_croho,]   <- unlist(lapply(HUdoorsnede[,vec_rwavragen[2:9]],
                                                                   fun_gewgem,
                                                                   HUdoorsnede$Weegfactor))
         #Totale verklaarde variantie (R^2)
-        rwa_R2[idx_vorm,idx_ho,idx_croho]        <- rwa_resultaten$rsquare
+        rwa_R2[ind_vorm,ind_ho,ind_croho]        <- rwa_resultaten$rsquare
       } #Sluiten rwa loop
     } #Sluiten vorm-loop
   } #Sluiten type HO loop
@@ -271,23 +271,23 @@ Een prioriteitenmatrix laat het gewicht van een voorspellende variabele
 (y-as).
 
 ```{r}
-idx_vorm = 4
-idx_ho = 4
-idx_croho = 95
+ind_vorm = 4
+ind_ho = 4
+ind_croho = 95
 
-rwa_scores_gem   <- mean(rwa_scores[idx_vorm,idx_ho,idx_croho,])
-rwa_bijdrage_gem <- mean(rwa_bijdrage[idx_vorm,idx_ho,idx_croho,])
+rwa_scores_gem   <- mean(rwa_scores[ind_vorm,ind_ho,ind_croho,])
+rwa_bijdrage_gem <- mean(rwa_bijdrage[ind_vorm,ind_ho,ind_croho,])
 
-plot(rwa_bijdrage[idx_vorm,idx_ho,idx_croho,], 
-     rwa_scores[idx_vorm,idx_ho,idx_croho,], 
+plot(rwa_bijdrage[ind_vorm,ind_ho,ind_croho,], 
+     rwa_scores[ind_vorm,ind_ho,ind_croho,], 
      xlab = 'Bijdrage aan totaalscore', 
      ylab = 'Score' ); 
 abline(h=rwa_scores_gem, #Gemiddelden horizontale en verticale lijnen zodra de matrix vorm krijgt
        v=rwa_bijdrage_gem, 
        col="black")
-text(rwa_bijdrage[idx_vorm,idx_ho,idx_croho,], #Toevoegen nummer van vraag aan plot
-     rwa_scores[idx_vorm,idx_ho,idx_croho,], 
-     NSEvragen_kort[vec_rwavariabelen], 
+text(rwa_bijdrage[ind_vorm,ind_ho,ind_croho,], #Toevoegen nummer van vraag aan plot
+     rwa_scores[ind_vorm,ind_ho,ind_croho,], 
+     str_NSEvragen_kort[vec_rwavariabelen], 
      cex=0.7, 
      pos=2, 
      col="blue")
@@ -297,20 +297,20 @@ text(rwa_bijdrage[idx_vorm,idx_ho,idx_croho,], #Toevoegen nummer van vraag aan p
 
 ```{r Vullen van data frame met resultaten}
 prioriteitenmatrix <- data.frame()
-for(idx_croho in 1:Ncrohos)
+for(ind_croho in 1:int_crohos)
 {
-  for (idx_ho in 1:NHO)
+  for (ind_ho in 1:int_NHO)
   {
-    for (idx_vorm in 1:Nvorm)
+    for (ind_vorm in 1:Nvorm)
     {
-      tmp <- data.frame(Opleidingsvorm3 = NSEvormen[idx_vorm],
-                        BaMa            = NSEHOtypes[idx_ho],
-                        Croho           = NSEcrohos[idx_croho],
+      tmp <- data.frame(Opleidingsvorm3 = NSEvormen[ind_vorm],
+                        BaMa            = NSEHOtypes[ind_ho],
+                        Croho           = NSEcrohos[ind_croho],
                         NSEvragen       = NSEvragen[vec_rwavariabelen],
-                        RWAscores       = rwa_scores[idx_vorm,idx_ho,idx_croho,],
-                        RWAbijdrage     = rwa_bijdrage[idx_vorm,idx_ho,idx_croho,],
-                        N               = N[idx_vorm,idx_ho,idx_croho],
-                        Rsquared        = rwa_R2[idx_vorm,idx_ho,idx_croho])
+                        RWAscores       = rwa_scores[ind_vorm,ind_ho,ind_croho,],
+                        RWAbijdrage     = rwa_bijdrage[ind_vorm,ind_ho,ind_croho,],
+                        N               = N[ind_vorm,ind_ho,ind_croho],
+                        Rsquared        = rwa_R2[ind_vorm,ind_ho,ind_croho])
       prioriteitenmatrix <- rbind(prioriteitenmatrix, tmp); 
     }
   }

@@ -89,7 +89,7 @@ for (i in vormtypes)
 }
 #Voeg nu een extra lijst toe die alle vormen meeneemt (totaal-berekening)
 vec_vorm[[length(vormtypes)+1]] <- rep(TRUE, nrow(nse_benchmark_clean))
-Nvorm <- length(vec_vorm)
+int_vorm <- length(vec_vorm)
 NSEvormen <- append(vormtypes, "Totaal")
 
 #Maak voor elke HOtype een logische vector
@@ -179,18 +179,18 @@ Om kort-durende tests te draaien is de aanbeveling om de loops bijvoorbeeld voor
 
 ```{r T-test statistiek}
 #Pre-allocatie van objecten die in de volgende stap gevuld gaan worden
-p_HUR6      <- array(NA, c(Nvragen, Nvorm, NHO, Ncrohos))
-p_HUR6_w    <- array(NA, c(Nvragen, Nvorm, NHO, Ncrohos))
-p_HUAL      <- array(NA, c(Nvragen, Nvorm, NHO, Ncrohos))
-p_HUAL_w    <- array(NA, c(Nvragen, Nvorm, NHO, Ncrohos))
-N_HU        <- array(NA, c(Nvragen, Nvorm, NHO, Ncrohos))
-N_R6        <- array(NA, c(Nvragen, Nvorm, NHO, Ncrohos))
-N_AL        <- array(NA, c(Nvragen, Nvorm, NHO, Ncrohos))
-gem_HU      <- array(NA, c(Nvragen, Nvorm, NHO, Ncrohos))
-gem_R6      <- array(NA, c(Nvragen, Nvorm, NHO, Ncrohos))
-gem_AL      <- array(NA, c(Nvragen, Nvorm, NHO, Ncrohos))
-diff_HUR6   <- array(NA, c(Nvragen, Nvorm, NHO, Ncrohos))
-diff_HUAL   <- array(NA, c(Nvragen, Nvorm, NHO, Ncrohos))
+arr_p_HUR6      <- array(NA, c(Nvragen, int_vorm, NHO, Ncrohos))
+p_HUR6_w    <- array(NA, c(Nvragen, int_vorm, NHO, Ncrohos))
+p_HUAL      <- array(NA, c(Nvragen, int_vorm, NHO, Ncrohos))
+p_HUAL_w    <- array(NA, c(Nvragen, int_vorm, NHO, Ncrohos))
+N_HU        <- array(NA, c(Nvragen, int_vorm, NHO, Ncrohos))
+N_R6        <- array(NA, c(Nvragen, int_vorm, NHO, Ncrohos))
+N_AL        <- array(NA, c(Nvragen, int_vorm, NHO, Ncrohos))
+gem_HU      <- array(NA, c(Nvragen, int_vorm, NHO, Ncrohos))
+gem_R6      <- array(NA, c(Nvragen, int_vorm, NHO, Ncrohos))
+gem_AL      <- array(NA, c(Nvragen, int_vorm, NHO, Ncrohos))
+diff_HUR6   <- array(NA, c(Nvragen, int_vorm, NHO, Ncrohos))
+diff_HUAL   <- array(NA, c(Nvragen, int_vorm, NHO, Ncrohos))
 
 #Definieer correctiefactor zodat index voor het vullen van p waardes op 1 begint en niet op 28
 Ncor <- Neerste - 1 
@@ -204,7 +204,7 @@ for (i_croho in 1:Ncrohos)
   {
     
     #Voor elke vorm onderstaande berekening herhalen
-    for (i_vorm in 1:Nvorm)
+    for (i_vorm in 1:int_vorm)
     {
       
       #Voor elke NSEvraag de respons tussen groepen vergelijken en p waarde opslaan
@@ -300,7 +300,7 @@ for (i_croho in 1:Ncrohos)
                                                                           bootse   = TRUE)
                                                                $coefficients[3])
           
-          p_HUR6[i_vraag-Ncor,i_vorm,i_ho,i_croho]  <- t.test(data_HU,
+          arr_p_HUR6[i_vraag-Ncor,i_vorm,i_ho,i_croho]  <- t.test(data_HU,
                                                               data_R6)$p.value
           p_HUAL[i_vraag-Ncor,i_vorm,i_ho,i_croho]  <- t.test(data_HU,
                                                               data_AL)$p.value
@@ -327,10 +327,10 @@ voor testen die mogelijk positief met elkaar gecorrigeerd zijn
 [hier](https://projecteuclid.org/journals/annals-of-statistics/volume-29/issue-4/The-control-of-the-false-discovery-rate-in-multiple-testing/10.1214/aos/1013699998.full#:~:text=Abstract,many%20applied%20multiple%20testing%20problems.&text=For%20all%20other%20forms%20of,controls%20the%20false%20discovery%20rate.)
 
 ```{r FDR correctie}
-p_HUR6_adj  <- array(NA, c(Nvragen, Nvorm, NHO, Ncrohos))
-p_HUAL_adj  <- array(NA, c(Nvragen, Nvorm, NHO, Ncrohos))
-p_HUR6_w_adj<- array(NA, c(Nvragen, Nvorm, NHO, Ncrohos))
-p_HUAL_w_adj<- array(NA, c(Nvragen, Nvorm, NHO, Ncrohos))
+p_HUR6_adj  <- array(NA, c(Nvragen, int_vorm, NHO, Ncrohos))
+p_HUAL_adj  <- array(NA, c(Nvragen, int_vorm, NHO, Ncrohos))
+p_HUR6_w_adj<- array(NA, c(Nvragen, int_vorm, NHO, Ncrohos))
+p_HUAL_w_adj<- array(NA, c(Nvragen, int_vorm, NHO, Ncrohos))
 
 
   #Loop over alle crohos
@@ -341,9 +341,9 @@ p_HUAL_w_adj<- array(NA, c(Nvragen, Nvorm, NHO, Ncrohos))
     for (i_ho in 1:NHO)
     {
       # Loop over alle vorm varianten
-      for (i_vorm in 1:Nvorm)
+      for (i_vorm in 1:int_vorm)
       {
-        p_HUR6_adj[,i_vorm,i_ho,i_croho]   <- p.adjust(p_HUR6[,i_vorm
+        p_HUR6_adj[,i_vorm,i_ho,i_croho]   <- p.adjust(arr_p_HUR6[,i_vorm
                                                               ,i_ho
                                                               ,i_croho]
                                                        ,method = "BY")
@@ -366,7 +366,7 @@ p_HUAL_w_adj<- array(NA, c(Nvragen, Nvorm, NHO, Ncrohos))
 # Bekijken van verschuiving oorspronkelijke p en p_adj
 i_vorm = 4; i_ho = 4; i_croho = 96; #Waardes bekijken voor croho = Instituut Archimedes
 
-plot(p_HUR6[,i_vorm,
+plot(arr_p_HUR6[,i_vorm,
             i_ho,
             i_croho], 
      p_HUR6_adj[,i_vorm,
@@ -374,7 +374,7 @@ plot(p_HUR6[,i_vorm,
                 i_croho]); 
 abline(h = 0.05, v=0.05)
 
-rm(p_HUR6, p_HUAL)
+rm(arr_p_HUR6, p_HUAL)
 ```
 
 ```{r Visualiseren test-statistiek HU <> R6}
@@ -431,7 +431,7 @@ for (i_croho in 1:Ncrohos)
 {
   for (i_ho in 1:NHO)
   {
-    for (i_vorm in 1:Nvorm)
+    for (i_vorm in 1:int_vorm)
     {
       tempR6 <- data.frame(Opleidingsvorm3 = NSEvormen[i_vorm], 
                            CrohoActueel    = NSEcrohos[i_croho], 
