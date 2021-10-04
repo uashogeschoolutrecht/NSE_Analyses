@@ -136,8 +136,8 @@ worden. Daarnaast is het belangrijk om ook exclusie-vragen scherp te hebben.
 Nvragen <- length(vec_NSEvragen)
 Neerste <- min(vec_NSEvragen)
 cat("De volgende ",toString(Nvragen)," vragen zijn opgenomen in deze analyse:")
-NSEvragen
-cat("De volgende vraag/vragen zullen in de specifieke significantie-toetsing worden ge-excludeerd:", NSEvragen[vec_NSEvragen == i_exclusie])
+str_NSEvragen
+cat("De volgende vraag/vragen zullen in de specifieke significantie-toetsing worden ge-excludeerd:", str_NSEvragen[vec_NSEvragen == ind_exclusie])
 ```
 
 # 4. Samenvattende statistieken
@@ -436,7 +436,7 @@ for (i_croho in 1:Ncrohos)
       tempR6 <- data.frame(Opleidingsvorm3 = NSEvormen[i_vorm], 
                            CrohoActueel    = NSEcrohos[i_croho], 
                            BaMa            = NSEHOtypes[i_ho],
-                           Vraag           = NSEvragen, 
+                           Vraag           = str_NSEvragen, 
                            Benchmark       = rep("R6",Nvragen),  
                            p               = p_HUR6_adj[,i_vorm,i_ho,i_croho], 
                            p_w             = p_HUR6_w_adj[,i_vorm,i_ho,i_croho],
@@ -450,7 +450,7 @@ for (i_croho in 1:Ncrohos)
       tempAL <- data.frame(Opleidingsvorm3 = NSEvormen[i_vorm],
                            CrohoActueel    = NSEcrohos[i_croho],
                            BaMa            = NSEHOtypes[i_ho],
-                           Vraag           = NSEvragen,
+                           Vraag           = str_NSEvragen,
                            Benchmark       = rep("AL",Nvragen),
                            p               = p_HUAL_adj[,i_vorm,i_ho,i_croho],
                            p_w             = p_HUAL_w_adj[,i_vorm,i_ho,i_croho],
