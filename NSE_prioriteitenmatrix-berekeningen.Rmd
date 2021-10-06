@@ -57,7 +57,7 @@ afvallen omdat zij slechts aan een deel van de studenten gesteld zijn.
 vec_rwauitkomst <- 1            # Kies vraag die de uitkomst variabele zal zijn
 vec_rwavariabelen <- c(2,3,6:10,12) # Kies vragen die voorspellende variabelen zijn
 vec_rwavragen <- append(vec_NSEvragen[vec_rwauitkomst], vec_NSEvragen[vec_rwavariabelen]) # Alle vragen die gebruikt worden in de RWA
-#N_variabelen <- length(vec_rwavariabelen) #Not used in script?
+
 str_NSEvragen_kort <- substr(NSEvragen, nchar(NSEvragen)-1, nchar(NSEvragen)) #Afkortingen voor vragen
 ```
 

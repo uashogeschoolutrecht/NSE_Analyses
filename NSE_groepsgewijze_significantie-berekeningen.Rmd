@@ -180,17 +180,17 @@ Om kort-durende tests te draaien is de aanbeveling om de loops bijvoorbeeld voor
 ```{r T-test statistiek}
 #Pre-allocatie van objecten die in de volgende stap gevuld gaan worden
 arr_p_HUR6      <- array(NA, c(Nvragen, int_vorm, NHO, Ncrohos))
-p_HUR6_w    <- array(NA, c(Nvragen, int_vorm, NHO, Ncrohos))
-p_HUAL      <- array(NA, c(Nvragen, int_vorm, NHO, Ncrohos))
-p_HUAL_w    <- array(NA, c(Nvragen, int_vorm, NHO, Ncrohos))
-N_HU        <- array(NA, c(Nvragen, int_vorm, NHO, Ncrohos))
-N_R6        <- array(NA, c(Nvragen, int_vorm, NHO, Ncrohos))
-N_AL        <- array(NA, c(Nvragen, int_vorm, NHO, Ncrohos))
-gem_HU      <- array(NA, c(Nvragen, int_vorm, NHO, Ncrohos))
-gem_R6      <- array(NA, c(Nvragen, int_vorm, NHO, Ncrohos))
-gem_AL      <- array(NA, c(Nvragen, int_vorm, NHO, Ncrohos))
-diff_HUR6   <- array(NA, c(Nvragen, int_vorm, NHO, Ncrohos))
-diff_HUAL   <- array(NA, c(Nvragen, int_vorm, NHO, Ncrohos))
+arr_p_HUR6_w    <- array(NA, c(Nvragen, int_vorm, NHO, Ncrohos))
+arr_p_HUAL      <- array(NA, c(Nvragen, int_vorm, NHO, Ncrohos))
+arr_p_HUAL_w    <- array(NA, c(Nvragen, int_vorm, NHO, Ncrohos))
+arr_N_HU        <- array(NA, c(Nvragen, int_vorm, NHO, Ncrohos))
+arr_N_R6        <- array(NA, c(Nvragen, int_vorm, NHO, Ncrohos))
+arr_N_AL        <- array(NA, c(Nvragen, int_vorm, NHO, Ncrohos))
+arr_gem_HU      <- array(NA, c(Nvragen, int_vorm, NHO, Ncrohos))
+arr_gem_R6      <- array(NA, c(Nvragen, int_vorm, NHO, Ncrohos))
+arr_gem_AL      <- array(NA, c(Nvragen, int_vorm, NHO, Ncrohos))
+arr_diff_HUR6   <- array(NA, c(Nvragen, int_vorm, NHO, Ncrohos))
+arr_diff_HUAL   <- array(NA, c(Nvragen, int_vorm, NHO, Ncrohos))
 
 #Definieer correctiefactor zodat index voor het vullen van p waardes op 1 begint en niet op 28
 Ncor <- Neerste - 1 
@@ -240,49 +240,49 @@ for (i_croho in 1:Ncrohos)
                                                      &vec_croho[[i_croho]])]
         
         #Groepsgroottes (N) berekenen
-        N_HU[i_vraag-Ncor, i_vorm, i_ho, i_croho] <- sum(!is.na(data_HU))
-        N_R6[i_vraag-Ncor, i_vorm, i_ho, i_croho] <- sum(!is.na(data_R6))
-        N_AL[i_vraag-Ncor, i_vorm, i_ho, i_croho] <- sum(!is.na(data_AL))
+        arr_N_HU[i_vraag-Ncor, i_vorm, i_ho, i_croho] <- sum(!is.na(data_HU))
+        arr_N_R6[i_vraag-Ncor, i_vorm, i_ho, i_croho] <- sum(!is.na(data_R6))
+        arr_N_AL[i_vraag-Ncor, i_vorm, i_ho, i_croho] <- sum(!is.na(data_AL))
         
         #Berekenen gemiddelden per groep (gewogen)
-        gem_HU[i_vraag-Ncor,i_vorm,i_ho, i_croho]  <- weighted.mean(data_HU,
+        arr_gem_HU[i_vraag-Ncor,i_vorm,i_ho, i_croho]  <- weighted.mean(data_HU,
                                                                     data_w_HU,
                                                                     na.rm = TRUE)
-        gem_R6[i_vraag-Ncor,i_vorm,i_ho, i_croho]  <- weighted.mean(data_R6,
+        arr_gem_R6[i_vraag-Ncor,i_vorm,i_ho, i_croho]  <- weighted.mean(data_R6,
                                                                     data_w_R6,
                                                                     na.rm = TRUE)
-        gem_AL[i_vraag-Ncor,i_vorm,i_ho, i_croho]  <- weighted.mean(data_AL,
+        arr_gem_AL[i_vraag-Ncor,i_vorm,i_ho, i_croho]  <- weighted.mean(data_AL,
                                                                     data_w_AL,
                                                                     na.rm = TRUE)
         
         #Berekenen verschil tussen gemiddelden (delta)
-        diff_HUR6[i_vraag-Ncor,i_vorm,i_ho,i_croho] <-gem_HU[i_vraag-Ncor,
+        arr_diff_HUR6[i_vraag-Ncor,i_vorm,i_ho,i_croho] <-arr_gem_HU[i_vraag-Ncor,
                                                              i_vorm,
                                                              i_ho,
-                                                             i_croho] - gem_R6[i_vraag-Ncor,
+                                                             i_croho] - arr_gem_R6[i_vraag-Ncor,
                                                                                i_vorm,
                                                                                i_ho,
                                                                                i_croho]
-        diff_HUAL[i_vraag-Ncor,i_vorm,i_ho,i_croho] <-gem_HU[i_vraag-Ncor,
+        arr_diff_HUAL[i_vraag-Ncor,i_vorm,i_ho,i_croho] <-arr_gem_HU[i_vraag-Ncor,
                                                              i_vorm,
                                                              i_ho,
-                                                             i_croho] - gem_AL[i_vraag-Ncor,
+                                                             i_croho] - arr_gem_AL[i_vraag-Ncor,
                                                                                 i_vorm,
                                                                                 i_ho,
                                                                                 i_croho]
         
         #Groepsgroote moet minimaal 5 responses zijn en vraag 64 wordt overgeslagen
-        if (N_HU[i_vraag-Ncor,i_vorm,i_ho,i_croho]< 5 |
-            N_R6[i_vraag-Ncor,i_vorm,i_ho,i_croho]< 5 |
-            N_AL[i_vraag-Ncor,i_vorm,i_ho,i_croho]< 5 |
-            i_vraag == i_exclusie)
+        if (arr_N_HU[i_vraag-Ncor,i_vorm,i_ho,i_croho]< 5 |
+            arr_N_R6[i_vraag-Ncor,i_vorm,i_ho,i_croho]< 5 |
+            arr_N_AL[i_vraag-Ncor,i_vorm,i_ho,i_croho]< 5 |
+            i_vraag == ind_exclusie)
         {
           next #Sla groep over en ga naar volgende iteratie
         }
         else
         {
           #Berekenen p waarden
-          p_HUR6_w[i_vraag-Ncor,i_vorm,i_ho,i_croho] <- unname(wtd.t.test(data_HU,
+          arr_p_HUR6_w[i_vraag-Ncor,i_vorm,i_ho,i_croho] <- unname(wtd.t.test(data_HU,
                                                                           data_R6,
                                                                           weight   = data_w_HU,
                                                                           weighty  = data_w_R6,
@@ -291,7 +291,7 @@ for (i_croho in 1:Ncrohos)
                                                                           bootse   = TRUE)
                                                                $coefficients[3])
           
-          p_HUAL_w[i_vraag-Ncor,i_vorm,i_ho,i_croho] <- unname(wtd.t.test(data_HU,
+          arr_p_HUAL_w[i_vraag-Ncor,i_vorm,i_ho,i_croho] <- unname(wtd.t.test(data_HU,
                                                                           data_AL,
                                                                           weight   = data_w_HU,
                                                                           weighty  = data_w_AL,
@@ -302,7 +302,7 @@ for (i_croho in 1:Ncrohos)
           
           arr_p_HUR6[i_vraag-Ncor,i_vorm,i_ho,i_croho]  <- t.test(data_HU,
                                                               data_R6)$p.value
-          p_HUAL[i_vraag-Ncor,i_vorm,i_ho,i_croho]  <- t.test(data_HU,
+          arr_p_HUAL[i_vraag-Ncor,i_vorm,i_ho,i_croho]  <- t.test(data_HU,
                                                               data_AL)$p.value
         }#Sluiten van else loop
       }#Sluiten van vraag-loop
@@ -347,15 +347,15 @@ p_HUAL_w_adj<- array(NA, c(Nvragen, int_vorm, NHO, Ncrohos))
                                                               ,i_ho
                                                               ,i_croho]
                                                        ,method = "BY")
-        p_HUAL_adj[,i_vorm,i_ho,i_croho]   <- p.adjust(p_HUAL[,i_vorm
+        p_HUAL_adj[,i_vorm,i_ho,i_croho]   <- p.adjust(arr_p_HUAL[,i_vorm
                                                               ,i_ho
                                                               ,i_croho]
                                                        ,method = 'BY')
-        p_HUR6_w_adj[,i_vorm,i_ho,i_croho] <- p.adjust(p_HUR6_w[,i_vorm
+        p_HUR6_w_adj[,i_vorm,i_ho,i_croho] <- p.adjust(arr_p_HUR6_w[,i_vorm
                                                                 ,i_ho
                                                                 ,i_croho]
                                                        ,method = "BY")
-        p_HUAL_w_adj[,i_vorm,i_ho,i_croho] <- p.adjust(p_HUAL_w[,i_vorm
+        p_HUAL_w_adj[,i_vorm,i_ho,i_croho] <- p.adjust(arr_p_HUAL_w[,i_vorm
                                                                 ,i_ho
                                                                 ,i_croho]
                                                        ,method = 'BY')
@@ -374,18 +374,18 @@ plot(arr_p_HUR6[,i_vorm,
                 i_croho]); 
 abline(h = 0.05, v=0.05)
 
-rm(arr_p_HUR6, p_HUAL)
+rm(arr_p_HUR6, arr_p_HUAL)
 ```
 
 ```{r Visualiseren test-statistiek HU <> R6}
 #Bekijken uitkomstmaten (delta inclusief significantie in kleur)
 plot(p_HUR6_adj[,i_vorm,i_ho,i_croho])
 abline(h = 0.05)
-groepering <- ifelse(diff_HUR6[,i_vorm,i_ho,i_croho]  > 0 & 
+groepering <- ifelse(arr_diff_HUR6[,i_vorm,i_ho,i_croho]  > 0 & 
                      p_HUR6_adj[,i_vorm,i_ho,i_croho] < 0.05, 3, 
-              ifelse(diff_HUR6[,i_vorm,i_ho,i_croho]  < 0 & 
+              ifelse(arr_diff_HUR6[,i_vorm,i_ho,i_croho]  < 0 & 
                      p_HUR6_adj[,i_vorm,i_ho,i_croho] < 0.05, 2, 1))
-plot(diff_HUR6[,i_vorm,i_ho,i_croho], col = groepering, pch = 19, 
+plot(arr_diff_HUR6[,i_vorm,i_ho,i_croho], col = groepering, pch = 19, 
      xlab = "NSE vraag", 
      ylab = "Gemiddelde verschil (delta) tussen HU en R6")
 ```
@@ -393,11 +393,11 @@ plot(diff_HUR6[,i_vorm,i_ho,i_croho], col = groepering, pch = 19,
 ```{r Visualiseren test-statistiek HU <> AL}
 plot(p_HUAL_adj[,i_vorm,i_ho,i_croho])
 abline(h = 0.05)
-groepering <- ifelse(diff_HUAL[,i_vorm,i_ho,i_croho]  > 0 &
+groepering <- ifelse(arr_diff_HUAL[,i_vorm,i_ho,i_croho]  > 0 &
                      p_HUAL_adj[,i_vorm,i_ho,i_croho] < 0.05, 3,               
-              ifelse(diff_HUAL[,i_vorm,i_ho,i_croho]  < 0 & 
+              ifelse(arr_diff_HUAL[,i_vorm,i_ho,i_croho]  < 0 & 
                      p_HUAL_adj[,i_vorm,i_ho,i_croho] < 0.05, 2, 1))
-plot(diff_HUAL[,i_vorm,i_ho,i_croho], col = groepering, pch = 19, 
+plot(arr_diff_HUAL[,i_vorm,i_ho,i_croho], col = groepering, pch = 19, 
      xlab = "NSE vraag", 
      ylab = "Gemiddelde verschil tussen HU en AL andere hogescholen")
 ```
@@ -417,7 +417,7 @@ nse_significanties <- data.frame(Opleidingsvorm3=character(),
                                  HUgem          =double(),
                                  Benchmarkgem   =double(),
                                  gem_delta      =double(),
-                                 N_HU           =double(),
+                                 arr_N_HU           =double(),
                                  N_benchmark    =double(),
                                  Afnamejaar     =double()
                                  )
@@ -440,11 +440,11 @@ for (i_croho in 1:Ncrohos)
                            Benchmark       = rep("R6",Nvragen),  
                            p               = p_HUR6_adj[,i_vorm,i_ho,i_croho], 
                            p_w             = p_HUR6_w_adj[,i_vorm,i_ho,i_croho],
-                           HUgem           = gem_HU[,i_vorm,i_ho,i_croho],
-                           Benchmarkgem    = gem_R6[,i_vorm,i_ho,i_croho],
-                           gem_delta       = diff_HUR6[,i_vorm,i_ho,i_croho],
-                           N_HU            = N_HU[,i_vorm,i_ho,i_croho],
-                           N_benchmark     = N_R6[,i_vorm,i_ho,i_croho],
+                           HUgem           = arr_gem_HU[,i_vorm,i_ho,i_croho],
+                           Benchmarkgem    = arr_gem_R6[,i_vorm,i_ho,i_croho],
+                           gem_delta       = arr_diff_HUR6[,i_vorm,i_ho,i_croho],
+                           arr_N_HU            = arr_N_HU[,i_vorm,i_ho,i_croho],
+                           N_benchmark     = arr_N_R6[,i_vorm,i_ho,i_croho],
                            Afnamejaar      = rep(2021,Nvragen) )
       
       tempAL <- data.frame(Opleidingsvorm3 = NSEvormen[i_vorm],
@@ -454,11 +454,11 @@ for (i_croho in 1:Ncrohos)
                            Benchmark       = rep("AL",Nvragen),
                            p               = p_HUAL_adj[,i_vorm,i_ho,i_croho],
                            p_w             = p_HUAL_w_adj[,i_vorm,i_ho,i_croho],
-                           HUgem           = gem_HU[,i_vorm,i_ho,i_croho],
-                           Benchmarkgem    = gem_AL[,i_vorm,i_ho,i_croho],
-                           gem_delta       = diff_HUAL[,i_vorm,i_ho,i_croho],
-                           N_HU            = N_HU[,i_vorm,i_ho,i_croho],
-                           N_benchmark     = N_AL[,i_vorm,i_ho,i_croho],
+                           HUgem           = arr_gem_HU[,i_vorm,i_ho,i_croho],
+                           Benchmarkgem    = arr_gem_AL[,i_vorm,i_ho,i_croho],
+                           gem_delta       = arr_diff_HUAL[,i_vorm,i_ho,i_croho],
+                           arr_N_HU            = arr_N_HU[,i_vorm,i_ho,i_croho],
+                           N_benchmark     = arr_N_AL[,i_vorm,i_ho,i_croho],
                            Afnamejaar      = rep(2021,Nvragen) )
       
       #Toevoegen van tijdelijke dataframes aan output dataframe
