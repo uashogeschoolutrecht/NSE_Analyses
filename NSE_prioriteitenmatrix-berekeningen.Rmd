@@ -35,8 +35,8 @@ library(corrplot)  #Nodig voor het visualiseren van correlaties via corplot()
 # 2. Inladen NSE benchmark bestand (clean data)
 
 ```{r Inlezen .csv, ca. 15 sec.}
-load("~/research-drive/M21033303_DenA (Projectfolder)/DA_Onderzoek/2021nse/data_in/NSE2021 nse_benchmark_clean.RData")
-rm(i_exclusie) #Exclusie-vector is in deze analyse niet nodig
+load("~/researchdrive/M21033303_DenA (Projectfolder)/DA_Onderzoek/2021nse/data_in/NSE2021 nse_benchmark_clean.RData")
+rm(ind_exclusie) #Exclusie-vector is in deze analyse niet nodig
 head(nse_benchmark_clean,10)
 ```
 
@@ -58,7 +58,7 @@ vec_rwauitkomst <- 1            # Kies vraag die de uitkomst variabele zal zijn
 vec_rwavariabelen <- c(2,3,6:10,12) # Kies vragen die voorspellende variabelen zijn
 vec_rwavragen <- append(vec_NSEvragen[vec_rwauitkomst], vec_NSEvragen[vec_rwavariabelen]) # Alle vragen die gebruikt worden in de RWA
 
-str_NSEvragen_kort <- substr(NSEvragen, nchar(NSEvragen)-1, nchar(NSEvragen)) #Afkortingen voor vragen
+str_NSEvragen_kort <- substr(str_NSEvragen, nchar(str_NSEvragen)-1, nchar(str_NSEvragen)) #Afkortingen voor vragen
 ```
 
 Alleen studenten van de Hogeschool Utrecht worden gebruikt in deze data
@@ -211,7 +211,7 @@ Hierin is ook terug te vinden dat vragenlijstdata valide is als input
 voor een RWA.
 
 ```{r RWA model berekenen}
-cat("Er wordt nu een RWA model berekend met vraag", NSEvragen[vec_rwauitkomst], "als onafhankelijke variabele.\nEen RWA model probeert om de onafhankelijke variabele te verklaren door gewichten toe te kennen aan een aantal vooraf gekozen afhankelijke variabelen. Voor dit model zijn alleen studenten meegenomen die voor zowel voor de onafhankelijke variabele én alle afhankelijke variabelen ingevulde responses bevatten (complete gevallen).\nDe volgende lijst aan vragen zijn de voorspellende variabelen: \n", NSEvragen[vec_rwavariabelen])
+cat("Er wordt nu een RWA model berekend met vraag", str_NSEvragen[vec_rwauitkomst], "als onafhankelijke variabele.\nEen RWA model probeert om de onafhankelijke variabele te verklaren door gewichten toe te kennen aan een aantal vooraf gekozen afhankelijke variabelen. Voor dit model zijn alleen studenten meegenomen die voor zowel voor de onafhankelijke variabele én alle afhankelijke variabelen ingevulde responses bevatten (complete gevallen).\nDe volgende lijst aan vragen zijn de voorspellende variabelen: \n", str_NSEvragen[vec_rwavariabelen])
 
 #Pre-alloceer objecten die in loop gevuld gaan worden
 rwa_bijdrage <- array(NA, dim = c(Nvorm, int_NHO, int_crohos, length(vec_rwavariabelen)))
@@ -246,8 +246,8 @@ for (ind_croho in 1:int_crohos)
       {
         #Voor rwa berekening
         rwa_resultaten <- HUdoorsnede %>%
-          rwa(outcome    = NSEvragen[vec_rwauitkomst],
-              predictors = NSEvragen[vec_rwavariabelen],
+          rwa(outcome    = str_NSEvragen[vec_rwauitkomst],
+              predictors = str_NSEvragen[vec_rwavariabelen],
               applysigns = TRUE)
         #Bijdrage aan de totaalscore
         rwa_bijdrage[ind_vorm,ind_ho,ind_croho,] <- rwa_resultaten$result$Sign.Rescaled.RelWeight
@@ -306,7 +306,7 @@ for(ind_croho in 1:int_crohos)
       tmp <- data.frame(Opleidingsvorm3 = NSEvormen[ind_vorm],
                         BaMa            = NSEHOtypes[ind_ho],
                         Croho           = NSEcrohos[ind_croho],
-                        NSEvragen       = NSEvragen[vec_rwavariabelen],
+                        NSEvragen       = str_NSEvragen[vec_rwavariabelen],
                         RWAscores       = rwa_scores[ind_vorm,ind_ho,ind_croho,],
                         RWAbijdrage     = rwa_bijdrage[ind_vorm,ind_ho,ind_croho,],
                         N               = N[ind_vorm,ind_ho,ind_croho],
@@ -320,5 +320,5 @@ prioriteitenmatrix <- prioriteitenmatrix[!is.na(prioriteitenmatrix$RWAscores),]
 ```
 
 ```{r Wegschrijven naar .csv}
-write.csv(prioriteitenmatrix,file = "~/research-drive/M21033303_DenA (Projectfolder)/DA_Onderzoek/2021nse/data_uit/NSEprioriteitenttabel.csv")
+write.csv(prioriteitenmatrix,file = "~/research-drive/M21033303_DenA (Projectfolder)/DA_Onderzoek/2021nse/data_uit/NSEprioriteitenttabel2022.csv")
 ```
