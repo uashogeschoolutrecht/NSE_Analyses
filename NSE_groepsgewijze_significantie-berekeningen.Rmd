@@ -37,7 +37,7 @@ library(dplyr)     #Nodig voor na_if() functie
 # 1. Inladen NSE benchmark bestand (clean data)
 
 ```{r Inlezen .csv}
-load("~/research-drive/M21033303_DenA (Projectfolder)/DA_Onderzoek/2021nse/data_in/NSE2021 nse_benchmark_clean.RData")
+load("~/researchdrive/M21033303_DenA (Projectfolder)/DA_Onderzoek/2021nse/data_in/NSE2022 nse_benchmark_clean.RData")
 head(nse_benchmark_clean,10)
 ```
 
@@ -445,7 +445,7 @@ for (i_croho in 1:Ncrohos)
                            gem_delta       = arr_diff_HUR6[,i_vorm,i_ho,i_croho],
                            arr_N_HU            = arr_N_HU[,i_vorm,i_ho,i_croho],
                            N_benchmark     = arr_N_R6[,i_vorm,i_ho,i_croho],
-                           Afnamejaar      = rep(2021,Nvragen) )
+                           Afnamejaar      = rep(2022,Nvragen) )
       
       tempAL <- data.frame(Opleidingsvorm3 = NSEvormen[i_vorm],
                            CrohoActueel    = NSEcrohos[i_croho],
@@ -459,7 +459,7 @@ for (i_croho in 1:Ncrohos)
                            gem_delta       = arr_diff_HUAL[,i_vorm,i_ho,i_croho],
                            arr_N_HU            = arr_N_HU[,i_vorm,i_ho,i_croho],
                            N_benchmark     = arr_N_AL[,i_vorm,i_ho,i_croho],
-                           Afnamejaar      = rep(2021,Nvragen) )
+                           Afnamejaar      = rep(2022,Nvragen) )
       
       #Toevoegen van tijdelijke dataframes aan output dataframe
       nse_significanties <- rbind(nse_significanties, tempR6, tempAL); 
@@ -474,5 +474,5 @@ rm(tempR6, tempAL)
 Resultaten wegschrijven
 
 ```{r Wegschrijven naar .csv}
-write.csv2(nse_significanties, file = "~/research-drive/M21033303_DenA (Projectfolder)/DA_Onderzoek/2021nse/data_uit/NSEsignificantietabel.csv")
+write.csv2(nse_significanties, file = "~/research-drive/M21033303_DenA (Projectfolder)/DA_Onderzoek/2021nse/data_uit/NSEsignificantietabel2022.csv")
 ```
