@@ -25,20 +25,7 @@ library(psych) #Nodig voor describeBy() functie
 nse_benchmark <- read.csv2("~/researchdrive/M21033303_DenA (Projectfolder)/DA_Onderzoek/2021nse/data_in/NSE2021 Definitief Benchmarkbestand_v3 permutatie.csv")
 head(nse_benchmark,10)
 ```
-
-# 3. Definities
-In deze stap worden vectoren aangemaakt die helpen de specifieke NSE vragen te vinden in de dataset.
-Op basis van afwijkende antwoorden (1-Ja/2-Nee i.p.v. 1-Zeer mee oneens t/m 5-Zeer mee eens) wordt vraag "BEGELEIDING_SELECTIE" niet meegenomen. Hiervoor wordt een index-vector gemaakt die als hulpvector dient. 
-```{r Definiëren van NSE vragen}
-vec_NSEvragen = c(28:84)
-str_NSEvragen = colnames(nse_benchmark[vec_NSEvragen])
-ind_exclusie <- 64; 
-cat("De geëxcludeerde vraag is: ",
-    colnames(nse_benchmark[ind_exclusie]), "\n") 
-cat("De geïncludeerde vragen zijn: ", str_NSEvragen[vec_NSEvragen != ind_exclusie])
-```
-
-# 4. Data cleaning
+# 3. Data cleaning
 - Universiteiten verwijderen
 - Missende data op NA zetten
 ```{r Alleen hogescholen subset selecteren}
@@ -55,6 +42,42 @@ for (int_missingnumber in vec_missingdata){
 ```{r Responsewaarde samenvatting bekijken, echo=TRUE, paged.print=TRUE}
 describeBy(nse_benchmark_clean[,vec_NSEvragen], group = NULL)
 rm(nse_benchmark, data_nse_benchmark)
+```
+
+# 4. Definities
+In deze stap worden vectoren aangemaakt die helpen de specifieke NSE vragen te vinden in de dataset.
+Op basis van afwijkende antwoorden (1-Ja/2-Nee i.p.v. 1-Zeer mee oneens t/m 5-Zeer mee eens) wordt vraag "BEGELEIDING_SELECTIE" niet meegenomen. Hiervoor wordt een index-vector gemaakt die als hulpvector dient. 
+```{r Definiëren van NSE vragen}
+vec_NSEvragen = c(28:84)
+str_NSEvragen = colnames(nse_benchmark_clean[vec_NSEvragen])
+ind_exclusie <- 64; 
+cat("De geëxcludeerde vraag is: ",
+    colnames(nse_benchmark_clean[ind_exclusie]), "\n") 
+cat("De geïncludeerde vragen zijn: ", str_NSEvragen[vec_NSEvragen != ind_exclusie])
+```
+Voor de vervolg-analyses zijn de volgende vergelijkingsgroepen nodig: 
+HU, R6 (exclusief HU) en alles (exclusief HU). 
+
+Vervolgens is er een verschillende gelaagdheid (granulariteit) waarop de
+groepen met elkaar vergeleken worden:
+
+-   Per vorm (d.w.z.: voltijd, deeltijd, duaal, of totaal)
+-   Per type hoger onderwijs (HO) (d.w.z.: bachelor, master, ad, of totaal)
+-   Per opleiding (Croho)
+
+```{r Definiëren analyse-groepen}
+groepHU    <- "Hogeschool Utrecht"
+groepR6    <- c("Hogeschool van Amsterdam", "De Haagse Hogeschool",
+                "Hogeschool INHOLLAND",     "Hogeschool Leiden",
+                "Hogeschool Rotterdam")
+vormtypes  <- sort(unique(nse_benchmark_clean$Opleidingsvorm3))
+HOtypes    <- sort(unique(nse_benchmark_clean$BaMa))
+crohos     <- sort(unique(nse_benchmark_clean$CrohoNaamActueel
+                          [nse_benchmark_clean$BrinNaamActueel == groepHU]))
+instituut_archimedes <- ("Instituut Archimedes")
+
+#Weergeven van de verschillende groepen
+groepHU; groepR6; vormtypes; HOtypes; crohos; instituut_archimedes
 ```
 
 # 5. Opslaan
