@@ -38,6 +38,7 @@ nse_benchmark_clean <- data_nse_benchmark #Gecleande data is gebaseerd op origin
 for (int_missingnumber in vec_missingdata){
   nse_benchmark_clean <- nse_benchmark_clean %>% dplyr::na_if(int_missingnumber)
 }
+rm(int_missingnumber, vec_missingdata)
 ```
 
 # 4. Definities
