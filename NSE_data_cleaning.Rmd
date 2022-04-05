@@ -39,10 +39,6 @@ for (int_missingnumber in vec_missingdata){
   nse_benchmark_clean <- nse_benchmark_clean %>% dplyr::na_if(int_missingnumber)
 }
 ```
-```{r Responsewaarde samenvatting bekijken, echo=TRUE, paged.print=TRUE}
-describeBy(nse_benchmark_clean[,vec_NSEvragen], group = NULL)
-rm(nse_benchmark, data_nse_benchmark)
-```
 
 # 4. Definities
 In deze stap worden vectoren aangemaakt die helpen de specifieke NSE vragen te vinden in de dataset.
@@ -56,6 +52,10 @@ ind_exclusie <- 64;
 cat("De geëxcludeerde vraag is: ",
     colnames(nse_benchmark_clean[ind_exclusie]), "\n") 
 cat("De geïncludeerde vragen zijn: ", str_NSEvragen[vec_NSEvragen != ind_exclusie])
+```
+```{r Responsewaarde samenvatting bekijken, echo=TRUE, paged.print=TRUE}
+describeBy(nse_benchmark_clean[,vec_NSEvragen], group = NULL)
+rm(nse_benchmark, data_nse_benchmark)
 ```
 
 Voor de vervolg-analyses zijn de volgende vergelijkingsgroepen nodig: 
