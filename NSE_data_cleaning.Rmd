@@ -10,8 +10,8 @@ Dit is een [R Markdown](http://rmarkdown.rstudio.com) Notebook waarin voor de Na
 De specifieke stappen zijn:
 1. Laden benodigde R bibliotheken
 2. Inladen ruwe data
-3. Definities instellen
-4. Data cleanen
+3. Data cleanen
+4. Definities instellen
 5. Opslaan van gecleande databestanden
 
 # 1. Laden R-bibliotheken
