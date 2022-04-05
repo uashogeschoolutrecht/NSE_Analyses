@@ -113,13 +113,13 @@ vec_instituut <- HUscores_hers$CrohoNaamActueel %in% NSEcrohos[c(43:56,80:88)]
 vec_croho[[Ncrohos]] <- vec_instituut
 
 #Maak voor elke vorm een logische vector
-vec_vorm <- vector(mode = "list", length(int_vorm))
-for (i in NSEvormen)
+vec_vorm <- vector(mode = "list", int_vorm)
+for (i in 1:int_vorm)
 {
   vec_vorm[[i]]<- HUscores_hers$Opleidingsvorm3 == NSEvormen[i]
 }
 #Voeg nu een extra lijst toe die alle vormen meeneemt (totaal-berekening)
-vec_vorm[int_vorm] <- rep(TRUE, nrow(HUscores_hers))
+vec_vorm[[int_vorm]] <- rep(TRUE, nrow(HUscores_hers))
 
 #Maak voor elke HOtype een logische vector
 vec_HO <- vector(mode = "list", length(NHO))
@@ -202,10 +202,10 @@ voor een RWA.
 cat("Er wordt nu een RWA model berekend met vraag", str_NSEvragen[vec_rwauitkomst], "als onafhankelijke variabele.\nEen RWA model probeert om de onafhankelijke variabele te verklaren door gewichten toe te kennen aan een aantal vooraf gekozen afhankelijke variabelen. Voor dit model zijn alleen studenten meegenomen die voor zowel voor de onafhankelijke variabele én alle afhankelijke variabelen ingevulde responses bevatten (complete gevallen).\nDe volgende lijst aan vragen zijn de voorspellende variabelen: \n", str_NSEvragen[vec_rwavariabelen])
 
 #Pre-alloceer objecten die in loop gevuld gaan worden
-rwa_bijdrage <- array(NA, dim = c(Nvorm, int_NHO, Ncrohos, length(vec_rwavariabelen)))
-rwa_scores   <- array(NA, dim = c(Nvorm, int_NHO, Ncrohos, length(vec_rwavariabelen)))
-rwa_R2       <- array(NA, dim = c(Nvorm, int_NHO, Ncrohos))
-N            <- array(NA, dim = c(Nvorm, int_NHO, Ncrohos))
+rwa_bijdrage <- array(NA, dim = c(int_vorm, NHO, Ncrohos, length(vec_rwavariabelen)))
+rwa_scores   <- array(NA, dim = c(int_vorm, NHO, Ncrohos, length(vec_rwavariabelen)))
+rwa_R2       <- array(NA, dim = c(int_vorm, NHO, Ncrohos))
+N            <- array(NA, dim = c(int_vorm, NHO, Ncrohos))
 #Maak functie die gewogen gemiddelde berekend
 fun_gewgem   <- function(x, w) weighted.mean(x, w) 
 
@@ -213,9 +213,9 @@ fun_gewgem   <- function(x, w) weighted.mean(x, w)
 #!Let op: deze loop draait circa 20 minuten!
 for (ind_croho in 1:Ncrohos)
 {
-  for (ind_ho in 1:int_NHO)
+  for (ind_ho in 1:NHO)
   {
-    for (ind_vorm in 1:Nvorm)
+    for (ind_vorm in 1:int_vorm)
     {
       # Data-doorsnede selecteren
       HUdoorsnede <- HUscores_hers[vec_vorm[[ind_vorm]]&
@@ -261,7 +261,7 @@ Een prioriteitenmatrix laat het gewicht van een voorspellende variabele
 ```{r}
 ind_vorm = 4
 ind_ho = 4
-ind_croho = 95
+ind_croho = 96
 
 rwa_scores_gem   <- mean(rwa_scores[ind_vorm,ind_ho,ind_croho,])
 rwa_bijdrage_gem <- mean(rwa_bijdrage[ind_vorm,ind_ho,ind_croho,])
@@ -287,9 +287,9 @@ text(rwa_bijdrage[ind_vorm,ind_ho,ind_croho,], #Toevoegen nummer van vraag aan p
 prioriteitenmatrix <- data.frame()
 for(ind_croho in 1:Ncrohos)
 {
-  for (ind_ho in 1:int_NHO)
+  for (ind_ho in 1:NHO)
   {
-    for (ind_vorm in 1:Nvorm)
+    for (ind_vorm in 1:int_vorm)
     {
       tmp <- data.frame(Opleidingsvorm3 = NSEvormen[ind_vorm],
                         BaMa            = NSEHOtypes[ind_ho],
@@ -304,6 +304,7 @@ for(ind_croho in 1:Ncrohos)
   }
 }
 rm(tmp)
+#Weglaten NA waardes
 prioriteitenmatrix <- prioriteitenmatrix[!is.na(prioriteitenmatrix$RWAscores),]
 ```
 
