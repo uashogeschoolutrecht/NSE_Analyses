@@ -10,8 +10,8 @@ Dit is een [R Markdown](http://rmarkdown.rstudio.com) Notebook waarin voor de Na
 De specifieke stappen zijn:
 1. Laden benodigde R bibliotheken
 2. Inladen ruwe data
-3. Definities instellen
-4. Data cleanen
+3. Data cleanen
+4. Definities instellen
 5. Opslaan van gecleande databestanden
 
 # 1. Laden R-bibliotheken
@@ -25,20 +25,7 @@ library(psych) #Nodig voor describeBy() functie
 nse_benchmark <- read.csv2("~/researchdrive/M21033303_DenA (Projectfolder)/DA_Onderzoek/2021nse/data_in/NSE2021 Definitief Benchmarkbestand_v3 permutatie.csv")
 head(nse_benchmark,10)
 ```
-
-# 3. Definities
-In deze stap worden vectoren aangemaakt die helpen de specifieke NSE vragen te vinden in de dataset.
-Op basis van afwijkende antwoorden (1-Ja/2-Nee i.p.v. 1-Zeer mee oneens t/m 5-Zeer mee eens) wordt vraag "BEGELEIDING_SELECTIE" niet meegenomen. Hiervoor wordt een index-vector gemaakt die als hulpvector dient. 
-```{r Definiëren van NSE vragen}
-vec_NSEvragen = c(28:84)
-str_NSEvragen = colnames(nse_benchmark[vec_NSEvragen])
-ind_exclusie <- 64; 
-cat("De geëxcludeerde vraag is: ",
-    colnames(nse_benchmark[ind_exclusie]), "\n") 
-cat("De geïncludeerde vragen zijn: ", str_NSEvragen[vec_NSEvragen != ind_exclusie])
-```
-
-# 4. Data cleaning
+# 3. Data cleaning
 - Universiteiten verwijderen
 - Missende data op NA zetten
 ```{r Alleen hogescholen subset selecteren}
@@ -51,13 +38,128 @@ nse_benchmark_clean <- data_nse_benchmark #Gecleande data is gebaseerd op origin
 for (int_missingnumber in vec_missingdata){
   nse_benchmark_clean <- nse_benchmark_clean %>% dplyr::na_if(int_missingnumber)
 }
+rm(int_missingnumber, vec_missingdata)
+```
+
+# 4. Definities
+In deze stap worden vectoren aangemaakt die helpen de specifieke NSE vragen te vinden in de dataset.
+Op basis van afwijkende antwoorden (1-Ja/2-Nee i.p.v. 1-Zeer mee oneens t/m 5-Zeer mee eens) wordt vraag "BEGELEIDING_SELECTIE" niet meegenomen. Hiervoor wordt een index-vector gemaakt die als hulpvector dient. 
+```{r Definiëren van NSE vragen}
+vec_NSEvragen = c(28:84)
+Nvragen <- length(vec_NSEvragen)
+Neerste <- min(vec_NSEvragen)
+str_NSEvragen = colnames(nse_benchmark_clean[vec_NSEvragen])
+ind_exclusie <- 64; 
+cat("De geëxcludeerde vraag is: ",
+    colnames(nse_benchmark_clean[ind_exclusie]), "\n") 
+cat("De geïncludeerde vragen zijn: ", str_NSEvragen[vec_NSEvragen != ind_exclusie])
 ```
 ```{r Responsewaarde samenvatting bekijken, echo=TRUE, paged.print=TRUE}
 describeBy(nse_benchmark_clean[,vec_NSEvragen], group = NULL)
 rm(nse_benchmark, data_nse_benchmark)
 ```
 
+Voor de vervolg-analyses zijn de volgende vergelijkingsgroepen nodig: 
+HU, R6 (exclusief HU) en alles (exclusief HU). 
+
+Vervolgens is er een verschillende gelaagdheid (granulariteit) waarop de
+groepen met elkaar vergeleken worden:
+
+-   Per vorm (d.w.z.: voltijd, deeltijd, duaal, of totaal)
+-   Per type hoger onderwijs (HO) (d.w.z.: bachelor, master, ad, of totaal)
+-   Per opleiding (Croho)
+
+```{r Definiëren analyse-groepen}
+groepHU    <- "Hogeschool Utrecht"
+groepR6    <- c("Hogeschool van Amsterdam", "De Haagse Hogeschool",
+                "Hogeschool INHOLLAND",     "Hogeschool Leiden",
+                "Hogeschool Rotterdam")
+vormtypes  <- sort(unique(nse_benchmark_clean$Opleidingsvorm3))
+HOtypes    <- sort(unique(nse_benchmark_clean$BaMa))
+crohos     <- sort(unique(nse_benchmark_clean$CrohoNaamActueel
+                          [nse_benchmark_clean$BrinNaamActueel == groepHU]))
+instituut_archimedes <- ("Instituut Archimedes")
+
+#Weergeven van de verschillende groepen
+groepHU; groepR6; vormtypes; HOtypes; crohos; instituut_archimedes
+```
+Aanmaken van logische vectoren op basis van bovenstaande
+groepdefinities, waarmee in het vervolg eenvoudig datagroepen gekozen
+kunnen worden. Elke vector bevat TRUE voor elke regel in de NSE benchmark
+data die binnen de groep valt, en FALSE als de rij geen deel uitmaakt van de groep.
+
+```{r Logische vectoren opzetten}
+#Aanmaken logische vectoren voor elke groep
+vec_groepHU    <- nse_benchmark_clean$BrinNaamActueel == groepHU
+vec_groepR6    <- nse_benchmark_clean$BrinNaamActueel %in% groepR6
+vec_groepAL    <- nse_benchmark_clean$BrinNaamActueel != groepHU #alle instituten behalve de HU
+
+#Maak voor elke opleidingsvorm een logische vector en sla op als lijst
+vec_vorm <- vector(mode = "list", length(vormtypes))
+for (i in vormtypes)
+{
+  vec_vorm[[i]]<- nse_benchmark_clean$Opleidingsvorm3 == vormtypes[i]
+}
+#Voeg nu een extra lijst toe die alle vormen meeneemt (totaal-berekening)
+vec_vorm[[length(vormtypes)+1]] <- rep(TRUE, nrow(nse_benchmark_clean))
+int_vorm <- length(vec_vorm)
+NSEvormen <- append(vormtypes, "Totaal")
+
+#Maak voor elke HOtype een logische vector
+vec_HO <- vector(mode = "list", length(HOtypes))
+for (j in HOtypes)
+{
+  vec_HO[[j]]<- nse_benchmark_clean$BaMa == HOtypes[j]
+}
+#En extra lijst toevoegen voor HU-totaal
+vec_HO[[length(HOtypes)+1]] <- rep(TRUE, nrow(nse_benchmark_clean))
+NHO <- length(vec_HO)
+NSEHOtypes <- append(HOtypes, "Totaal")
+
+#Maak voor elke Croho een logische vector
+Ncrohos <- length(crohos)
+vec_croho <- vector(mode = "list", Ncrohos)
+for (h in 1:Ncrohos)
+{
+  vec_croho[[h]] <- nse_benchmark_clean$CrohoNaamActueel == crohos[h]
+}
+vec_croho[[Ncrohos+1]] <- rep(TRUE, nrow(nse_benchmark_clean)); 
+Ncrohos <- length(vec_croho)
+
+#Maak voor het instituut archimdes een logische vector en voeg toe aan crohos
+vec_instituut <- nse_benchmark_clean$CrohoNaamActueel %in% crohos[c(43:56,80:88)]
+vec_croho[[Ncrohos+1]] <- vec_instituut
+Ncrohos <- length(vec_croho)
+NSEcrohos <- append(crohos, c("Totaal", instituut_archimedes))
+
+# Weergeven aantallen binnen de drie verschillende groepen
+cat("Samenvatting student-aantallen per groep:")
+summary(vec_groepHU)
+summary(vec_groepR6)
+summary(vec_groepAL)
+```
+
+
 # 5. Opslaan
 ```{r Save dataframe en 2 vectoren}
-save(nse_benchmark_clean, str_NSEvragen, vec_NSEvragen, ind_exclusie, file = "~/researchdrive/M21033303_DenA (Projectfolder)/DA_Onderzoek/2021nse/data_in/NSE2022 nse_benchmark_clean.RData")
+save(nse_benchmark_clean, #gecleande data
+     str_NSEvragen,       #string list met alle vragen
+     vec_NSEvragen,       #vector met vraagnummers
+     vec_groepHU,         #vector met HU groepering
+     vec_groepR6,         #vector met R6 groepering
+     vec_groepAL,         #vector met AL groepering
+     vec_HO,              #vector met type HO groepering
+     vec_vorm,            #vector met vorm groepering
+     vec_croho,           #vector met croho groepering
+     ind_exclusie,        #index exclusievraag
+     int_vorm,            #aantal vormen
+     Nvragen,             #aantal vragen
+     NHO,                 #aantal HO types
+     Ncrohos,             #aantal crohos
+     Neerste,             #index eerste vraag
+     NSEvormen,           #string list met alle vormen
+     NSEcrohos,           #string list met alle crohos
+     NSEHOtypes,          #string list met alle HO types
+     file = "~/researchdrive/M21033303_DenA (Projectfolder)/DA_Onderzoek/2021nse/data_in/NSE2022 nse_benchmark_clean.RData"
+     )
 ```

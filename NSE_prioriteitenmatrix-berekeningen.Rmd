@@ -35,8 +35,9 @@ library(corrplot)  #Nodig voor het visualiseren van correlaties via corplot()
 # 2. Inladen NSE benchmark bestand (clean data)
 
 ```{r Inlezen .csv, ca. 15 sec.}
-load("~/researchdrive/M21033303_DenA (Projectfolder)/DA_Onderzoek/2021nse/data_in/NSE2021 nse_benchmark_clean.RData")
+load("~/researchdrive/M21033303_DenA (Projectfolder)/DA_Onderzoek/2021nse/data_in/NSE2022 nse_benchmark_clean.RData")
 rm(ind_exclusie) #Exclusie-vector is in deze analyse niet nodig
+rm(vec_croho, vec_HO, vec_vorm) #Groepvectoren zijn onnodig, die worden vanwege herschaling opnieuw opgebouwd
 head(nse_benchmark_clean,10)
 ```
 
@@ -93,54 +94,41 @@ nrow_nieuw <- sum(complete.cases(HUscores_hers[,vec_rwavragen]))
 nrow_oud <- nrow(HUscores_hers)
 HUscores_hers <- HUscores_hers[complete.cases(HUscores_hers[,vec_rwavragen]), ]
 
-
 cat("In deze stap zijn het volgende aantal rijen weggefilterd:", (nrow_oud-nrow_nieuw),"(d.w.z.",round((nrow_oud-nrow_nieuw)/nrow_oud*100), "% van het totaal).")
 ```
 Definieer verschillende dwarsdoorsnedes (croho, vorm en typeHO)
 
 ```{r Definities dwarsdoorsnedes}
-#Maak voor elke croho een logische vector
-crohos     <- sort(unique(HUscores_hers$CrohoNaamActueel))
-int_crohos <- length(crohos)
-vec_croho <- vector(mode = "list", int_crohos)
-for (h in 1:int_crohos)
-{
-  vec_croho[[h]] <- HUscores_hers$CrohoNaamActueel == crohos[h]
-}
-vec_croho[[int_crohos+1]] <- rep(TRUE, nrow(HUscores_hers)); 
-int_crohos <- length(vec_croho)
-NSEcrohos <- append(crohos, "Totaal")
 
-#Maak voor het instituut archimdes een logische vector en voeg toe aan crohos
-instituut_archimedes <- ("Instituut Archimedes")
-vec_instituut <- HUscores_hers$CrohoNaamActueel %in% crohos[c(43:56,80:88)]
-vec_croho[[int_crohos+1]] <- vec_instituut
-int_crohos <- length(vec_croho)
-NSEcrohos <- append(crohos, c("Totaal", instituut_archimedes))
+#Maak voor elke croho een logische vector
+vec_croho <- vector(mode = "list", Ncrohos)
+for (h in 1:Ncrohos)
+{
+  vec_croho[[h]] <- HUscores_hers$CrohoNaamActueel == NSEcrohos[h]
+}
+vec_croho[[Ncrohos-1]] <- rep(TRUE, nrow(HUscores_hers)); 
+
+#Maak voor het instituut archimdes een logische vector en voeg deze data in op de laatste index
+vec_instituut <- HUscores_hers$CrohoNaamActueel %in% NSEcrohos[c(43:56,80:88)]
+vec_croho[[Ncrohos]] <- vec_instituut
 
 #Maak voor elke vorm een logische vector
-vormtypes  <- sort(unique(HUscores_hers$Opleidingsvorm3))
-vec_vorm <- vector(mode = "list", length(vormtypes))
-for (i in vormtypes)
+vec_vorm <- vector(mode = "list", int_vorm)
+for (i in 1:int_vorm)
 {
-  vec_vorm[[i]]<- HUscores_hers$Opleidingsvorm3 == vormtypes[i]
+  vec_vorm[[i]]<- HUscores_hers$Opleidingsvorm3 == NSEvormen[i]
 }
 #Voeg nu een extra lijst toe die alle vormen meeneemt (totaal-berekening)
-vec_vorm[[length(vormtypes)+1]] <- rep(TRUE, nrow(HUscores_hers))
-Nvorm <- length(vec_vorm)
-NSEvormen <- append(vormtypes, "Totaal")
+vec_vorm[[int_vorm]] <- rep(TRUE, nrow(HUscores_hers))
 
 #Maak voor elke HOtype een logische vector
-HOtypes    <- sort(unique(HUscores_hers$BaMa))
-vec_HO <- vector(mode = "list", length(HOtypes))
-for (j in HOtypes)
+vec_HO <- vector(mode = "list", length(NHO))
+for (j in NSEHOtypes)
 {
-  vec_HO[[j]]<- HUscores_hers$BaMa == HOtypes[j]
+  vec_HO[[j]]<- HUscores_hers$BaMa == NSEHOtypes[j]
 }
 #En extra lijst toevoegen voor HU-totaal
-vec_HO[[length(HOtypes)+1]] <- rep(TRUE, nrow(HUscores_hers))
-int_NHO <- length(vec_HO)
-NSEHOtypes <- append(HOtypes, "Totaal")
+vec_HO[[NHO]] <- rep(TRUE, nrow(HUscores_hers))
 ```
 
 # 4. Exploratieve data analyse
@@ -214,20 +202,20 @@ voor een RWA.
 cat("Er wordt nu een RWA model berekend met vraag", str_NSEvragen[vec_rwauitkomst], "als onafhankelijke variabele.\nEen RWA model probeert om de onafhankelijke variabele te verklaren door gewichten toe te kennen aan een aantal vooraf gekozen afhankelijke variabelen. Voor dit model zijn alleen studenten meegenomen die voor zowel voor de onafhankelijke variabele én alle afhankelijke variabelen ingevulde responses bevatten (complete gevallen).\nDe volgende lijst aan vragen zijn de voorspellende variabelen: \n", str_NSEvragen[vec_rwavariabelen])
 
 #Pre-alloceer objecten die in loop gevuld gaan worden
-rwa_bijdrage <- array(NA, dim = c(Nvorm, int_NHO, int_crohos, length(vec_rwavariabelen)))
-rwa_scores   <- array(NA, dim = c(Nvorm, int_NHO, int_crohos, length(vec_rwavariabelen)))
-rwa_R2       <- array(NA, dim = c(Nvorm, int_NHO, int_crohos))
-N            <- array(NA, dim = c(Nvorm, int_NHO, int_crohos))
+rwa_bijdrage <- array(NA, dim = c(int_vorm, NHO, Ncrohos, length(vec_rwavariabelen)))
+rwa_scores   <- array(NA, dim = c(int_vorm, NHO, Ncrohos, length(vec_rwavariabelen)))
+rwa_R2       <- array(NA, dim = c(int_vorm, NHO, Ncrohos))
+N            <- array(NA, dim = c(int_vorm, NHO, Ncrohos))
 #Maak functie die gewogen gemiddelde berekend
 fun_gewgem   <- function(x, w) weighted.mean(x, w) 
 
 #Bereken voor elke dwarsdoorsnede de N, de score en bijdrage
 #!Let op: deze loop draait circa 20 minuten!
-for (ind_croho in 1:int_crohos)
+for (ind_croho in 1:Ncrohos)
 {
-  for (ind_ho in 1:int_NHO)
+  for (ind_ho in 1:NHO)
   {
-    for (ind_vorm in 1:Nvorm)
+    for (ind_vorm in 1:int_vorm)
     {
       # Data-doorsnede selecteren
       HUdoorsnede <- HUscores_hers[vec_vorm[[ind_vorm]]&
@@ -273,7 +261,7 @@ Een prioriteitenmatrix laat het gewicht van een voorspellende variabele
 ```{r}
 ind_vorm = 4
 ind_ho = 4
-ind_croho = 95
+ind_croho = 96
 
 rwa_scores_gem   <- mean(rwa_scores[ind_vorm,ind_ho,ind_croho,])
 rwa_bijdrage_gem <- mean(rwa_bijdrage[ind_vorm,ind_ho,ind_croho,])
@@ -297,11 +285,11 @@ text(rwa_bijdrage[ind_vorm,ind_ho,ind_croho,], #Toevoegen nummer van vraag aan p
 
 ```{r Vullen van data frame met resultaten}
 prioriteitenmatrix <- data.frame()
-for(ind_croho in 1:int_crohos)
+for(ind_croho in 1:Ncrohos)
 {
-  for (ind_ho in 1:int_NHO)
+  for (ind_ho in 1:NHO)
   {
-    for (ind_vorm in 1:Nvorm)
+    for (ind_vorm in 1:int_vorm)
     {
       tmp <- data.frame(Opleidingsvorm3 = NSEvormen[ind_vorm],
                         BaMa            = NSEHOtypes[ind_ho],
@@ -316,6 +304,7 @@ for(ind_croho in 1:int_crohos)
   }
 }
 rm(tmp)
+#Weglaten NA waardes
 prioriteitenmatrix <- prioriteitenmatrix[!is.na(prioriteitenmatrix$RWAscores),]
 ```
 
