@@ -191,3 +191,75 @@ abline(h = 0.05, v=0.05)
 
 rm(arr_p_HUT1)
 ```
+```{r Visualiseren test-statistiek HU <> R6}
+#Bekijken uitkomstmaten (delta inclusief significantie in kleur)
+plot(p_HUR6_adj[,i_vorm,i_ho,i_croho])
+abline(h = 0.05)
+groepering <- ifelse(arr_diff_HUR6[,i_vorm,i_ho,i_croho]  > 0 & 
+                     p_HUR6_adj[,i_vorm,i_ho,i_croho] < 0.05, 3, 
+              ifelse(arr_diff_HUR6[,i_vorm,i_ho,i_croho]  < 0 & 
+                     p_HUR6_adj[,i_vorm,i_ho,i_croho] < 0.05, 2, 1))
+plot(arr_diff_HUR6[,i_vorm,i_ho,i_croho], col = groepering, pch = 19, 
+     xlab = "NSE vraag", 
+     ylab = "Gemiddelde verschil (delta) tussen HU en R6")
+```
+# 4. Exporteren p waardes
+
+Eerst de benodigde output pre-alloceren:
+
+```{r Preallocatie van data frame}
+nse_significanties <- data.frame(Opleidingsvorm3=character(),
+                                 CrohoActueel   =character(),
+                                 BaMa           =character(),
+                                 Vraag          =character(),
+                                 Benchmark      =character(),
+                                 p              =double(),
+                                 p_w            =double(),
+                                 HUgem          =double(),
+                                 Benchmarkgem   =double(),
+                                 gem_delta      =double(),
+                                 N_HU           =double(),
+                                 N_benchmark    =double(),
+                                 Afnamejaar     =double()
+                                 )
+```
+
+Vervolgens de verschillende analyses stuk voor stuk in een dataframe
+zetten, en samenvoegen in 1:
+
+```{r Vullen met HU totalen}
+for (i_croho in 1:Ncrohos)
+{
+  for (i_ho in 1:NHO)
+  {
+    for (i_vorm in 1:int_vorm)
+    {
+      tempT1 <- data.frame(Opleidingsvorm3 = NSEvormen[i_vorm], 
+                           CrohoActueel    = NSEcrohos[i_croho], 
+                           BaMa            = NSEHOtypes[i_ho],
+                           Vraag           = str_NSEvragen, 
+                           Benchmark       = rep("T1",Nvragen),  
+                           p               = p_HUT1_adj[,i_vorm,i_ho,i_croho], 
+                           p_w             = p_HUT1_w_adj[,i_vorm,i_ho,i_croho],
+                           HUgem           = arr_gem_HU[,i_vorm,i_ho,i_croho],
+                           Benchmarkgem    = arr_gem_T1[,i_vorm,i_ho,i_croho],
+                           gem_delta       = arr_diff_HUT1[,i_vorm,i_ho,i_croho],
+                           N_HU            = arr_N_HU[,i_vorm,i_ho,i_croho],
+                           N_benchmark     = arr_N_T1[,i_vorm,i_ho,i_croho],
+                           Afnamejaar      = rep(2022,Nvragen) )
+      
+      #Toevoegen van tijdelijke dataframes aan output dataframe
+      nse_significanties <- rbind(nse_significanties, tempT1); 
+      
+    }#Sluiten van vorm-loop
+  }#Sluiten van typeHO-loop
+}#Sluiten van croho-loop
+rm(tempT1)
+
+```
+
+Resultaten wegschrijven
+
+```{r Wegschrijven naar .csv}
+write.csv2(nse_significanties, file = "~/researchdrive/M21033303_DenA (Projectfolder)/DA_Onderzoek/2021nse/data_uit/NSEsignificantietabel2022_T1.csv")
+```
