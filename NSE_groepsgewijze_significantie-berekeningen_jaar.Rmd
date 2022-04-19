@@ -43,3 +43,151 @@ vec_groepHU_T1         <- vec_groepHU
 # Nieuwste jaar vervolgens inlezen
 load("~/researchdrive/M21033303_DenA (Projectfolder)/DA_Onderzoek/2021nse/data_in/NSE2022 nse_benchmark_clean.RData")
 ```
+# 2. Samenvattende statistieken
+
+Algemene statistieken bekijken voor alle vragen, per groep. Dit geeft een inkijk in hoe de data er ongeveer uit ziet per groep, en per vraag. Voor verdiepende exploratieve data analyse is een ander (ad hoc-type) script gebruikt wat slecht reproduceerbaar is.
+
+```{r Statistieken voor alle vragen}
+
+describeBy(nse_benchmark_clean[,vec_NSEvragen], vec_groepHU)
+describeBy(nse_benchmark_clean_T1[,vec_NSEvragen], vec_groepHU_T1)
+```
+
+# 3A. Significanties uitrekenen
+```{r}
+#Pre-allocatie van objecten die in de volgende stap gevuld gaan worden
+arr_p_HUT1      <- array(NA, c(Nvragen, int_vorm, NHO, Ncrohos))
+arr_p_HUT1_w    <- array(NA, c(Nvragen, int_vorm, NHO, Ncrohos))
+arr_N_HU        <- array(NA, c(Nvragen, int_vorm, NHO, Ncrohos))
+arr_N_T1        <- array(NA, c(Nvragen, int_vorm, NHO, Ncrohos))
+arr_gem_HU      <- array(NA, c(Nvragen, int_vorm, NHO, Ncrohos))
+arr_gem_T1      <- array(NA, c(Nvragen, int_vorm, NHO, Ncrohos))
+arr_diff_HUT1   <- array(NA, c(Nvragen, int_vorm, NHO, Ncrohos))
+
+#Definieer correctiefactor zodat index voor het vullen van p waardes op 1 begint en niet op 28
+Ncor <- Neerste - 1 
+
+#Voor elke croho / instituut
+for (i_croho in 1:Ncrohos)
+{
+  
+  #Voor elke type HO onderstaande berekening herhalen
+  for (i_ho in 1:NHO)
+  {
+    
+    #Voor elke vorm onderstaande berekening herhalen
+    for (i_vorm in 1:int_vorm)
+    {
+      
+      #Voor elke NSEvraag de respons tussen groepen vergelijken en p waarde opslaan
+      for (i_vraag in vec_NSEvragen)
+      {
+        #Groepsdata bij elkaar zoeken
+        data_HU   <- nse_benchmark_clean[(vec_groepHU
+                                          &vec_HO[[i_ho]]
+                                          &vec_vorm[[i_vorm]]
+                                          &vec_croho[[i_croho]])
+                                         ,i_vraag]
+        data_T1   <- nse_benchmark_clean_T1[(vec_groepHU_T1
+                                          &vec_HO_T1[[i_ho]]
+                                          &vec_vorm_T1[[i_vorm]]
+                                          &vec_croho_T1[[i_croho]])
+                                         ,i_vraag]
+        data_w_HU <- nse_benchmark_clean$Weegfactor[(vec_groepHU
+                                                     &vec_HO[[i_ho]]
+                                                     &vec_vorm[[i_vorm]]
+                                                     &vec_croho[[i_croho]])]
+        data_w_T1 <- nse_benchmark_clean_T1$Weegfactor[(vec_groepHU_T1
+                                                     &vec_HO_T1[[i_ho]]
+                                                     &vec_vorm_T1[[i_vorm]]
+                                                     &vec_croho_T1[[i_croho]])]
+        
+        #Groepsgroottes (N) berekenen
+        arr_N_HU[i_vraag-Ncor, i_vorm, i_ho, i_croho] <- sum(!is.na(data_HU))
+        arr_N_T1[i_vraag-Ncor, i_vorm, i_ho, i_croho] <- sum(!is.na(data_T1))
+
+        #Berekenen gemiddelden per groep (gewogen)
+        arr_gem_HU[i_vraag-Ncor,i_vorm,i_ho, i_croho]  <- weighted.mean(data_HU,
+                                                                    data_w_HU,
+                                                                    na.rm = TRUE)
+        arr_gem_T1[i_vraag-Ncor,i_vorm,i_ho, i_croho]  <- weighted.mean(data_T1,
+                                                                    data_w_T1,
+                                                                    na.rm = TRUE)
+        
+        #Berekenen verschil tussen gemiddelden (delta)
+        arr_diff_HUT1[i_vraag-Ncor,i_vorm,i_ho,i_croho] <-arr_gem_HU[i_vraag-Ncor,
+                                                             i_vorm,
+                                                             i_ho,
+                                                             i_croho] - arr_gem_T1[i_vraag-Ncor,
+                                                                               i_vorm,
+                                                                               i_ho,
+                                                                               i_croho]
+        
+        #Groepsgroote moet minimaal 5 responses zijn en vraag 64 wordt overgeslagen
+        if (arr_N_HU[i_vraag-Ncor,i_vorm,i_ho,i_croho]< 5 |
+            arr_N_T1[i_vraag-Ncor,i_vorm,i_ho,i_croho]< 5 |
+            i_vraag == ind_exclusie)
+        {
+          next #Sla groep over en ga naar volgende iteratie
+        }
+        else
+        {
+          #Berekenen gewogen p waarden
+          arr_p_HUT1_w[i_vraag-Ncor,i_vorm,i_ho,i_croho] <- unname(wtd.t.test(data_HU,
+                                                                          data_T1,
+                                                                          weight   = data_w_HU,
+                                                                          weighty  = data_w_T1,
+                                                                          mean1    = TRUE,
+                                                                          samedata = FALSE,
+                                                                          bootse   = TRUE)
+                                                               $coefficients[3])
+          
+          arr_p_HUT1[i_vraag-Ncor,i_vorm,i_ho,i_croho]  <- t.test(data_HU,
+                                                              data_T1)$p.value
+        }#Sluiten van else loop
+      }#Sluiten van vraag-loop
+    }#Sluiten van vorm-loop
+  }#Sluiten van typeHO-loop
+}#Sluiten van croho-loop
+
+```
+# 3B. Multiple testing correctie p-waarden
+
+```{r FDR correctie}
+p_HUT1_adj  <- array(NA, c(Nvragen, int_vorm, NHO, Ncrohos))
+p_HUT1_w_adj<- array(NA, c(Nvragen, int_vorm, NHO, Ncrohos))
+
+  #Loop over alle crohos
+  for (i_croho in 95)
+  {
+    # Loop over alle HO types
+    for (i_ho in 1:NHO)
+    {
+      # Loop over alle vorm varianten
+      for (i_vorm in 1:int_vorm)
+      {
+        p_HUT1_adj[,i_vorm,i_ho,i_croho]   <- p.adjust(arr_p_HUT1[,i_vorm
+                                                                  ,i_ho
+                                                                  ,i_croho]
+                                                       ,method = "BY")
+        p_HUT1_w_adj[,i_vorm,i_ho,i_croho] <- p.adjust(arr_p_HUT1_w[,i_vorm
+                                                                    ,i_ho
+                                                                    ,i_croho]
+                                                       ,method = "BY")
+      }
+    }
+  }
+
+# Bekijken van verschuiving oorspronkelijke p en p_adj
+i_vorm = 4; i_ho = 4; i_croho = 96; #Waardes bekijken voor croho = Instituut Archimedes
+
+plot(arr_p_HUT1[,i_vorm,
+                i_ho,
+                i_croho],
+     p_HUT1_adj[,i_vorm,
+                i_ho,
+                i_croho]);
+abline(h = 0.05, v=0.05)
+
+rm(arr_p_HUT1)
+```
