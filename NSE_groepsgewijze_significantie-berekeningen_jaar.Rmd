@@ -1,0 +1,45 @@
+---
+title: "NSE groepsgewijze significantie-berekeningen jaarvergelijking"
+output:
+  html_document:
+    df_print: paged
+---
+
+Dit is een [R Markdown](http://rmarkdown.rstudio.com) Notebook waarin
+voor de Nationale Student Enquete (NSE) groepsgewijze T-testen worden
+uitgerekend waarin het huidige jaar met vorig jaar wordt vergeleken. 
+Dit bestaat proces bestaat uit de volgende stappen:
+
+(0. Laden benodigde R-bibliotheken)
+1.  Inladen NSE benchmark bestanden (huidig jaar en vergelijkingsjaar)
+2.  Samenvattende statistieken
+3A. T-testen uitvoeren
+3B. Correctie voor multiple testing probleem
+4.  Resultaten wegschrijven
+
+# 0. Laden R-bibliotheken
+
+```{r libraries, message=FALSE, warning=FALSE, include=FALSE}
+library(tidyverse) #Nodig voor add_column() functie
+library(psych)     #Nodig voor describeBy() functie
+library(plyr)      #Nodig voor rbind() functie
+library(weights)   #Nodig voor weighted.mean() en wtd.t.test() functies
+library(dplyr)     #Nodig voor na_if() functie
+```
+
+# 1. Inladen NSE benchmark bestanden (clean data)
+
+```{r Inlezen .csv}
+# Oudste jaar eerst inlezen
+load("~/researchdrive/M21033303_DenA (Projectfolder)/DA_Onderzoek/2021nse/data_in/NSE2021 nse_benchmark_clean.RData")
+
+# Objecten onder andere namen opslaan
+nse_benchmark_clean_T1 <- nse_benchmark_clean
+vec_croho_T1           <- vec_croho
+vec_HO_T1              <- vec_HO
+vec_vorm_T1            <- vec_vorm
+vec_groepHU_T1         <- vec_groepHU
+
+# Nieuwste jaar vervolgens inlezen
+load("~/researchdrive/M21033303_DenA (Projectfolder)/DA_Onderzoek/2021nse/data_in/NSE2022 nse_benchmark_clean.RData")
+```
