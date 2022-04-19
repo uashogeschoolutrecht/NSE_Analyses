@@ -371,5 +371,5 @@ rm(tempR6, tempAL)
 Resultaten wegschrijven
 
 ```{r Wegschrijven naar .csv}
-write.csv2(nse_significanties, file = "~/research-drive/M21033303_DenA (Projectfolder)/DA_Onderzoek/2021nse/data_uit/NSEsignificantietabel2022.csv")
+write.csv2(nse_significanties, file = "~/researchdrive/M21033303_DenA (Projectfolder)/DA_Onderzoek/2021nse/data_uit/NSEsignificantietabel2022.csv")
 ```
