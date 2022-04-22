@@ -22,7 +22,7 @@ library(psych) #Nodig voor describeBy() functie
 
 # 2. Inladen NSE benchmark bestand
 ```{r Inlezen .csv}
-nse_benchmark <- read.csv2("~/researchdrive/M21033303_DenA (Projectfolder)/DA_Onderzoek/2021nse/data_in/NSE2021 Definitief Benchmarkbestand_v3 permutatie.csv")
+nse_benchmark <- read.csv2("~/researchdrive/M21033303_DenA (Projectfolder)/DA_Onderzoek/2022nse/data_in/NSE2022 Voorlopig Benchmarkbestand (2021-2022).csv")
 head(nse_benchmark,10)
 ```
 # 3. Data cleaning
@@ -31,6 +31,7 @@ head(nse_benchmark,10)
 ```{r Alleen hogescholen subset selecteren}
 data_nse_benchmark <- nse_benchmark[nse_benchmark$SoortHo == 1,] #SoortHo = 1 filtert alle uni's weg
 unique(data_nse_benchmark$BrinNaamActueel)
+rm(nse_benchmark)
 ```
 ```{r Missende responses (-1 t/m -9) naar NA}
 vec_missingdata = c(-1:-9) #Missende data wordt aangeven met codes -1 t/m -9
