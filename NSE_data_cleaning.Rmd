@@ -30,7 +30,7 @@ head(nse_benchmark,10)
 - Missende data op NA zetten
 ```{r Alleen hogescholen subset selecteren}
 data_nse_benchmark <- nse_benchmark[nse_benchmark$SoortHo == 1,] #SoortHo = 1 filtert alle uni's weg
-unique(data_nse_benchmark$BrinNaamActueel)
+sort(unique(data_nse_benchmark$BrinNaamActueel))
 rm(nse_benchmark)
 ```
 ```{r Missende responses (-1 t/m -9) naar NA}
@@ -160,6 +160,6 @@ save(nse_benchmark_clean, #gecleande data
      NSEvormen,           #string list met alle vormen
      NSEcrohos,           #string list met alle crohos
      NSEHOtypes,          #string list met alle HO types
-     file = "~/researchdrive/M21033303_DenA (Projectfolder)/DA_Onderzoek/2021nse/data_in/NSE2022 nse_benchmark_clean.RData"
+     file = "~/researchdrive/M21033303_DenA (Projectfolder)/DA_Onderzoek/2022nse/data_in/NSE2022 nse_benchmark_clean.RData"
      )
 ```
