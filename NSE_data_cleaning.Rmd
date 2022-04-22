@@ -39,7 +39,7 @@ nse_benchmark_clean <- data_nse_benchmark #Gecleande data is gebaseerd op origin
 for (int_missingnumber in vec_missingdata){
   nse_benchmark_clean <- nse_benchmark_clean %>% dplyr::na_if(int_missingnumber)
 }
-rm(int_missingnumber, vec_missingdata)
+rm(int_missingnumber, vec_missingdata, data_nse_benchmark)
 ```
 
 # 4. Definities
@@ -57,7 +57,6 @@ cat("De geïncludeerde vragen zijn: ", str_NSEvragen[vec_NSEvragen != ind_exclus
 ```
 ```{r Responsewaarde samenvatting bekijken, echo=TRUE, paged.print=TRUE}
 describeBy(nse_benchmark_clean[,vec_NSEvragen], group = NULL)
-rm(nse_benchmark, data_nse_benchmark)
 ```
 
 Voor de vervolg-analyses zijn de volgende vergelijkingsgroepen nodig: 
