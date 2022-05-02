@@ -35,7 +35,7 @@ library(corrplot)  #Nodig voor het visualiseren van correlaties via corplot()
 # 2. Inladen NSE benchmark bestand (clean data)
 
 ```{r Inlezen .csv, ca. 15 sec.}
-load("~/researchdrive/M21033303_DenA (Projectfolder)/DA_Onderzoek/2021nse/data_in/NSE2022 nse_benchmark_clean.RData")
+load("~/researchdrive/M21033303_DenA (Projectfolder)/DA_Onderzoek/2022nse/data_in/NSE2022 nse_benchmark_clean.RData")
 rm(ind_exclusie) #Exclusie-vector is in deze analyse niet nodig
 rm(vec_croho, vec_HO, vec_vorm) #Groepvectoren zijn onnodig, die worden vanwege herschaling opnieuw opgebouwd
 head(nse_benchmark_clean,10)
@@ -261,7 +261,7 @@ Een prioriteitenmatrix laat het gewicht van een voorspellende variabele
 ```{r}
 ind_vorm = 4
 ind_ho = 4
-ind_croho = 96
+ind_croho = 94
 
 rwa_scores_gem   <- mean(rwa_scores[ind_vorm,ind_ho,ind_croho,])
 rwa_bijdrage_gem <- mean(rwa_bijdrage[ind_vorm,ind_ho,ind_croho,])
@@ -309,5 +309,5 @@ prioriteitenmatrix <- prioriteitenmatrix[!is.na(prioriteitenmatrix$RWAscores),]
 ```
 
 ```{r Wegschrijven naar .csv}
-write.csv(prioriteitenmatrix,file = "~/research-drive/M21033303_DenA (Projectfolder)/DA_Onderzoek/2021nse/data_uit/NSEprioriteitenttabel2022.csv")
+write.csv(prioriteitenmatrix,file = "~/researchdrive/M21033303_DenA (Projectfolder)/DA_Onderzoek/2022nse/data_uit/NSEprioriteitenttabel2022.csv")
 ```
