@@ -26,9 +26,11 @@ nse_benchmark <- read.csv2("~/researchdrive/M21033303_DenA (Projectfolder)/DA_On
 head(nse_benchmark,10)
 ```
 # 3. Data cleaning
+- Juiste jaar selecteren
 - Universiteiten verwijderen
 - Missende data op NA zetten
 ```{r Alleen hogescholen subset selecteren}
+nse_benchmark <- nse_benchmark[nse_benchmark$Jaar == 2022,] #Jaar = 2022 filtert alle andere jaren weg
 data_nse_benchmark <- nse_benchmark[nse_benchmark$SoortHo == 1,] #SoortHo = 1 filtert alle uni's weg
 sort(unique(data_nse_benchmark$BrinNaamActueel))
 rm(nse_benchmark)
