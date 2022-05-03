@@ -83,7 +83,7 @@ arr_diff_HUT1   <- array(NA, c(Nvragen, int_vorm, NHO, Ncrohos))
 Ncor <- Neerste - 1 
 
 #Voor elke croho / instituut
-for (i_croho in 94)
+for (i_croho in 1:Ncrohos)
 { #Als een croho in het vergelijkingsjaar niet bestaat: croho overslaan!
   if (is.na(vec_croho_vertaal[i_croho]))
   {
