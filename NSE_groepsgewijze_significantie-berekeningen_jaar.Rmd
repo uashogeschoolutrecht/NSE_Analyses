@@ -33,15 +33,30 @@ library(dplyr)     #Nodig voor na_if() functie
 # Oudste jaar eerst inlezen
 load("~/researchdrive/M21033303_DenA (Projectfolder)/DA_Onderzoek/2021nse/data_in/NSE2021 nse_benchmark_clean.RData")
 
-# Objecten onder andere namen opslaan
+# Objecten onder andere namen opslaan (want bij inladen nieuwste jaar worden deze anders overschreven)
 nse_benchmark_clean_T1 <- nse_benchmark_clean
 vec_croho_T1           <- vec_croho
 vec_HO_T1              <- vec_HO
 vec_vorm_T1            <- vec_vorm
 vec_groepHU_T1         <- vec_groepHU
+NSEcrohos_T1           <- NSEcrohos
 
 # Nieuwste jaar vervolgens inlezen
-load("~/researchdrive/M21033303_DenA (Projectfolder)/DA_Onderzoek/2021nse/data_in/NSE2022 nse_benchmark_clean.RData")
+load("~/researchdrive/M21033303_DenA (Projectfolder)/DA_Onderzoek/2022nse/data_in/NSE2022 nse_benchmark_clean.RData")
+```
+
+Tussen verschillende jaren kan het voorkomen dat crohos niet meer bestaan, of dat er juist nieuwe crohos bij komen. Om hiermee om te gaan is een 'vertaalvector' nodig die bijhoudt welke croho tussen de vergelijkingsjaren bij elkaar horen. 
+```{r}
+vec_croho_vertaal <- array(Ncrohos)
+for(i in 1:Ncrohos)
+{ #Als de croho in het vergelijkingsjaar (T-1) niet gevonden wordt, noteer dan NA in de vergelijkingsvector
+  if(length(which(NSEcrohos_T1 == NSEcrohos[i]))== 0){
+    vec_croho_vertaal[i] <- NA
+  }
+  else{ #Als het wél lukt, noteer de index waarop dezelfde croho zich bevindt in het vergelijkingsjaar (T-1). 
+    vec_croho_vertaal[i] <- which(NSEcrohos_T1 == NSEcrohos[i])
+  }
+}
 ```
 # 2. Samenvattende statistieken
 
@@ -69,87 +84,91 @@ Ncor <- Neerste - 1
 
 #Voor elke croho / instituut
 for (i_croho in 1:Ncrohos)
-{
-  
-  #Voor elke type HO onderstaande berekening herhalen
-  for (i_ho in 1:NHO)
+{ #Als een croho in het vergelijkingsjaar niet bestaat: croho overslaan!
+  if (is.na(vec_croho_vertaal[i_croho]))
   {
-    
-    #Voor elke vorm onderstaande berekening herhalen
-    for (i_vorm in 1:int_vorm)
+    next #Sla croho over en ga naar volgende croho-iteratie
+  }
+  else{
+    #Voor elke type HO onderstaande berekening herhalen
+    for (i_ho in 1:NHO)
     {
       
-      #Voor elke NSEvraag de respons tussen groepen vergelijken en p waarde opslaan
-      for (i_vraag in vec_NSEvragen)
+      #Voor elke vorm onderstaande berekening herhalen
+      for (i_vorm in 1:int_vorm)
       {
-        #Groepsdata bij elkaar zoeken
-        data_HU   <- nse_benchmark_clean[(vec_groepHU
-                                          &vec_HO[[i_ho]]
-                                          &vec_vorm[[i_vorm]]
-                                          &vec_croho[[i_croho]])
-                                         ,i_vraag]
-        data_T1   <- nse_benchmark_clean_T1[(vec_groepHU_T1
-                                          &vec_HO_T1[[i_ho]]
-                                          &vec_vorm_T1[[i_vorm]]
-                                          &vec_croho_T1[[i_croho]])
-                                         ,i_vraag]
-        data_w_HU <- nse_benchmark_clean$Weegfactor[(vec_groepHU
-                                                     &vec_HO[[i_ho]]
-                                                     &vec_vorm[[i_vorm]]
-                                                     &vec_croho[[i_croho]])]
-        data_w_T1 <- nse_benchmark_clean_T1$Weegfactor[(vec_groepHU_T1
-                                                     &vec_HO_T1[[i_ho]]
-                                                     &vec_vorm_T1[[i_vorm]]
-                                                     &vec_croho_T1[[i_croho]])]
         
-        #Groepsgroottes (N) berekenen
-        arr_N_HU[i_vraag-Ncor, i_vorm, i_ho, i_croho] <- sum(!is.na(data_HU))
-        arr_N_T1[i_vraag-Ncor, i_vorm, i_ho, i_croho] <- sum(!is.na(data_T1))
-
-        #Berekenen gemiddelden per groep (gewogen)
-        arr_gem_HU[i_vraag-Ncor,i_vorm,i_ho, i_croho]  <- weighted.mean(data_HU,
-                                                                    data_w_HU,
-                                                                    na.rm = TRUE)
-        arr_gem_T1[i_vraag-Ncor,i_vorm,i_ho, i_croho]  <- weighted.mean(data_T1,
-                                                                    data_w_T1,
-                                                                    na.rm = TRUE)
-        
-        #Berekenen verschil tussen gemiddelden (delta)
-        arr_diff_HUT1[i_vraag-Ncor,i_vorm,i_ho,i_croho] <-arr_gem_HU[i_vraag-Ncor,
-                                                             i_vorm,
-                                                             i_ho,
-                                                             i_croho] - arr_gem_T1[i_vraag-Ncor,
-                                                                               i_vorm,
-                                                                               i_ho,
-                                                                               i_croho]
-        
-        #Groepsgroote moet minimaal 5 responses zijn en vraag 64 wordt overgeslagen
-        if (arr_N_HU[i_vraag-Ncor,i_vorm,i_ho,i_croho]< 5 |
-            arr_N_T1[i_vraag-Ncor,i_vorm,i_ho,i_croho]< 5 |
-            i_vraag == ind_exclusie)
+        #Voor elke NSEvraag de respons tussen groepen vergelijken en p waarde opslaan
+        for (i_vraag in vec_NSEvragen)
         {
-          next #Sla groep over en ga naar volgende iteratie
-        }
-        else
-        {
-          #Berekenen gewogen p waarden
-          arr_p_HUT1_w[i_vraag-Ncor,i_vorm,i_ho,i_croho] <- unname(wtd.t.test(data_HU,
-                                                                          data_T1,
-                                                                          weight   = data_w_HU,
-                                                                          weighty  = data_w_T1,
-                                                                          mean1    = TRUE,
-                                                                          samedata = FALSE,
-                                                                          bootse   = TRUE)
-                                                               $coefficients[3])
+          #Groepsdata bij elkaar zoeken
+          data_HU   <- nse_benchmark_clean[(vec_groepHU
+                                            &vec_HO[[i_ho]]
+                                            &vec_vorm[[i_vorm]]
+                                            &vec_croho[[i_croho]])
+                                           ,i_vraag]
+          data_T1   <- nse_benchmark_clean_T1[(vec_groepHU_T1
+                                               &vec_HO_T1[[i_ho]]
+                                               &vec_vorm_T1[[i_vorm]]
+                                               &vec_croho_T1[[vec_croho_vertaal[i_croho]]])
+                                              ,i_vraag]
+          data_w_HU <- nse_benchmark_clean$Weegfactor[(vec_groepHU
+                                                       &vec_HO[[i_ho]]
+                                                       &vec_vorm[[i_vorm]]
+                                                       &vec_croho[[i_croho]])]
+          data_w_T1 <- nse_benchmark_clean_T1$Weegfactor[(vec_groepHU_T1
+                                                          &vec_HO_T1[[i_ho]]
+                                                          &vec_vorm_T1[[i_vorm]]
+                                                          &vec_croho_T1[[vec_croho_vertaal[i_croho]]])]
           
-          arr_p_HUT1[i_vraag-Ncor,i_vorm,i_ho,i_croho]  <- t.test(data_HU,
-                                                              data_T1)$p.value
-        }#Sluiten van else loop
-      }#Sluiten van vraag-loop
-    }#Sluiten van vorm-loop
-  }#Sluiten van typeHO-loop
+          #Groepsgroottes (N) berekenen
+          arr_N_HU[i_vraag-Ncor, i_vorm, i_ho, i_croho] <- sum(!is.na(data_HU))
+          arr_N_T1[i_vraag-Ncor, i_vorm, i_ho, i_croho] <- sum(!is.na(data_T1))
+          
+          #Berekenen gemiddelden per groep (gewogen)
+          arr_gem_HU[i_vraag-Ncor,i_vorm,i_ho, i_croho]  <- weighted.mean(data_HU,
+                                                                          data_w_HU,
+                                                                          na.rm = TRUE)
+          arr_gem_T1[i_vraag-Ncor,i_vorm,i_ho, i_croho]  <- weighted.mean(data_T1,
+                                                                          data_w_T1,
+                                                                          na.rm = TRUE)
+          
+          #Berekenen verschil tussen gemiddelden (delta)
+          arr_diff_HUT1[i_vraag-Ncor,i_vorm,i_ho,i_croho] <-arr_gem_HU[i_vraag-Ncor,
+                                                                       i_vorm,
+                                                                       i_ho,
+                                                                       i_croho] - arr_gem_T1[i_vraag-Ncor,
+                                                                                             i_vorm,
+                                                                                             i_ho,
+                                                                                             i_croho]
+          
+          #Groepsgroote moet minimaal 5 responses zijn en vraag 64 wordt overgeslagen
+          if (arr_N_HU[i_vraag-Ncor,i_vorm,i_ho,i_croho]< 5 |
+              arr_N_T1[i_vraag-Ncor,i_vorm,i_ho,i_croho]< 5 |
+              i_vraag == ind_exclusie)
+          {
+            next #Sla groep over en ga naar volgende iteratie
+          }
+          else
+          {
+            #Berekenen gewogen p waarden
+            arr_p_HUT1_w[i_vraag-Ncor,i_vorm,i_ho,i_croho] <- unname(wtd.t.test(data_HU,
+                                                                                data_T1,
+                                                                                weight   = data_w_HU,
+                                                                                weighty  = data_w_T1,
+                                                                                mean1    = TRUE,
+                                                                                samedata = FALSE,
+                                                                                bootse   = TRUE)
+                                                                     $coefficients[3])
+            
+            arr_p_HUT1[i_vraag-Ncor,i_vorm,i_ho,i_croho]  <- t.test(data_HU,
+                                                                    data_T1)$p.value
+          }#Sluiten van else loop
+        }#Sluiten van vraag-loop
+      }#Sluiten van vorm-loop
+    }#Sluiten van typeHO-loop
+  }#Sluiten if else binnen croho-loop
 }#Sluiten van croho-loop
-
 ```
 # 3B. Multiple testing correctie p-waarden
 
@@ -158,7 +177,7 @@ p_HUT1_adj  <- array(NA, c(Nvragen, int_vorm, NHO, Ncrohos))
 p_HUT1_w_adj<- array(NA, c(Nvragen, int_vorm, NHO, Ncrohos))
 
   #Loop over alle crohos
-  for (i_croho in 95)
+  for (i_croho in 1:Ncrohos)
   {
     # Loop over alle HO types
     for (i_ho in 1:NHO)
@@ -179,7 +198,7 @@ p_HUT1_w_adj<- array(NA, c(Nvragen, int_vorm, NHO, Ncrohos))
   }
 
 # Bekijken van verschuiving oorspronkelijke p en p_adj
-i_vorm = 4; i_ho = 4; i_croho = 96; #Waardes bekijken voor croho = Instituut Archimedes
+i_vorm = 4; i_ho = 4; i_croho = 29; #Waardes bekijken voor croho = Instituut Archimedes
 
 plot(arr_p_HUT1[,i_vorm,
                 i_ho,
@@ -193,15 +212,17 @@ rm(arr_p_HUT1)
 ```
 ```{r Visualiseren test-statistiek HU <> R6}
 #Bekijken uitkomstmaten (delta inclusief significantie in kleur)
-plot(p_HUR6_adj[,i_vorm,i_ho,i_croho])
+i_vorm = 4; i_ho = 4; i_croho = 29; #Waardes bekijken voor croho = Instituut Archimedes
+
+plot(p_HUT1_adj[,i_vorm,i_ho,i_croho])
 abline(h = 0.05)
-groepering <- ifelse(arr_diff_HUR6[,i_vorm,i_ho,i_croho]  > 0 & 
-                     p_HUR6_adj[,i_vorm,i_ho,i_croho] < 0.05, 3, 
-              ifelse(arr_diff_HUR6[,i_vorm,i_ho,i_croho]  < 0 & 
-                     p_HUR6_adj[,i_vorm,i_ho,i_croho] < 0.05, 2, 1))
-plot(arr_diff_HUR6[,i_vorm,i_ho,i_croho], col = groepering, pch = 19, 
+groepering <- ifelse(arr_diff_HUT1[,i_vorm,i_ho,i_croho]  > 0 & 
+                     p_HUT1_adj[,i_vorm,i_ho,i_croho] < 0.05, 3, 
+              ifelse(arr_diff_HUT1[,i_vorm,i_ho,i_croho]  < 0 & 
+                     p_HUT1_adj[,i_vorm,i_ho,i_croho] < 0.05, 2, 1))
+plot(arr_diff_HUT1[,i_vorm,i_ho,i_croho], col = groepering, pch = 19, 
      xlab = "NSE vraag", 
-     ylab = "Gemiddelde verschil (delta) tussen HU en R6")
+     ylab = "Gemiddelde verschil (delta) tussen HU en T1")
 ```
 # 4. Exporteren p waardes
 
@@ -261,5 +282,5 @@ rm(tempT1)
 Resultaten wegschrijven
 
 ```{r Wegschrijven naar .csv}
-write.csv2(nse_significanties, file = "~/researchdrive/M21033303_DenA (Projectfolder)/DA_Onderzoek/2021nse/data_uit/NSEsignificantietabel2022_T1.csv")
+write.csv2(nse_significanties, file = "~/researchdrive/M21033303_DenA (Projectfolder)/DA_Onderzoek/2022nse/data_uit/NSEsignificantietabel2022_T1.csv")
 ```
