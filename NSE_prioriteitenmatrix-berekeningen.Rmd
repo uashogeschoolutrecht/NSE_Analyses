@@ -141,11 +141,11 @@ gemiddeld genomen een hoge score op andere vragen? (en vice versa)
 
 ```{r Bekijken Spearman correlatie, warning=FALSE}
 correlaties = NA
-for (i in vec_rwavragen[1]:vec_rwavragen[length(vec_rwavragen)])
+for (i in 1:length(vec_rwavragen))
 {
-  correlaties[i] <- cor.test(HUscores_hers[,vec_rwavragen[1]], HUscores_hers[,i], method = "spearman")$estimate
+  correlaties[i] <- cor.test(HUscores_hers[,vec_rwavragen[1]], HUscores_hers[,vec_rwavragen[i]], method = "spearman")$estimate
 }
-plot(vec_rwavragen,correlaties[vec_rwavragen], xlab = 'Vraag', ylim = c(0,1)); abline(h=0.6); abline(h=0.4)
+plot(1:length(vec_rwavragen),correlaties, xlab = 'Vraag', ylim = c(0,1)); abline(h=0.6); abline(h=0.4)
 ```
 
 Conclusie: Het merendeel van de NSE vragen zijn ten minste matig (0.6 \>
@@ -155,7 +155,7 @@ je opleiding in het algemeen?' (= vraag 1 uit NSE).
 Hoe zit het nu met correlaties tússen de voorspellende vragen?
 
 ```{r Testen voor multicollineariteit}
-mcoll <- cor(HUscores_hers[,vec_rwavragen[2:9]])
+mcoll <- cor(HUscores_hers[,vec_rwavariabelen])
 colnames(mcoll) <- str_NSEvragen_kort[vec_rwavariabelen]
 rownames(mcoll) <- str_NSEvragen_kort[vec_rwavariabelen]
 corrplot(mcoll, method = "number", diag = FALSE); rm(mcoll)
@@ -164,7 +164,7 @@ corrplot(mcoll, method = "number", diag = FALSE); rm(mcoll)
 De bovenstaande correlatie-matrix laat de correlatie tussen elke
 voorspellende variabele combinatie zien. Voor een heel aantal
 combinaties is deze matig (0.6 \> R \> 0.4) gecorreleerd, waarbij vraag
-02 en 03 het sterkst gecorreleerd is met R = 0.53.
+02 en 03 het sterkst gecorreleerd is met R = 0.54.
 
 Conclusie: er sprake van
 [multicollineariteit](https://en.wikipedia.org/wiki/Multicollinearity)
