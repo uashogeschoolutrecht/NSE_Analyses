@@ -122,8 +122,8 @@ for (i in 1:int_vorm)
 vec_vorm[[int_vorm]] <- rep(TRUE, nrow(HUscores_hers))
 
 #Maak voor elke HOtype een logische vector
-vec_HO <- vector(mode = "list", length(NHO))
-for (j in NSEHOtypes)
+vec_HO <- vector(mode = "list", NHO)
+for (j in 1:NHO)
 {
   vec_HO[[j]]<- HUscores_hers$BaMa == NSEHOtypes[j]
 }
