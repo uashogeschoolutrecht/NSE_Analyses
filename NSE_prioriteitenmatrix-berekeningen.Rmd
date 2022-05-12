@@ -55,9 +55,9 @@ gezien als uitkomst-maat. Vraag 02 t/m 12 zijn algemene vragen
 afvallen omdat zij slechts aan een deel van de studenten gesteld zijn.
 
 ```{r Definities van vragen}
-vec_rwauitkomst <- 1            # Kies vraag die de uitkomst variabele zal zijn
-vec_rwavariabelen <- c(2,3,6:10,12) # Kies vragen die voorspellende variabelen zijn
-vec_rwavragen <- append(vec_NSEvragen[vec_rwauitkomst], vec_NSEvragen[vec_rwavariabelen]) # Alle vragen die gebruikt worden in de RWA
+vec_rwauitkomst <- str_NSEvragen[1]            # Kies vraag die de uitkomst variabele zal zijn
+vec_rwavariabelen <- str_NSEvragen[c(2,3,6:10,12)] # Kies vragen die voorspellende variabelen zijn
+vec_rwavragen <- c(vec_rwauitkomst, vec_rwavariabelen) # Alle vragen die gebruikt worden in de RWA
 
 str_NSEvragen_kort <- substr(str_NSEvragen, nchar(str_NSEvragen)-1, nchar(str_NSEvragen)) #Afkortingen voor vragen
 ```
@@ -66,8 +66,8 @@ Alleen studenten van de Hogeschool Utrecht worden gebruikt in deze data
 analyse.
 
 ```{r Selecteer alleen HU reponse}
-HUscores <- nse_benchmark_clean[nse_benchmark_clean$BrinNaamActueel == "Hogeschool Utrecht",c(1,3,9,15,16,23,c(vec_rwavragen[1]:vec_rwavragen[length(vec_rwavragen)]))]
-vec_rwavragen = vec_rwavragen - 21 #Er worden 21 kolommen weggegooid, dus de index schuift 21 plaatsen op
+HUscores <- nse_benchmark_clean[nse_benchmark_clean$BrinNaamActueel == "Hogeschool Utrecht",c("UniekNummer", "Weegfactor", "CrohoNaamActueel", "SoortHo", "BaMa", "Opleidingsvorm3",vec_rwavragen)]
+
 rm(nse_benchmark_clean)
 ```
 
@@ -109,7 +109,7 @@ for (h in 1:Ncrohos)
 vec_croho[[Ncrohos-1]] <- rep(TRUE, nrow(HUscores_hers)); 
 
 #Maak voor het instituut archimdes een logische vector en voeg deze data in op de laatste index
-vec_instituut <- HUscores_hers$CrohoNaamActueel %in% NSEcrohos[c(43:56,80:88)]
+vec_instituut <- HUscores_hers$CrohoNaamActueel %in% NSEcrohos[c(44:57,80:88)]
 vec_croho[[Ncrohos]] <- vec_instituut
 
 #Maak voor elke vorm een logische vector
@@ -122,8 +122,8 @@ for (i in 1:int_vorm)
 vec_vorm[[int_vorm]] <- rep(TRUE, nrow(HUscores_hers))
 
 #Maak voor elke HOtype een logische vector
-vec_HO <- vector(mode = "list", length(NHO))
-for (j in NSEHOtypes)
+vec_HO <- vector(mode = "list", NHO)
+for (j in 1:NHO)
 {
   vec_HO[[j]]<- HUscores_hers$BaMa == NSEHOtypes[j]
 }
@@ -141,11 +141,11 @@ gemiddeld genomen een hoge score op andere vragen? (en vice versa)
 
 ```{r Bekijken Spearman correlatie, warning=FALSE}
 correlaties = NA
-for (i in vec_rwavragen[1]:vec_rwavragen[length(vec_rwavragen)])
+for (i in 1:length(vec_rwavragen))
 {
-  correlaties[i] <- cor.test(HUscores_hers[,vec_rwavragen[1]], HUscores_hers[,i], method = "spearman")$estimate
+  correlaties[i] <- cor.test(HUscores_hers[,vec_rwavragen[1]], HUscores_hers[,vec_rwavragen[i]], method = "spearman")$estimate
 }
-plot(vec_rwavragen,correlaties[vec_rwavragen], xlab = 'Vraag', ylim = c(0,1)); abline(h=0.6); abline(h=0.4)
+plot(1:length(vec_rwavragen),correlaties, xlab = 'Vraag', ylim = c(0,1)); abline(h=0.6); abline(h=0.4)
 ```
 
 Conclusie: Het merendeel van de NSE vragen zijn ten minste matig (0.6 \>
@@ -155,7 +155,7 @@ je opleiding in het algemeen?' (= vraag 1 uit NSE).
 Hoe zit het nu met correlaties tússen de voorspellende vragen?
 
 ```{r Testen voor multicollineariteit}
-mcoll <- cor(HUscores_hers[,vec_rwavragen[2:9]])
+mcoll <- cor(HUscores_hers[,vec_rwavariabelen])
 colnames(mcoll) <- str_NSEvragen_kort[vec_rwavariabelen]
 rownames(mcoll) <- str_NSEvragen_kort[vec_rwavariabelen]
 corrplot(mcoll, method = "number", diag = FALSE); rm(mcoll)
@@ -164,7 +164,7 @@ corrplot(mcoll, method = "number", diag = FALSE); rm(mcoll)
 De bovenstaande correlatie-matrix laat de correlatie tussen elke
 voorspellende variabele combinatie zien. Voor een heel aantal
 combinaties is deze matig (0.6 \> R \> 0.4) gecorreleerd, waarbij vraag
-02 en 03 het sterkst gecorreleerd is met R = 0.53.
+02 en 03 het sterkst gecorreleerd is met R = 0.54.
 
 Conclusie: er sprake van
 [multicollineariteit](https://en.wikipedia.org/wiki/Multicollinearity)
@@ -225,8 +225,8 @@ for (ind_croho in 1:Ncrohos)
       # Groepsgroote (N) berekenen
       N[ind_vorm,ind_ho,ind_croho] <-length(unique(HUdoorsnede$UniekNummer))
       
-      # Als N < 10 dan geen rwa uitvoeren
-      if (N[ind_vorm,ind_ho,ind_croho] < 10)
+      # Als N < 10 of variantie = 0, dan geen rwa uitvoeren (=randvoorwaarden RWA)
+      if (N[ind_vorm,ind_ho,ind_croho] < 10 | var(HUdoorsnede$TEVREDENHEIDALGEMEEN_01) == 0) 
       {
         next #Sla groep over en ga naar volgende iteratie
       }
@@ -234,8 +234,8 @@ for (ind_croho in 1:Ncrohos)
       {
         #Voor rwa berekening
         rwa_resultaten <- HUdoorsnede %>%
-          rwa(outcome    = str_NSEvragen[vec_rwauitkomst],
-              predictors = str_NSEvragen[vec_rwavariabelen],
+          rwa(outcome    = vec_rwauitkomst,
+              predictors = vec_rwavariabelen,
               applysigns = TRUE)
         #Bijdrage aan de totaalscore
         rwa_bijdrage[ind_vorm,ind_ho,ind_croho,] <- rwa_resultaten$result$Sign.Rescaled.RelWeight
@@ -275,7 +275,7 @@ abline(h=rwa_scores_gem, #Gemiddelden horizontale en verticale lijnen zodra de m
        col="black")
 text(rwa_bijdrage[ind_vorm,ind_ho,ind_croho,], #Toevoegen nummer van vraag aan plot
      rwa_scores[ind_vorm,ind_ho,ind_croho,], 
-     str_NSEvragen_kort[vec_rwavariabelen], 
+     vec_rwavariabelen, 
      cex=0.7, 
      pos=2, 
      col="blue")
@@ -294,7 +294,7 @@ for(ind_croho in 1:Ncrohos)
       tmp <- data.frame(Opleidingsvorm3 = NSEvormen[ind_vorm],
                         BaMa            = NSEHOtypes[ind_ho],
                         Croho           = NSEcrohos[ind_croho],
-                        NSEvragen       = str_NSEvragen[vec_rwavariabelen],
+                        NSEvragen       = vec_rwavariabelen,
                         RWAscores       = rwa_scores[ind_vorm,ind_ho,ind_croho,],
                         RWAbijdrage     = rwa_bijdrage[ind_vorm,ind_ho,ind_croho,],
                         N               = N[ind_vorm,ind_ho,ind_croho],
