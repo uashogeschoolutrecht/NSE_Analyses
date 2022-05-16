@@ -35,7 +35,7 @@ library(corrplot)  #Nodig voor het visualiseren van correlaties via corplot()
 # 2. Inladen NSE benchmark bestand (clean data)
 
 ```{r Inlezen .csv, ca. 15 sec.}
-load("~/researchdrive/M21033303_DenA (Projectfolder)/DA_Onderzoek/2021nse/data_in/NSE2022 nse_benchmark_clean.RData")
+load("~/researchdrive/M21033303_DenA (Projectfolder)/DA_Onderzoek/2022nse/data_in/NSE2022 nse_benchmark_clean.RData")
 rm(ind_exclusie) #Exclusie-vector is in deze analyse niet nodig
 rm(vec_croho, vec_HO, vec_vorm) #Groepvectoren zijn onnodig, die worden vanwege herschaling opnieuw opgebouwd
 head(nse_benchmark_clean,10)
@@ -164,7 +164,7 @@ corrplot(mcoll, method = "number", diag = FALSE); rm(mcoll)
 De bovenstaande correlatie-matrix laat de correlatie tussen elke
 voorspellende variabele combinatie zien. Voor een heel aantal
 combinaties is deze matig (0.6 \> R \> 0.4) gecorreleerd, waarbij vraag
-02 en 03 het sterkst gecorreleerd is met R = 0.53.
+02 en 03 het sterkst gecorreleerd is met R = 0.54.
 
 Conclusie: er sprake van
 [multicollineariteit](https://en.wikipedia.org/wiki/Multicollinearity)
@@ -309,5 +309,5 @@ prioriteitenmatrix <- prioriteitenmatrix[!is.na(prioriteitenmatrix$RWAscores),]
 ```
 
 ```{r Wegschrijven naar .csv}
-write.csv(prioriteitenmatrix,file = "~/research-drive/M21033303_DenA (Projectfolder)/DA_Onderzoek/2021nse/data_uit/NSEprioriteitenttabel2022.csv")
+write.csv(prioriteitenmatrix,file = "~/researchdrive/M21033303_DenA (Projectfolder)/DA_Onderzoek/2022nse/data_uit/NSEprioriteitenttabel2022.csv")
 ```
