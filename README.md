@@ -11,3 +11,4 @@ Belangrijke notities bij het gebruik van NSE respondent data
 <https://github.com/uashogeschoolutrecht/NSE_Analyses/wiki/Methoden-weegfactor-&-normalisatie>
 
 ## 
+"This work made use of the Dutch national e-infrastructure with the support of the SURF Cooperative using grant no. EINF-3303."
