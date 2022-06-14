@@ -33,7 +33,8 @@ library(dplyr)     #Nodig voor na_if() functie
 # 1. Inladen NSE benchmark bestand (clean data)
 
 ```{r Inlezen .csv}
-load("~/researchdrive/M21033303_DenA (Projectfolder)/DA_Onderzoek/2022nse/data_in/NSE2022 nse_benchmark_clean.RData")
+NSEjaar = 2022 # Kies het NSE jaar om te analyseren
+load(paste("~/researchdrive/M21033303_DenA (Projectfolder)/DA_Onderzoek/", NSEjaar, "nse/data_in/NSE", NSEjaar, " nse_benchmark_clean.RData", sep = ""))
 head(nse_benchmark_clean,10)
 ```
 
