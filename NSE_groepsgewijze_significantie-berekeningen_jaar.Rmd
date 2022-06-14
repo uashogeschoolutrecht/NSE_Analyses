@@ -269,7 +269,7 @@ for (i_croho in 1:Ncrohos)
                            gem_delta       = arr_diff_HUT1[,i_vorm,i_ho,i_croho],
                            N_HU            = arr_N_HU[,i_vorm,i_ho,i_croho],
                            N_benchmark     = arr_N_T1[,i_vorm,i_ho,i_croho],
-                           Afnamejaar      = rep(2022,Nvragen) )
+                           Afnamejaar      = rep(NSEjaar,Nvragen) )
       
       #Toevoegen van tijdelijke dataframes aan output dataframe
       nse_significanties <- rbind(nse_significanties, tempT1); 
@@ -284,5 +284,5 @@ rm(tempT1)
 Resultaten wegschrijven
 
 ```{r Wegschrijven naar .csv}
-write.csv2(nse_significanties, file = "~/researchdrive/M21033303_DenA (Projectfolder)/DA_Onderzoek/2022nse/data_uit/NSEsignificantietabel2022_T1.csv")
+write.csv2(nse_significanties, file = paste("~/researchdrive/M21033303_DenA (Projectfolder)/DA_Onderzoek/", NSEjaar, "nse/data_uit/NSEsignificantietabel", NSEjaar, "_T1.csv", sep = ""))
 ```
