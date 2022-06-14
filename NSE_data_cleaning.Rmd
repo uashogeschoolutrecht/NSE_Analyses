@@ -170,6 +170,6 @@ save(nse_benchmark_clean, #gecleande data
      NSEvormen,           #string list met alle vormen
      NSEcrohos,           #string list met alle crohos
      NSEHOtypes,          #string list met alle HO types
-     file = "~/researchdrive/M21033303_DenA (Projectfolder)/DA_Onderzoek/2022nse/data_in/NSE2022 nse_benchmark_clean.RData"
+     file = paste("~/researchdrive/M21033303_DenA (Projectfolder)/DA_Onderzoek/", NSEjaar, "nse/data_in/NSE", NSEjaar, " nse_benchmark_clean.RData", sep = "")
      )
 ```
