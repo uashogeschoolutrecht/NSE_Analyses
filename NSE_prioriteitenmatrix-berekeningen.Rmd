@@ -35,7 +35,8 @@ library(corrplot)  #Nodig voor het visualiseren van correlaties via corplot()
 # 2. Inladen NSE benchmark bestand (clean data)
 
 ```{r Inlezen .csv, ca. 15 sec.}
-load("~/researchdrive/M21033303_DenA (Projectfolder)/DA_Onderzoek/2022nse/data_in/NSE2022 nse_benchmark_clean.RData")
+NSEjaar = 2022 # Kies het NSE jaar om te analyseren
+load(paste("~/researchdrive/M21033303_DenA (Projectfolder)/DA_Onderzoek/", NSEjaar, "nse/data_in/NSE", NSEjaar, " nse_benchmark_clean.RData", sep = ""))
 rm(ind_exclusie) #Exclusie-vector is in deze analyse niet nodig
 rm(vec_croho, vec_HO, vec_vorm) #Groepvectoren zijn onnodig, die worden vanwege herschaling opnieuw opgebouwd
 head(nse_benchmark_clean,10)
