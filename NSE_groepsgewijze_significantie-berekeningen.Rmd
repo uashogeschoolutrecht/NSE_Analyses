@@ -169,17 +169,22 @@ for (i_croho in 1:Ncrohos)
                                                                                 i_ho,
                                                                                 i_croho]
         
-        #Groepsgroote moet minimaal 5 responses zijn en vraag 64 wordt overgeslagen
+        #Groepsgroote HU-groep moet minimaal 5 responses zijn en vraag 64 wordt overgeslagen
         if (arr_N_HU[i_vraag-Ncor,i_vorm,i_ho,i_croho]< 5 |
-            arr_N_R6[i_vraag-Ncor,i_vorm,i_ho,i_croho]< 5 |
-            arr_N_AL[i_vraag-Ncor,i_vorm,i_ho,i_croho]< 5 |
             i_vraag == ind_exclusie)
         {
           next #Sla groep over en ga naar volgende iteratie
         }
         else
         {
-          #Berekenen p waarden
+          #Groepsgrootte R6 benchmark moet ook minimaal 5 responses groot zijn
+          if(arr_N_R6[i_vraag-Ncor,i_vorm,i_ho,i_croho]< 5)
+          {
+            next #Sla benchmarkvergelijking met R6 over
+          }
+          else
+          {
+          #Berekenen p waarden vergelijking HU met R6
           arr_p_HUR6_w[i_vraag-Ncor,i_vorm,i_ho,i_croho] <- unname(wtd.t.test(data_HU,
                                                                           data_R6,
                                                                           weight   = data_w_HU,
@@ -188,7 +193,15 @@ for (i_croho in 1:Ncrohos)
                                                                           samedata = FALSE,
                                                                           bootse   = TRUE)
                                                                $coefficients[3])
-          
+          }
+          #Groepsgrootte R6 benchmark moet ook minimaal 5 responses groot zijn
+          if(arr_N_AL[i_vraag-Ncor,i_vorm,i_ho,i_croho]< 5)
+          {
+            next #Sla benchmarkvergelijking met R6 over
+          }
+          else
+          {
+          #Berekenen p waarden vergelijking HU met Alle instellingen
           arr_p_HUAL_w[i_vraag-Ncor,i_vorm,i_ho,i_croho] <- unname(wtd.t.test(data_HU,
                                                                           data_AL,
                                                                           weight   = data_w_HU,
@@ -197,7 +210,7 @@ for (i_croho in 1:Ncrohos)
                                                                           samedata = FALSE,
                                                                           bootse   = TRUE)
                                                                $coefficients[3])
-          
+          }
           arr_p_HUR6[i_vraag-Ncor,i_vorm,i_ho,i_croho]  <- t.test(data_HU,
                                                               data_R6)$p.value
           arr_p_HUAL[i_vraag-Ncor,i_vorm,i_ho,i_croho]  <- t.test(data_HU,
