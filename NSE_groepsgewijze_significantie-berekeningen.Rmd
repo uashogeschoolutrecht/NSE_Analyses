@@ -193,11 +193,13 @@ for (i_croho in 1:Ncrohos)
                                                                           samedata = FALSE,
                                                                           bootse   = TRUE)
                                                                $coefficients[3])
+          arr_p_HUR6[i_vraag-Ncor,i_vorm,i_ho,i_croho]  <- t.test(data_HU,
+                                                              data_R6)$p.value
           }
           #Groepsgrootte R6 benchmark moet ook minimaal 5 responses groot zijn
           if(arr_N_AL[i_vraag-Ncor,i_vorm,i_ho,i_croho]< 5)
           {
-            next #Sla benchmarkvergelijking met R6 over
+            next #Sla benchmarkvergelijking met AL over
           }
           else
           {
@@ -210,11 +212,10 @@ for (i_croho in 1:Ncrohos)
                                                                           samedata = FALSE,
                                                                           bootse   = TRUE)
                                                                $coefficients[3])
-          }
-          arr_p_HUR6[i_vraag-Ncor,i_vorm,i_ho,i_croho]  <- t.test(data_HU,
-                                                              data_R6)$p.value
           arr_p_HUAL[i_vraag-Ncor,i_vorm,i_ho,i_croho]  <- t.test(data_HU,
                                                               data_AL)$p.value
+          }
+          
         }#Sluiten van else loop
       }#Sluiten van vraag-loop
     }#Sluiten van vorm-loop
