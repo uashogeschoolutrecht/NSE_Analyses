@@ -35,7 +35,8 @@ library(corrplot)  #Nodig voor het visualiseren van correlaties via corplot()
 # 2. Inladen NSE benchmark bestand (clean data)
 
 ```{r Inlezen .csv, ca. 15 sec.}
-load("~/researchdrive/M21033303_DenA (Projectfolder)/DA_Onderzoek/2022nse/data_in/NSE2022 nse_benchmark_clean.RData")
+NSEjaar = 2022 # Kies het NSE jaar om te analyseren
+load(paste("~/researchdrive/M21033303_DenA (Projectfolder)/DA_Onderzoek/", NSEjaar, "nse/data_in/NSE", NSEjaar, " nse_benchmark_clean.RData", sep = ""))
 rm(ind_exclusie) #Exclusie-vector is in deze analyse niet nodig
 rm(vec_croho, vec_HO, vec_vorm) #Groepvectoren zijn onnodig, die worden vanwege herschaling opnieuw opgebouwd
 head(nse_benchmark_clean,10)
@@ -298,7 +299,8 @@ for(ind_croho in 1:Ncrohos)
                         RWAscores       = rwa_scores[ind_vorm,ind_ho,ind_croho,],
                         RWAbijdrage     = rwa_bijdrage[ind_vorm,ind_ho,ind_croho,],
                         N               = N[ind_vorm,ind_ho,ind_croho],
-                        Rsquared        = rwa_R2[ind_vorm,ind_ho,ind_croho])
+                        Rsquared        = rwa_R2[ind_vorm,ind_ho,ind_croho],
+                        Afnamejaar      = NSEjaar)
       prioriteitenmatrix <- rbind(prioriteitenmatrix, tmp); 
     }
   }
@@ -309,5 +311,6 @@ prioriteitenmatrix <- prioriteitenmatrix[!is.na(prioriteitenmatrix$RWAscores),]
 ```
 
 ```{r Wegschrijven naar .csv}
-write.csv(prioriteitenmatrix,file = "~/researchdrive/M21033303_DenA (Projectfolder)/DA_Onderzoek/2022nse/data_uit/NSEprioriteitenttabel2022.csv")
+write.csv(prioriteitenmatrix,file = paste("~/researchdrive/M21033303_DenA (Projectfolder)/DA_Onderzoek/", NSEjaar, "nse/data_uit/NSEprioriteitentabel", NSEjaar, ".csv", sep = ""))
+
 ```

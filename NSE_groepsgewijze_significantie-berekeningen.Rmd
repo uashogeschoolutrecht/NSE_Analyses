@@ -33,7 +33,8 @@ library(dplyr)     #Nodig voor na_if() functie
 # 1. Inladen NSE benchmark bestand (clean data)
 
 ```{r Inlezen .csv}
-load("~/researchdrive/M21033303_DenA (Projectfolder)/DA_Onderzoek/2022nse/data_in/NSE2022 nse_benchmark_clean.RData")
+NSEjaar = 2022 # Kies het NSE jaar om te analyseren
+load(paste("~/researchdrive/M21033303_DenA (Projectfolder)/DA_Onderzoek/", NSEjaar, "nse/data_in/NSE", NSEjaar, " nse_benchmark_clean.RData", sep = ""))
 head(nse_benchmark_clean,10)
 ```
 
@@ -168,17 +169,22 @@ for (i_croho in 1:Ncrohos)
                                                                                 i_ho,
                                                                                 i_croho]
         
-        #Groepsgroote moet minimaal 5 responses zijn en vraag 64 wordt overgeslagen
+        #Groepsgroote HU-groep moet minimaal 5 responses zijn en vraag 64 wordt overgeslagen
         if (arr_N_HU[i_vraag-Ncor,i_vorm,i_ho,i_croho]< 5 |
-            arr_N_R6[i_vraag-Ncor,i_vorm,i_ho,i_croho]< 5 |
-            arr_N_AL[i_vraag-Ncor,i_vorm,i_ho,i_croho]< 5 |
             i_vraag == ind_exclusie)
         {
           next #Sla groep over en ga naar volgende iteratie
         }
         else
         {
-          #Berekenen p waarden
+          #Groepsgrootte R6 benchmark moet ook minimaal 5 responses groot zijn
+          if(arr_N_R6[i_vraag-Ncor,i_vorm,i_ho,i_croho]< 5)
+          {
+            next #Sla benchmarkvergelijking met R6 over
+          }
+          else
+          {
+          #Berekenen p waarden vergelijking HU met R6
           arr_p_HUR6_w[i_vraag-Ncor,i_vorm,i_ho,i_croho] <- unname(wtd.t.test(data_HU,
                                                                           data_R6,
                                                                           weight   = data_w_HU,
@@ -187,7 +193,17 @@ for (i_croho in 1:Ncrohos)
                                                                           samedata = FALSE,
                                                                           bootse   = TRUE)
                                                                $coefficients[3])
-          
+          arr_p_HUR6[i_vraag-Ncor,i_vorm,i_ho,i_croho]  <- t.test(data_HU,
+                                                              data_R6)$p.value
+          }
+          #Groepsgrootte R6 benchmark moet ook minimaal 5 responses groot zijn
+          if(arr_N_AL[i_vraag-Ncor,i_vorm,i_ho,i_croho]< 5)
+          {
+            next #Sla benchmarkvergelijking met AL over
+          }
+          else
+          {
+          #Berekenen p waarden vergelijking HU met Alle instellingen
           arr_p_HUAL_w[i_vraag-Ncor,i_vorm,i_ho,i_croho] <- unname(wtd.t.test(data_HU,
                                                                           data_AL,
                                                                           weight   = data_w_HU,
@@ -196,11 +212,10 @@ for (i_croho in 1:Ncrohos)
                                                                           samedata = FALSE,
                                                                           bootse   = TRUE)
                                                                $coefficients[3])
-          
-          arr_p_HUR6[i_vraag-Ncor,i_vorm,i_ho,i_croho]  <- t.test(data_HU,
-                                                              data_R6)$p.value
           arr_p_HUAL[i_vraag-Ncor,i_vorm,i_ho,i_croho]  <- t.test(data_HU,
                                                               data_AL)$p.value
+          }
+          
         }#Sluiten van else loop
       }#Sluiten van vraag-loop
     }#Sluiten van vorm-loop
@@ -342,7 +357,7 @@ for (i_croho in 1:Ncrohos)
                            gem_delta       = arr_diff_HUR6[,i_vorm,i_ho,i_croho],
                            N_HU            = arr_N_HU[,i_vorm,i_ho,i_croho],
                            N_benchmark     = arr_N_R6[,i_vorm,i_ho,i_croho],
-                           Afnamejaar      = rep(2022,Nvragen) )
+                           Afnamejaar      = rep(NSEjaar,Nvragen) )
       
       tempAL <- data.frame(Opleidingsvorm3 = NSEvormen[i_vorm],
                            CrohoActueel    = NSEcrohos[i_croho],
@@ -356,7 +371,7 @@ for (i_croho in 1:Ncrohos)
                            gem_delta       = arr_diff_HUAL[,i_vorm,i_ho,i_croho],
                            N_HU            = arr_N_HU[,i_vorm,i_ho,i_croho],
                            N_benchmark     = arr_N_AL[,i_vorm,i_ho,i_croho],
-                           Afnamejaar      = rep(2022,Nvragen) )
+                           Afnamejaar      = rep(NSEjaar,Nvragen) )
       
       #Toevoegen van tijdelijke dataframes aan output dataframe
       nse_significanties <- rbind(nse_significanties, tempR6, tempAL); 
@@ -371,5 +386,5 @@ rm(tempR6, tempAL)
 Resultaten wegschrijven
 
 ```{r Wegschrijven naar .csv}
-write.csv2(nse_significanties, file = "~/researchdrive/M21033303_DenA (Projectfolder)/DA_Onderzoek/2022nse/data_uit/NSEsignificantietabel2022.csv")
+write.csv2(nse_significanties, file = paste("~/researchdrive/M21033303_DenA (Projectfolder)/DA_Onderzoek/", NSEjaar, "nse/data_uit/NSEsignificantietabel", NSEjaar, ".csv", sep = ""))
 ```
