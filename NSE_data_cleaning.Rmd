@@ -154,14 +154,14 @@ summary(vec_groepAL)
 ```{r Save dataframe en 2 vectoren}
 save(nse_benchmark_clean, #gecleande data
      str_NSEvragen,       #string list met alle vragen
-     vec_NSEvragen,       #vector met vraagnummers
+     vec_NSEvragen,       #vector met vraagnummers iets meer commentaar
      vec_groepHU,         #vector met HU groepering
      vec_groepR6,         #vector met R6 groepering
      vec_groepAL,         #vector met AL groepering
      vec_HO,              #vector met type HO groepering
      vec_vorm,            #vector met vorm groepering
      vec_croho,           #vector met croho groepering
-     ind_exclusie,        #index exclusievraag
+     ind_exclusie,        #index exclusievraag nog meer commentaar
      int_vorm,            #aantal vormen
      Nvragen,             #aantal vragen
      NHO,                 #aantal HO types
