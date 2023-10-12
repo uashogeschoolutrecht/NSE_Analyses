@@ -36,7 +36,9 @@ library(corrplot)  #Nodig voor het visualiseren van correlaties via corplot()
 
 ```{r Inlezen .csv, ca. 15 sec.}
 NSEjaar = 2022 # Kies het NSE jaar om te analyseren
-load(paste("~/researchdrive/M21033303_DenA (Projectfolder)/DA_Onderzoek/", NSEjaar, "nse/data_in/NSE", NSEjaar, " nse_benchmark_clean.RData", sep = ""))
+user <- Sys.getenv("USERNAME") #Vind de Windows username voor het instellen van padnaam waar csv-bestand staat
+load(paste("C:/Users/",user,"/Stichting Hogeschool Utrecht/FCA-DA-P - Analytics/NSE/data/NSE", NSEjaar, " nse_benchmark_clean.RData", sep = ""))
+
 rm(ind_exclusie) #Exclusie-vector is in deze analyse niet nodig
 rm(vec_croho, vec_HO, vec_vorm) #Groepvectoren zijn onnodig, die worden vanwege herschaling opnieuw opgebouwd
 head(nse_benchmark_clean,10)
@@ -200,7 +202,7 @@ Hierin is ook terug te vinden dat vragenlijstdata valide is als input
 voor een RWA.
 
 ```{r RWA model berekenen}
-cat("Er wordt nu een RWA model berekend met vraag", str_NSEvragen[vec_rwauitkomst], "als onafhankelijke variabele.\nEen RWA model probeert om de onafhankelijke variabele te verklaren door gewichten toe te kennen aan een aantal vooraf gekozen afhankelijke variabelen. Voor dit model zijn alleen studenten meegenomen die voor zowel voor de onafhankelijke variabele én alle afhankelijke variabelen ingevulde responses bevatten (complete gevallen).\nDe volgende lijst aan vragen zijn de voorspellende variabelen: \n", str_NSEvragen[vec_rwavariabelen])
+cat("Er wordt nu een RWA model berekend met vraag", vec_rwauitkomst , "als onafhankelijke variabele.\nEen RWA model probeert om de onafhankelijke variabele te verklaren door gewichten toe te kennen aan een aantal vooraf gekozen afhankelijke variabelen. Voor dit model zijn alleen studenten meegenomen die voor zowel voor de onafhankelijke variabele én alle afhankelijke variabelen ingevulde responses bevatten (complete gevallen).\nDe volgende lijst aan vragen zijn de voorspellende variabelen: \n", vec_rwavariabelen)
 
 #Pre-alloceer objecten die in loop gevuld gaan worden
 rwa_bijdrage <- array(NA, dim = c(int_vorm, NHO, Ncrohos, length(vec_rwavariabelen)))
