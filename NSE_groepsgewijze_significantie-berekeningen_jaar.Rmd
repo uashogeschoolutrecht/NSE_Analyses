@@ -33,7 +33,7 @@ library(dplyr)     #Nodig voor na_if() functie
 NSEjaarT1 = 2023 #Kies NSE vergelijkingsjaar (oudste jaar)
 # Oudste jaar eerst inlezen
 user <- Sys.getenv("USERNAME") #Vind de Windows username voor het instellen van padnaam waar csv-bestand staat
-load(paste("C:/Users/",user,"/Stichting Hogeschool Utrecht/FCA-DA-P - Analytics/NSE/data/NSE", NSEjaar, " nse_benchmark_clean.RData", sep = ""))
+load(paste("C:/Users/",user,"/Stichting Hogeschool Utrecht/FCA-DA-P - Analytics/NSE/data/NSE", NSEjaarT1, " nse_benchmark_clean.RData", sep = ""))
 
 # Objecten onder andere namen opslaan (want bij inladen nieuwste jaar worden deze anders overschreven)
 nse_benchmark_clean_T1 <- nse_benchmark_clean
