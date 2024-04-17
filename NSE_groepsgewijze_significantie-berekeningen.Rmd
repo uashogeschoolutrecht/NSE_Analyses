@@ -388,5 +388,5 @@ rm(tempR6, tempAL)
 Resultaten wegschrijven
 
 ```{r Wegschrijven naar .csv}
-write.csv2(nse_significanties, file = paste("~/researchdrive/M21033303_DenA (Projectfolder)/DA_Onderzoek/", NSEjaar, "nse/data_uit/NSEsignificantietabel", NSEjaar, ".csv", sep = ""))
+write.csv2(nse_significanties, file = paste("C:/Users/",user,"/Stichting Hogeschool Utrecht/FCA-DA-P - Analytics/NSE/data/NSEsignificantietabel", NSEjaar, ".csv", sep = ""))
 ```
