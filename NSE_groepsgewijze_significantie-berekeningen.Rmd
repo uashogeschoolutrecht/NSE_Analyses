@@ -33,8 +33,10 @@ library(dplyr)     #Nodig voor na_if() functie
 # 1. Inladen NSE benchmark bestand (clean data)
 
 ```{r Inlezen .csv}
-NSEjaar = 2022 # Kies het NSE jaar om te analyseren
-load(paste("~/researchdrive/M21033303_DenA (Projectfolder)/DA_Onderzoek/", NSEjaar, "nse/data_in/NSE", NSEjaar, " nse_benchmark_clean.RData", sep = ""))
+NSEjaar = 2024 # Kies het NSE jaar om te analyseren
+
+user <- Sys.getenv("USERNAME") #Vind de Windows username voor het instellen van padnaam waar csv-bestand staat
+load(paste("C:/Users/",user,"/Stichting Hogeschool Utrecht/FCA-DA-P - Analytics/NSE/data/NSE", NSEjaar, " nse_benchmark_clean.RData", sep = ""))
 head(nse_benchmark_clean,10)
 ```
 
@@ -386,5 +388,5 @@ rm(tempR6, tempAL)
 Resultaten wegschrijven
 
 ```{r Wegschrijven naar .csv}
-write.csv2(nse_significanties, file = paste("~/researchdrive/M21033303_DenA (Projectfolder)/DA_Onderzoek/", NSEjaar, "nse/data_uit/NSEsignificantietabel", NSEjaar, ".csv", sep = ""))
+write.csv2(nse_significanties, file = paste("C:/Users/",user,"/Stichting Hogeschool Utrecht/FCA-DA-P - Analytics/NSE/data/NSEsignificantietabel", NSEjaar, ".csv", sep = ""))
 ```

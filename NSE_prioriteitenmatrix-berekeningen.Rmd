@@ -35,7 +35,7 @@ library(corrplot)  #Nodig voor het visualiseren van correlaties via corplot()
 # 2. Inladen NSE benchmark bestand (clean data)
 
 ```{r Inlezen .csv, ca. 15 sec.}
-NSEjaar = 2022 # Kies het NSE jaar om te analyseren
+NSEjaar = 2024 # Kies het NSE jaar om te analyseren
 user <- Sys.getenv("USERNAME") #Vind de Windows username voor het instellen van padnaam waar csv-bestand staat
 load(paste("C:/Users/",user,"/Stichting Hogeschool Utrecht/FCA-DA-P - Analytics/NSE/data/NSE", NSEjaar, " nse_benchmark_clean.RData", sep = ""))
 
@@ -313,6 +313,6 @@ prioriteitenmatrix <- prioriteitenmatrix[!is.na(prioriteitenmatrix$RWAscores),]
 ```
 
 ```{r Wegschrijven naar .csv}
-write.csv(prioriteitenmatrix,file = paste("~/researchdrive/M21033303_DenA (Projectfolder)/DA_Onderzoek/", NSEjaar, "nse/data_uit/NSEprioriteitentabel", NSEjaar, ".csv", sep = ""))
+write.csv(prioriteitenmatrix,file = paste("C:/Users/",user,"/Stichting Hogeschool Utrecht/FCA-DA-P - Analytics/NSE/data/NSEprioriteitentabel", NSEjaar, ".csv", sep = ""))
 
 ```

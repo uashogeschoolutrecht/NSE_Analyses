@@ -30,9 +30,10 @@ library(dplyr)     #Nodig voor na_if() functie
 # 1. Inladen NSE benchmark bestanden (clean data)
 
 ```{r Inlezen .csv}
-NSEjaarT1 = 2021 #Kies NSE vergelijkingsjaar (oudste jaar)
+NSEjaarT1 = 2023 #Kies NSE vergelijkingsjaar (oudste jaar)
 # Oudste jaar eerst inlezen
-load(paste("~/researchdrive/M21033303_DenA (Projectfolder)/DA_Onderzoek/", NSEjaarT1, "nse/data_in/NSE", NSEjaarT1, " nse_benchmark_clean.RData", sep = ""))
+user <- Sys.getenv("USERNAME") #Vind de Windows username voor het instellen van padnaam waar csv-bestand staat
+load(paste("C:/Users/",user,"/Stichting Hogeschool Utrecht/FCA-DA-P - Analytics/NSE/data/NSE", NSEjaarT1, " nse_benchmark_clean.RData", sep = ""))
 
 # Objecten onder andere namen opslaan (want bij inladen nieuwste jaar worden deze anders overschreven)
 nse_benchmark_clean_T1 <- nse_benchmark_clean
@@ -42,9 +43,9 @@ vec_vorm_T1            <- vec_vorm
 vec_groepHU_T1         <- vec_groepHU
 NSEcrohos_T1           <- NSEcrohos
 
-NSEjaar = 2022 # Kies het NSE jaar om te analyseren als nieuwste jaar
+NSEjaar = 2024 # Kies het NSE jaar om te analyseren als nieuwste jaar
 # Nieuwste jaar vervolgens inlezen
-load(paste("~/researchdrive/M21033303_DenA (Projectfolder)/DA_Onderzoek/", NSEjaar, "nse/data_in/NSE", NSEjaar, " nse_benchmark_clean.RData", sep = ""))
+load(paste("C:/Users/",user,"/Stichting Hogeschool Utrecht/FCA-DA-P - Analytics/NSE/data/NSE", NSEjaar, " nse_benchmark_clean.RData", sep = ""))
 ```
 
 Tussen verschillende jaren kan het voorkomen dat crohos niet meer bestaan, of dat er juist nieuwe crohos bij komen. Om hiermee om te gaan is een 'vertaalvector' nodig die bijhoudt welke croho tussen de vergelijkingsjaren bij elkaar horen. 
@@ -284,5 +285,5 @@ rm(tempT1)
 Resultaten wegschrijven
 
 ```{r Wegschrijven naar .csv}
-write.csv2(nse_significanties, file = paste("~/researchdrive/M21033303_DenA (Projectfolder)/DA_Onderzoek/", NSEjaar, "nse/data_uit/NSEsignificantietabel", NSEjaar, "_T1.csv", sep = ""))
+write.csv2(nse_significanties, file = paste("C:/Users/",user,"/Stichting Hogeschool Utrecht/FCA-DA-P - Analytics/NSE/data/NSEsignificantietabel", NSEjaar, "_T1.csv", sep = ""))
 ```

@@ -23,7 +23,7 @@ library(psych) #Nodig voor describeBy() functie
 # 2. Inladen NSE benchmark bestand
 Voor het inlezen wordt een csv van het Benchmarkbestand gebruikt. Open hiervoor het aangeleverde benchmarkbestand (.sav) in SPSS en sla op als .csv. 
 ```{r Inlezen .csv}
-NSEjaar <- 2022 #Kies het NSE jaar dat je wilt cleanen
+NSEjaar <- 2024 #Kies het NSE jaar dat je wilt cleanen
 user <- Sys.getenv("USERNAME") #Vind de Windows username voor het instellen van padnaam waar csv-bestand staat
 
 nse_benchmark <- read.csv2(paste("C:/Users/",user,"/Stichting Hogeschool Utrecht/FCA-DA-P - Analytics/NSE/data/nse", NSEjaar,".csv",sep=""))
