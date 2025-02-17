@@ -18,15 +18,16 @@ De specifieke stappen zijn:
 ```{r libraries, message=FALSE, warning=FALSE, include=FALSE}
 library(dplyr) #Nodig voor na_if() functie
 library(psych) #Nodig voor describeBy() functie
+library(haven)
 ```
 
 # 2. Inladen NSE benchmark bestand
-Voor het inlezen wordt een csv van het Benchmarkbestand gebruikt. Open hiervoor het aangeleverde benchmarkbestand (.sav) in SPSS en sla op als .csv. 
+Voor het inlezen het oorsponkelijke SPSS (.sav) Benchmarkbestand gebruikt, en deze wordt hieronder direct ingelezen. 
 ```{r Inlezen .csv}
 NSEjaar <- 2024 #Kies het NSE jaar dat je wilt cleanen
 user <- Sys.getenv("USERNAME") #Vind de Windows username voor het instellen van padnaam waar csv-bestand staat
 
-nse_benchmark <- read.csv2(paste("C:/Users/",user,"/Stichting Hogeschool Utrecht/FCA-DA-P - Analytics/NSE/data/nse", NSEjaar,".csv",sep=""))
+nse_benchmark <- read_sav(paste("C:/Users/",user,"/Stichting Hogeschool Utrecht/FCA-DA-P - Analytics/NSE/data/nse", NSEjaar,".csv",sep=""))
 
 head(nse_benchmark,10)
 ```
