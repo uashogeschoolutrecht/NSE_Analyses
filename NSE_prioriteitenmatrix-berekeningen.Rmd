@@ -229,7 +229,7 @@ for (ind_croho in 1:Ncrohos)
       N[ind_vorm,ind_ho,ind_croho] <-length(unique(HUdoorsnede$UniekNummer))
       
       # Als N < 10 of variantie = 0, dan geen rwa uitvoeren (=randvoorwaarden RWA)
-      if (N[ind_vorm,ind_ho,ind_croho] < 10 | var(HUdoorsnede$TEVREDENHEIDALGEMEEN_01) == 0) 
+      if (N[ind_vorm,ind_ho,ind_croho] < 10 | var(HUdoorsnede$TEVREDENHEIDALGEMEEN_01) == 0 | var(HUdoorsnede$TEVREDENHEIDALGEMEEN_02) == 0) 
       {
         next #Sla groep over en ga naar volgende iteratie
       }
