@@ -79,9 +79,19 @@ groepen met elkaar vergeleken worden:
 
 ```{r Definiëren analyse-groepen}
 groepHU    <- "Hogeschool Utrecht"
-groepR6    <- c("Hogeschool van Amsterdam", "De Haagse Hogeschool",
-                "Hogeschool INHOLLAND",     "Hogeschool Leiden",
-                "Hogeschool Rotterdam")
+# Vind de R6 instellingsnamen op basis van BRIN
+# R6 = Hogeschool van Amsterdam, De Haagse Hogeschool, Hogeschool Inholland, Hogeschool Leiden en Hogeschool Rotterdam. 
+codes <- c("28DN", "27UM", "27PZ", "21RI","22OJ")
+
+# Functie die op basis van de BRIN de eerste instellingsnaam vindt in de data
+groepR6 <- unname(sapply(codes, function(code) {
+  match_index <- which(nse_benchmark_clean$BrinActueel == code)[1]
+  if (!is.na(match_index)) {
+    return(nse_benchmark_clean$BrinNaam[match_index])
+  } else {
+    return(NA)
+  }
+}))
 vormtypes  <- sort(unique(nse_benchmark_clean$Opleidingsvorm3))
 HOtypes    <- sort(unique(nse_benchmark_clean$BaMa))
 crohos     <- sort(unique(nse_benchmark_clean$CrohoNaamActueel
