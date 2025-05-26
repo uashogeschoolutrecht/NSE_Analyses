@@ -35,7 +35,7 @@ library(corrplot)  #Nodig voor het visualiseren van correlaties via corplot()
 # 2. Inladen NSE benchmark bestand (clean data)
 
 ```{r Inlezen .csv, ca. 15 sec.}
-NSEjaar = 2024 # Kies het NSE jaar om te analyseren
+NSEjaar = 2025 # Kies het NSE jaar om te analyseren
 user <- Sys.getenv("USERNAME") #Vind de Windows username voor het instellen van padnaam waar csv-bestand staat
 load(paste("C:/Users/",user,"/Stichting Hogeschool Utrecht/FCA-DA-P - Analytics/NSE/data/NSE", NSEjaar, " nse_benchmark_clean.RData", sep = ""))
 
@@ -229,7 +229,7 @@ for (ind_croho in 1:Ncrohos)
       N[ind_vorm,ind_ho,ind_croho] <-length(unique(HUdoorsnede$UniekNummer))
       
       # Als N < 10 of variantie = 0, dan geen rwa uitvoeren (=randvoorwaarden RWA)
-      if (N[ind_vorm,ind_ho,ind_croho] < 10 | var(HUdoorsnede$TEVREDENHEIDALGEMEEN_01) == 0) 
+      if (N[ind_vorm,ind_ho,ind_croho] < 10 | var(HUdoorsnede$TEVREDENHEIDALGEMEEN_01) == 0 | var(HUdoorsnede$TEVREDENHEIDALGEMEEN_02) == 0) 
       {
         next #Sla groep over en ga naar volgende iteratie
       }
