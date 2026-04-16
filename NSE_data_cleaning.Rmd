@@ -24,7 +24,7 @@ library(haven)
 # 2. Inladen NSE benchmark bestand
 Voor het inlezen het oorsponkelijke SPSS (.sav) Benchmarkbestand gebruikt, en deze wordt hieronder direct ingelezen. 
 ```{r Inlezen .csv}
-NSEjaar <- 2025 #Kies het NSE jaar dat je wilt cleanen
+NSEjaar <- 2026 #Kies het NSE jaar dat je wilt cleanen
 user <- Sys.getenv("USERNAME") #Vind de Windows username voor het instellen van padnaam waar csv-bestand staat
 
 nse_benchmark <- read.csv2(paste("C:/Users/",user,"/Stichting Hogeschool Utrecht/FCA-DA-P - Analytics/NSE/data/nse", NSEjaar,".csv",sep=""))
@@ -58,10 +58,10 @@ vec_NSEvragen = c(28:84)
 Nvragen <- length(vec_NSEvragen)
 Neerste <- min(vec_NSEvragen)
 str_NSEvragen = colnames(nse_benchmark_clean[vec_NSEvragen])
-ind_exclusie <- 64; 
+ind_exclusie <- integer(0) 
 cat("De geëxcludeerde vraag is: ",
     colnames(nse_benchmark_clean[ind_exclusie]), "\n") 
-cat("De geïncludeerde vragen zijn: ", str_NSEvragen[vec_NSEvragen != ind_exclusie])
+cat("De geïncludeerde vragen zijn: ", str_NSEvragen[vec_NSEvragen %in% ind_exclusie])
 ```
 ```{r Responsewaarde samenvatting bekijken, echo=TRUE, paged.print=TRUE}
 describeBy(nse_benchmark_clean[,vec_NSEvragen], group = NULL)

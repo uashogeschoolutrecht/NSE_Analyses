@@ -146,9 +146,9 @@ for (i_croho in 1:Ncrohos)
                                                                                              i_croho]
           
           #Groepsgroote moet minimaal 5 responses zijn en vraag 64 wordt overgeslagen
-          if (arr_N_HU[i_vraag-Ncor,i_vorm,i_ho,i_croho]< 5 |
-              arr_N_T1[i_vraag-Ncor,i_vorm,i_ho,i_croho]< 5 |
-              i_vraag == ind_exclusie)
+          if (arr_N_HU[i_vraag-Ncor,i_vorm,i_ho,i_croho]< 5 ||
+              arr_N_T1[i_vraag-Ncor,i_vorm,i_ho,i_croho]< 5 ||
+              i_vraag %in% ind_exclusie)
           {
             next #Sla groep over en ga naar volgende iteratie
           }

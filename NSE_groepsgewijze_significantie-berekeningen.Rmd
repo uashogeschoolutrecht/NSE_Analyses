@@ -33,7 +33,7 @@ library(dplyr)     #Nodig voor na_if() functie
 # 1. Inladen NSE benchmark bestand (clean data)
 
 ```{r Inlezen .csv}
-NSEjaar = 2025 # Kies het NSE jaar om te analyseren
+NSEjaar = 2026 # Kies het NSE jaar om te analyseren
 
 user <- Sys.getenv("USERNAME") #Vind de Windows username voor het instellen van padnaam waar csv-bestand staat
 load(paste("C:/Users/",user,"/Stichting Hogeschool Utrecht/FCA-DA-P - Analytics/NSE/data/NSE", NSEjaar, " nse_benchmark_clean.RData", sep = ""))
@@ -171,9 +171,9 @@ for (i_croho in 1:Ncrohos)
                                                                                 i_ho,
                                                                                 i_croho]
         
-        #Groepsgroote HU-groep moet minimaal 5 responses zijn en vraag 64 wordt overgeslagen
-        if (arr_N_HU[i_vraag-Ncor,i_vorm,i_ho,i_croho]< 5 |
-            i_vraag == ind_exclusie)
+        #Groepsgroote HU-groep moet minimaal 5 responses zijn en exclusie-vragen worden overgeslagen
+        if (arr_N_HU[i_vraag-Ncor,i_vorm,i_ho,i_croho]< 5 ||
+            i_vraag %in% ind_exclusie)
         {
           next #Sla groep over en ga naar volgende iteratie
         }
