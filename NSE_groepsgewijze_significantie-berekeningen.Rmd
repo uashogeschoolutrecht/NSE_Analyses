@@ -95,9 +95,27 @@ arr_diff_HUAL   <- array(NA, c(Nvragen, int_vorm, NHO, Ncrohos))
 #Definieer correctiefactor zodat index voor het vullen van p waardes op 1 begint en niet op 28
 Ncor <- Neerste - 1 
 
+#Starttijd opslaan voor tijdsinschatting
+t_start <- Sys.time()
+
 #Voor elke croho / instituut
 for (i_croho in 1:Ncrohos)
 {
+  
+  #Voortgang tonen
+  t_nu <- Sys.time()
+  t_verstreken <- difftime(t_nu, t_start, units = "mins")
+  if (i_croho > 1) {
+    t_per_croho <- as.numeric(t_verstreken) / (i_croho - 1)
+    t_resterend <- round(t_per_croho * (Ncrohos - i_croho + 1), 1)
+    cat(sprintf("\r[%s] Croho %d/%d (%.0f%%) | Verstreken: %.1f min | Geschat resterend: %.1f min",
+                format(t_nu, "%H:%M:%S"), i_croho, Ncrohos,
+                (i_croho - 1) / Ncrohos * 100, as.numeric(t_verstreken), t_resterend))
+  } else {
+    cat(sprintf("\r[%s] Croho %d/%d (0%%) | Gestart...",
+                format(t_nu, "%H:%M:%S"), i_croho, Ncrohos))
+  }
+  flush.console()
   
   #Voor elke type HO onderstaande berekening herhalen
   for (i_ho in 1:NHO)
@@ -224,7 +242,9 @@ for (i_croho in 1:Ncrohos)
   }#Sluiten van typeHO-loop
 }#Sluiten van croho-loop
 
-rm(Ncor)
+cat(sprintf("\nKlaar! Totale looptijd: %.1f minuten\n", as.numeric(difftime(Sys.time(), t_start, units = "mins"))))
+
+rm(Ncor, t_start)
 ```
 
 # 3B. Multiple testing correctie p-waarden
