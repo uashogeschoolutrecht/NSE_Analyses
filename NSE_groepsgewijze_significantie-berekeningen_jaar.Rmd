@@ -30,7 +30,7 @@ library(dplyr)     #Nodig voor na_if() functie
 # 1. Inladen NSE benchmark bestanden (clean data)
 
 ```{r Inlezen .csv}
-NSEjaarT1 = 2024 #Kies NSE vergelijkingsjaar (oudste jaar)
+NSEjaarT1 = 2025 #Kies NSE vergelijkingsjaar (oudste jaar)
 # Oudste jaar eerst inlezen
 user <- Sys.getenv("USERNAME") #Vind de Windows username voor het instellen van padnaam waar csv-bestand staat
 load(paste("C:/Users/",user,"/Stichting Hogeschool Utrecht/FCA-DA-P - Analytics/NSE/data/NSE", NSEjaarT1, " nse_benchmark_clean.RData", sep = ""))
@@ -43,7 +43,7 @@ vec_vorm_T1            <- vec_vorm
 vec_groepHU_T1         <- vec_groepHU
 NSEcrohos_T1           <- NSEcrohos
 
-NSEjaar = 2025 # Kies het NSE jaar om te analyseren als nieuwste jaar
+NSEjaar = 2026 # Kies het NSE jaar om te analyseren als nieuwste jaar
 # Nieuwste jaar vervolgens inlezen
 load(paste("C:/Users/",user,"/Stichting Hogeschool Utrecht/FCA-DA-P - Analytics/NSE/data/NSE", NSEjaar, " nse_benchmark_clean.RData", sep = ""))
 ```
@@ -85,9 +85,28 @@ arr_diff_HUT1   <- array(NA, c(Nvragen, int_vorm, NHO, Ncrohos))
 #Definieer correctiefactor zodat index voor het vullen van p waardes op 1 begint en niet op 28
 Ncor <- Neerste - 1 
 
+#Starttijd opslaan voor tijdsinschatting
+t_start <- Sys.time()
+
 #Voor elke croho / instituut
 for (i_croho in 1:Ncrohos)
-{ #Als een croho in het vergelijkingsjaar niet bestaat: croho overslaan!
+{ 
+  #Voortgang tonen
+  t_nu <- Sys.time()
+  t_verstreken <- difftime(t_nu, t_start, units = "mins")
+  if (i_croho > 1) {
+    t_per_croho <- as.numeric(t_verstreken) / (i_croho - 1)
+    t_resterend <- round(t_per_croho * (Ncrohos - i_croho + 1), 1)
+    cat(sprintf("\r[%s] Croho %d/%d (%.0f%%) | Verstreken: %.1f min | Geschat resterend: %.1f min",
+                format(t_nu, "%H:%M:%S"), i_croho, Ncrohos,
+                (i_croho - 1) / Ncrohos * 100, as.numeric(t_verstreken), t_resterend))
+  } else {
+    cat(sprintf("\r[%s] Croho %d/%d (0%%) | Gestart...",
+                format(t_nu, "%H:%M:%S"), i_croho, Ncrohos))
+  }
+  flush.console()
+  
+  #Als een croho in het vergelijkingsjaar niet bestaat: croho overslaan!
   if (is.na(vec_croho_vertaal[i_croho]))
   {
     next #Sla croho over en ga naar volgende croho-iteratie
@@ -145,10 +164,10 @@ for (i_croho in 1:Ncrohos)
                                                                                              i_ho,
                                                                                              i_croho]
           
-          #Groepsgroote moet minimaal 5 responses zijn en vraag 64 wordt overgeslagen
+          #Groepsgroote moet minimaal 5 responses zijn en exclusie vragen worden overgeslagen
           if (arr_N_HU[i_vraag-Ncor,i_vorm,i_ho,i_croho]< 5 ||
               arr_N_T1[i_vraag-Ncor,i_vorm,i_ho,i_croho]< 5 ||
-              i_vraag %in% ind_exclusie)
+              !(i_vraag %in% ind_exclusie))
           {
             next #Sla groep over en ga naar volgende iteratie
           }
@@ -172,6 +191,9 @@ for (i_croho in 1:Ncrohos)
     }#Sluiten van typeHO-loop
   }#Sluiten if else binnen croho-loop
 }#Sluiten van croho-loop
+cat(sprintf("\nKlaar! Totale looptijd: %.1f minuten\n", as.numeric(difftime(Sys.time(), t_start, units = "mins"))))
+
+rm(t_start)
 ```
 # 3B. Multiple testing correctie p-waarden
 
@@ -200,32 +222,6 @@ p_HUT1_w_adj<- array(NA, c(Nvragen, int_vorm, NHO, Ncrohos))
     }
   }
 
-# Bekijken van verschuiving oorspronkelijke p en p_adj
-i_vorm = 4; i_ho = 4; i_croho = 29; #Waardes bekijken voor croho = Instituut Archimedes
-
-plot(arr_p_HUT1[,i_vorm,
-                i_ho,
-                i_croho],
-     p_HUT1_adj[,i_vorm,
-                i_ho,
-                i_croho]);
-abline(h = 0.05, v=0.05)
-
-rm(arr_p_HUT1)
-```
-```{r Visualiseren test-statistiek HU <> R6}
-#Bekijken uitkomstmaten (delta inclusief significantie in kleur)
-i_vorm = 4; i_ho = 4; i_croho = 29; #Waardes bekijken voor croho = Instituut Archimedes
-
-plot(p_HUT1_adj[,i_vorm,i_ho,i_croho])
-abline(h = 0.05)
-groepering <- ifelse(arr_diff_HUT1[,i_vorm,i_ho,i_croho]  > 0 & 
-                     p_HUT1_adj[,i_vorm,i_ho,i_croho] < 0.05, 3, 
-              ifelse(arr_diff_HUT1[,i_vorm,i_ho,i_croho]  < 0 & 
-                     p_HUT1_adj[,i_vorm,i_ho,i_croho] < 0.05, 2, 1))
-plot(arr_diff_HUT1[,i_vorm,i_ho,i_croho], col = groepering, pch = 19, 
-     xlab = "NSE vraag", 
-     ylab = "Gemiddelde verschil (delta) tussen HU en T1")
 ```
 # 4. Exporteren p waardes
 

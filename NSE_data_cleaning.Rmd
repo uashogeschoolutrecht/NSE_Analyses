@@ -61,7 +61,7 @@ str_NSEvragen = colnames(nse_benchmark_clean[vec_NSEvragen])
 ind_exclusie <- integer(0) 
 cat("De geëxcludeerde vraag is: ",
     colnames(nse_benchmark_clean[ind_exclusie]), "\n") 
-cat("De geïncludeerde vragen zijn: ", str_NSEvragen[vec_NSEvragen %in% ind_exclusie])
+cat("De geïncludeerde vragen zijn: ", str_NSEvragen[!vec_NSEvragen %in% ind_exclusie])
 ```
 ```{r Responsewaarde samenvatting bekijken, echo=TRUE, paged.print=TRUE}
 describeBy(nse_benchmark_clean[,vec_NSEvragen], group = NULL)
