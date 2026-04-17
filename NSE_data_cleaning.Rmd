@@ -52,16 +52,13 @@ rm(int_missingnumber, vec_missingdata, data_nse_benchmark)
 
 # 4. Definities
 In deze stap worden vectoren aangemaakt die helpen de specifieke NSE vragen te vinden in de dataset.
-Op basis van afwijkende antwoorden (1-Ja/2-Nee i.p.v. 1-Zeer mee oneens t/m 5-Zeer mee eens) wordt vraag "BEGELEIDING_SELECTIE" niet meegenomen. Hiervoor wordt een index-vector gemaakt die als hulpvector dient. 
 ```{r Definiëren van NSE vragen}
 vec_NSEvragen = c(28:84)
 Nvragen <- length(vec_NSEvragen)
 Neerste <- min(vec_NSEvragen)
 str_NSEvragen = colnames(nse_benchmark_clean[vec_NSEvragen])
-ind_exclusie <- integer(0) 
-cat("De geëxcludeerde vraag is: ",
-    colnames(nse_benchmark_clean[ind_exclusie]), "\n") 
-cat("De geïncludeerde vragen zijn: ", str_NSEvragen[!vec_NSEvragen %in% ind_exclusie])
+
+cat("De geïncludeerde vragen zijn: ", str_NSEvragen[vec_NSEvragen])
 ```
 ```{r Responsewaarde samenvatting bekijken, echo=TRUE, paged.print=TRUE}
 describeBy(nse_benchmark_clean[,vec_NSEvragen], group = NULL)
@@ -169,7 +166,6 @@ save(nse_benchmark_clean, #gecleande data
      vec_HO,              #vector met type HO groepering
      vec_vorm,            #vector met vorm groepering
      vec_croho,           #vector met croho groepering
-     ind_exclusie,        #index exclusievraag
      int_vorm,            #aantal vormen
      Nvragen,             #aantal vragen
      NHO,                 #aantal HO types
