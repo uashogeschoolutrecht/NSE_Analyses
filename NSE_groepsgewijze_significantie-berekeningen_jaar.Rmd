@@ -182,8 +182,10 @@ for (i_croho in 1:Ncrohos)
                                                                                 bootse   = TRUE)
                                                                      $coefficients[3])
             
-            arr_p_HUT1[i_vraag-Ncor,i_vorm,i_ho,i_croho]  <- t.test(data_HU,
-                                                                    data_T1)$p.value
+            arr_p_HUT1[i_vraag-Ncor,i_vorm,i_ho,i_croho]  <- tryCatch(
+              t.test(data_HU, data_T1)$p.value,
+              error = function(e) NA
+            )
           }#Sluiten van else loop
         }#Sluiten van vraag-loop
       }#Sluiten van vorm-loop

@@ -46,9 +46,9 @@ Algemene statistieken bekijken voor alle vragen, per groep. Dit geeft een inkijk
 
 ```{r Statistieken voor alle vragen}
 
-describeBy(nse_benchmark_clean[,vec_NSEvragen], vec_groepHU)
-describeBy(nse_benchmark_clean[,vec_NSEvragen], vec_groepR6)
-describeBy(nse_benchmark_clean[,vec_NSEvragen], vec_groepAL)
+psych::describeBy(nse_benchmark_clean[,vec_NSEvragen], vec_groepHU)
+psych::describeBy(nse_benchmark_clean[,vec_NSEvragen], vec_groepR6)
+psych::describeBy(nse_benchmark_clean[,vec_NSEvragen], vec_groepAL)
 
 ```
 
