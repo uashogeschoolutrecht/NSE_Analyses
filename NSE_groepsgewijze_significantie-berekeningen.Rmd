@@ -224,8 +224,9 @@ for (i_croho in 1:Ncrohos)
                                                                           samedata = FALSE,
                                                                           bootse   = TRUE)
                                                                $coefficients[3])
-          arr_p_HUAL[i_vraag-Ncor,i_vorm,i_ho,i_croho]  <- t.test(data_HU,
-                                                              data_AL)$p.value
+          arr_p_HUAL[i_vraag-Ncor,i_vorm,i_ho,i_croho]  <- tryCatch(
+            t.test(data_HU, data_AL)$p.value, error = function(e) NA)
+                                                              
           }
           
         }#Sluiten van else loop
@@ -363,5 +364,5 @@ rm(tempR6, tempAL)
 Resultaten wegschrijven
 
 ```{r Wegschrijven naar .csv}
-write.csv2(nse_significanties, file = paste("C:/Users/",user,"/Stichting Hogeschool Utrecht/FCA-DA-P - Analytics/NSE/data/NSEsignificantietabel", NSEjaar, ".csv", sep = ""))
+write.csv2(nse_significanties, file = paste("C:/Users/",user,"/Stichting Hogeschool Utrecht/FCA-DA-P - Analytics/NSE/data/NSEsignificantietabel", NSEjaar, "2.csv", sep = ""))
 ```
