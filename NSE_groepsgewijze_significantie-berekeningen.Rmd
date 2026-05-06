@@ -33,7 +33,7 @@ library(dplyr)     #Nodig voor na_if() functie
 # 1. Inladen NSE benchmark bestand (clean data)
 
 ```{r Inlezen .csv}
-NSEjaar = 2025 # Kies het NSE jaar om te analyseren
+NSEjaar = 2026 # Kies het NSE jaar om te analyseren
 
 user <- Sys.getenv("USERNAME") #Vind de Windows username voor het instellen van padnaam waar csv-bestand staat
 load(paste("C:/Users/",user,"/Stichting Hogeschool Utrecht/FCA-DA-P - Analytics/NSE/data/NSE", NSEjaar, " nse_benchmark_clean.RData", sep = ""))
@@ -46,9 +46,9 @@ Algemene statistieken bekijken voor alle vragen, per groep. Dit geeft een inkijk
 
 ```{r Statistieken voor alle vragen}
 
-describeBy(nse_benchmark_clean[,vec_NSEvragen], vec_groepHU)
-describeBy(nse_benchmark_clean[,vec_NSEvragen], vec_groepR6)
-describeBy(nse_benchmark_clean[,vec_NSEvragen], vec_groepAL)
+psych::describeBy(nse_benchmark_clean[,vec_NSEvragen], vec_groepHU)
+psych::describeBy(nse_benchmark_clean[,vec_NSEvragen], vec_groepR6)
+psych::describeBy(nse_benchmark_clean[,vec_NSEvragen], vec_groepAL)
 
 ```
 
@@ -95,9 +95,27 @@ arr_diff_HUAL   <- array(NA, c(Nvragen, int_vorm, NHO, Ncrohos))
 #Definieer correctiefactor zodat index voor het vullen van p waardes op 1 begint en niet op 28
 Ncor <- Neerste - 1 
 
+#Starttijd opslaan voor tijdsinschatting
+t_start <- Sys.time()
+
 #Voor elke croho / instituut
 for (i_croho in 1:Ncrohos)
 {
+  
+  #Voortgang tonen
+  t_nu <- Sys.time()
+  t_verstreken <- difftime(t_nu, t_start, units = "mins")
+  if (i_croho > 1) {
+    t_per_croho <- as.numeric(t_verstreken) / (i_croho - 1)
+    t_resterend <- round(t_per_croho * (Ncrohos - i_croho + 1), 1)
+    cat(sprintf("\r[%s] Croho %d/%d (%.0f%%) | Verstreken: %.1f min | Geschat resterend: %.1f min",
+                format(t_nu, "%H:%M:%S"), i_croho, Ncrohos,
+                (i_croho - 1) / Ncrohos * 100, as.numeric(t_verstreken), t_resterend))
+  } else {
+    cat(sprintf("\r[%s] Croho %d/%d (0%%) | Gestart...",
+                format(t_nu, "%H:%M:%S"), i_croho, Ncrohos))
+  }
+  flush.console()
   
   #Voor elke type HO onderstaande berekening herhalen
   for (i_ho in 1:NHO)
@@ -171,20 +189,15 @@ for (i_croho in 1:Ncrohos)
                                                                                 i_ho,
                                                                                 i_croho]
         
-        #Groepsgroote HU-groep moet minimaal 5 responses zijn en vraag 64 wordt overgeslagen
-        if (arr_N_HU[i_vraag-Ncor,i_vorm,i_ho,i_croho]< 5 |
-            i_vraag == ind_exclusie)
+        #Groepsgroote HU-groep moet minimaal 5 responses zijn
+        if (arr_N_HU[i_vraag-Ncor,i_vorm,i_ho,i_croho]< 5)
         {
           next #Sla groep over en ga naar volgende iteratie
         }
         else
         {
-          #Groepsgrootte R6 benchmark moet ook minimaal 5 responses groot zijn
-          if(arr_N_R6[i_vraag-Ncor,i_vorm,i_ho,i_croho]< 5)
-          {
-            next #Sla benchmarkvergelijking met R6 over
-          }
-          else
+          #Groepsgrootte R6 benchmark moet minimaal 5 responses groot zijn om te kunnen vergelijken
+          if(arr_N_R6[i_vraag-Ncor,i_vorm,i_ho,i_croho] >= 5)
           {
           #Berekenen p waarden vergelijking HU met R6
           arr_p_HUR6_w[i_vraag-Ncor,i_vorm,i_ho,i_croho] <- unname(wtd.t.test(data_HU,
@@ -198,14 +211,11 @@ for (i_croho in 1:Ncrohos)
           arr_p_HUR6[i_vraag-Ncor,i_vorm,i_ho,i_croho]  <- t.test(data_HU,
                                                               data_R6)$p.value
           }
-          #Groepsgrootte R6 benchmark moet ook minimaal 5 responses groot zijn
-          if(arr_N_AL[i_vraag-Ncor,i_vorm,i_ho,i_croho]< 5)
-          {
-            next #Sla benchmarkvergelijking met AL over
-          }
-          else
+          #Groepsgrootte AL benchmark moet minimaal 5 responses groot zijn om te kunnen vergelijken
+          if(arr_N_AL[i_vraag-Ncor,i_vorm,i_ho,i_croho] >= 5)
           {
           #Berekenen p waarden vergelijking HU met Alle instellingen
+          
           arr_p_HUAL_w[i_vraag-Ncor,i_vorm,i_ho,i_croho] <- unname(wtd.t.test(data_HU,
                                                                           data_AL,
                                                                           weight   = data_w_HU,
@@ -214,8 +224,9 @@ for (i_croho in 1:Ncrohos)
                                                                           samedata = FALSE,
                                                                           bootse   = TRUE)
                                                                $coefficients[3])
-          arr_p_HUAL[i_vraag-Ncor,i_vorm,i_ho,i_croho]  <- t.test(data_HU,
-                                                              data_AL)$p.value
+          arr_p_HUAL[i_vraag-Ncor,i_vorm,i_ho,i_croho]  <- tryCatch(
+            t.test(data_HU, data_AL)$p.value, error = function(e) NA)
+                                                              
           }
           
         }#Sluiten van else loop
@@ -224,7 +235,9 @@ for (i_croho in 1:Ncrohos)
   }#Sluiten van typeHO-loop
 }#Sluiten van croho-loop
 
-rm(Ncor)
+cat(sprintf("\nKlaar! Totale looptijd: %.1f minuten\n", as.numeric(difftime(Sys.time(), t_start, units = "mins"))))
+
+rm(t_start)
 ```
 
 # 3B. Multiple testing correctie p-waarden
@@ -277,43 +290,6 @@ p_HUAL_w_adj<- array(NA, c(Nvragen, int_vorm, NHO, Ncrohos))
     }
   }
 
-# Bekijken van verschuiving oorspronkelijke p en p_adj
-i_vorm = 4; i_ho = 4; i_croho = 95; #Waardes bekijken voor croho = Instituut Archimedes
-
-plot(arr_p_HUR6[,i_vorm,
-            i_ho,
-            i_croho], 
-     p_HUR6_adj[,i_vorm,
-                i_ho,
-                i_croho]); 
-abline(h = 0.05, v=0.05)
-
-rm(arr_p_HUR6, arr_p_HUAL)
-```
-
-```{r Visualiseren test-statistiek HU <> R6}
-#Bekijken uitkomstmaten (delta inclusief significantie in kleur)
-plot(p_HUR6_adj[,i_vorm,i_ho,i_croho])
-abline(h = 0.05)
-groepering <- ifelse(arr_diff_HUR6[,i_vorm,i_ho,i_croho]  > 0 & 
-                     p_HUR6_adj[,i_vorm,i_ho,i_croho] < 0.05, 3, 
-              ifelse(arr_diff_HUR6[,i_vorm,i_ho,i_croho]  < 0 & 
-                     p_HUR6_adj[,i_vorm,i_ho,i_croho] < 0.05, 2, 1))
-plot(arr_diff_HUR6[,i_vorm,i_ho,i_croho], col = groepering, pch = 19, 
-     xlab = "NSE vraag", 
-     ylab = "Gemiddelde verschil (delta) tussen HU en R6")
-```
-
-```{r Visualiseren test-statistiek HU <> AL}
-plot(p_HUAL_adj[,i_vorm,i_ho,i_croho])
-abline(h = 0.05)
-groepering <- ifelse(arr_diff_HUAL[,i_vorm,i_ho,i_croho]  > 0 &
-                     p_HUAL_adj[,i_vorm,i_ho,i_croho] < 0.05, 3,               
-              ifelse(arr_diff_HUAL[,i_vorm,i_ho,i_croho]  < 0 & 
-                     p_HUAL_adj[,i_vorm,i_ho,i_croho] < 0.05, 2, 1))
-plot(arr_diff_HUAL[,i_vorm,i_ho,i_croho], col = groepering, pch = 19, 
-     xlab = "NSE vraag", 
-     ylab = "Gemiddelde verschil tussen HU en AL andere hogescholen")
 ```
 
 # 4. Exporteren p waardes
@@ -388,5 +364,5 @@ rm(tempR6, tempAL)
 Resultaten wegschrijven
 
 ```{r Wegschrijven naar .csv}
-write.csv2(nse_significanties, file = paste("C:/Users/",user,"/Stichting Hogeschool Utrecht/FCA-DA-P - Analytics/NSE/data/NSEsignificantietabel", NSEjaar, ".csv", sep = ""))
+write.csv2(nse_significanties, file = paste("C:/Users/",user,"/Stichting Hogeschool Utrecht/FCA-DA-P - Analytics/NSE/data/NSEsignificantietabel", NSEjaar, "2.csv", sep = ""))
 ```
